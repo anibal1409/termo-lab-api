@@ -103,8 +103,9 @@ export class User extends IdEntity {
   @BeforeInsert()
   async generateAndHashPassword() {
     // Genera una contraseña aleatoria de 12 caracteres
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
     const randomPassword = randomBytes(8).toString('hex');
-    this.password = await bcrypt.hash(randomPassword, 10);
+    this.password = await bcrypt.hash(randomPassword, saltRounds);
 
     // En un sistema real, aquí enviarías el email con la contraseña temporal
     // o un enlace para establecer contraseña
