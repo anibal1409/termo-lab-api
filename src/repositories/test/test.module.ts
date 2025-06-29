@@ -21,6 +21,6 @@ import { TestService } from './test.service';
   controllers: [TestController], // Define los controladores que pertenecen a este módulo
   providers: [TestService], // Define los proveedores (servicios, etc.) que pertenecen a este módulo
   // Opcional: si necesitas exponer TestService o TypeOrmModule a otros módulos, agrégalos a 'exports'
-  // exports: [TestService, TypeOrmModule]
+  exports: [TestService, TypeOrmModule],
 })
 export class TestModule {}

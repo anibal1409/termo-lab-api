@@ -2,105 +2,102 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { BaseResponseDto } from '../../base';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
-import { Treatment } from '../entities/treatment.entity';
 
 /**
- * DTO para la respuesta de un tratamiento.
- * Incluye todos los campos del tratamiento más información del usuario creador.
+ * DTO para la respuesta detallada de un tratamiento térmico.
+ * Incluye todos los campos de cálculo y diseño según API-12L.
  */
 export class TreatmentResponseDto extends BaseResponseDto {
   @ApiProperty({
     description: 'Nombre del tratamiento',
-    example: 'Tratamiento de crudo',
+    example: 'Tratamiento para crudo 18°API',
   })
   name: string;
 
   @ApiProperty({
     description: 'Descripción del tratamiento',
-    example: 'Tratamiento para crudo pesado',
+    example: 'Diseño para 500 bbl/día con 20% agua',
     required: false,
   })
   description?: string;
 
   @ApiProperty({
-    description: 'Tipo de tratamiento',
-    example: 'Deshidratación',
+    description: 'Tipo de tratador (vertical/horizontal)',
+    example: 'horizontal',
+    enum: ['vertical', 'horizontal'],
   })
   type: string;
 
-  @ApiProperty({ description: 'Flujo total (bpd)', example: 5000 })
+  @ApiProperty({ description: 'Flujo total de emulsión (bpd)', example: 500 })
   totalFlow: number;
 
-  @ApiProperty({ description: 'Fracción de agua', example: 0.3 })
+  @ApiProperty({ description: 'Fracción de agua (%)', example: 20 })
   waterFraction: number;
 
-  @ApiProperty({ description: 'Temperatura de entrada (°F)', example: 120 })
+  @ApiProperty({ description: 'Temperatura de entrada (°F)', example: 75 })
   inputTemperature: number;
 
-  @ApiProperty({ description: 'Temperatura de tratamiento (°F)', example: 180 })
+  @ApiProperty({ description: 'Temperatura de tratamiento (°F)', example: 140 })
   treatmentTemperature: number;
 
-  @ApiProperty({
-    description: 'Tiempo de retención de aceite (min)',
-    example: 30,
-  })
+  @ApiProperty({ description: 'Temperatura ambiente (°F)', example: 30 })
+  ambientTemperature: number;
+
+  @ApiProperty({ description: 'Tiempo retención petróleo (min)', example: 60 })
   oilRetentionTime: number;
 
-  @ApiProperty({
-    description: 'Tiempo de retención de agua (min)',
-    example: 20,
-  })
+  @ApiProperty({ description: 'Tiempo retención agua (min)', example: 30 })
   waterRetentionTime: number;
 
-  @ApiProperty({ description: 'Velocidad del viento (mph)', example: 10 })
+  @ApiProperty({ description: 'Velocidad del viento (mph)', example: 15 })
   windSpeed: number;
 
-  @ApiProperty({ description: 'Gravedad API del crudo', example: 32 })
+  @ApiProperty({ description: 'Gravedad API del crudo', example: 18 })
   apiGravity: number;
 
   @ApiProperty({
-    description: 'Flujo de aceite calculado (bpd)',
-    example: 3500,
+    description: 'Flujo de petróleo calculado (bpd)',
+    example: 400,
   })
   calculatedOilFlow: number;
 
-  @ApiProperty({ description: 'Flujo de agua calculado (bpd)', example: 1500 })
+  @ApiProperty({ description: 'Flujo de agua calculado (bpd)', example: 100 })
   calculatedWaterFlow: number;
 
   @ApiProperty({
-    description: 'Volumen de retención de aceite (bbl)',
-    example: 500,
+    description: 'Volumen retención petróleo (bbl)',
+    example: 16.67,
   })
   oilRetentionVolume: number;
 
-  @ApiProperty({
-    description: 'Volumen de retención de agua (bbl)',
-    example: 300,
-  })
+  @ApiProperty({ description: 'Volumen retención agua (bbl)', example: 2.08 })
   waterRetentionVolume: number;
 
-  @ApiProperty({ description: 'Calor requerido (BTU/hr)', example: 1500000 })
+  @ApiProperty({ description: 'Calor requerido (BTU/hr)', example: 262210 })
   requiredHeat: number;
 
-  @ApiProperty({ description: 'Pérdida de calor (BTU/hr)', example: 150000 })
+  @ApiProperty({ description: 'Pérdidas de calor (BTU/hr)', example: 87120 })
   heatLoss: number;
 
-  @ApiProperty({ description: 'Calor total (BTU/hr)', example: 1650000 })
+  @ApiProperty({ description: 'Calor total (BTU/hr)', example: 349330 })
   totalHeat: number;
 
-  @ApiProperty({ description: 'Diámetro seleccionado (pulg)', example: 48 })
+  @ApiProperty({ description: 'Diámetro seleccionado (ft)', example: 4 })
   selectedDiameter: number;
 
-  @ApiProperty({ description: 'Longitud seleccionada (pies)', example: 20 })
+  @ApiProperty({ description: 'Longitud seleccionada (ft)', example: 15 })
   selectedLength: number;
 
+  @ApiProperty({ description: 'Presión de diseño (psig)', example: 50 })
+  designPressure: number;
+
   @ApiProperty({
-    type: UserResponseDto,
     description: 'Usuario creador del tratamiento',
+    type: UserResponseDto,
   })
   createdBy: UserResponseDto;
 
-  constructor(treatment: Treatment) {
+  constructor(treatment: any) {
     super(treatment);
     this.name = treatment.name;
     this.description = treatment.description;
@@ -109,6 +106,7 @@ export class TreatmentResponseDto extends BaseResponseDto {
     this.waterFraction = treatment.waterFraction;
     this.inputTemperature = treatment.inputTemperature;
     this.treatmentTemperature = treatment.treatmentTemperature;
+    this.ambientTemperature = treatment.ambientTemperature;
     this.oilRetentionTime = treatment.oilRetentionTime;
     this.waterRetentionTime = treatment.waterRetentionTime;
     this.windSpeed = treatment.windSpeed;
@@ -122,6 +120,7 @@ export class TreatmentResponseDto extends BaseResponseDto {
     this.totalHeat = treatment.totalHeat;
     this.selectedDiameter = treatment.selectedDiameter;
     this.selectedLength = treatment.selectedLength;
+    this.designPressure = treatment.designPressure;
     this.createdBy = new UserResponseDto(treatment.createdBy);
   }
 }
