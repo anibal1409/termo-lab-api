@@ -1,0 +1,2689 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Autentica al usuario y establece una cookie HTTP-only con el JWT",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso (token en cookie)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          }
+        },
+        "summary": "Iniciar sesión",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "description": "Crea una nueva cuenta de usuario",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario registrado (token en cookie)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "409": {
+            "description": "El usuario ya existe"
+          }
+        },
+        "summary": "Registrar usuario",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Invalida el token JWT y limpia la cookie",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Sesión cerrada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "access_token": []
+          }
+        ],
+        "summary": "Cerrar sesión",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Datos para crear un usuario",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente. La contraseña se genera automáticamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          }
+        },
+        "summary": "Crea un nuevo usuario",
+        "tags": [
+          "users"
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findPaginated",
+        "parameters": [
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda opcional.",
+            "schema": {
+              "example": "ejemplo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página para la paginación (base 1).",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "Número de elementos por página.",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Campo por el cual ordenar los resultados.",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Dirección del ordenamiento (ASC o DESC).",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuarios paginados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene usuarios activos de forma paginada",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/all": {
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista completa de usuarios activos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtiene todos los usuarios activos (lista completa)",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del usuario",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "summary": "Obtiene un usuario activo por ID",
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del usuario",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Datos para actualizar",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "summary": "Actualiza un usuario por ID",
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del usuario",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario marcado como eliminado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "summary": "Elimina lógicamente un usuario por ID",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/treatments": {
+      "post": {
+        "operationId": "TreatmentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Datos requeridos para crear un tratamiento",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTreatmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tratamiento creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          }
+        },
+        "summary": "Crear un nuevo tratamiento",
+        "tags": [
+          "Treatments"
+        ]
+      },
+      "get": {
+        "operationId": "TreatmentsController_findPaginated",
+        "parameters": [
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda opcional.",
+            "schema": {
+              "example": "ejemplo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "Número de elementos por página.",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Campo por el cual ordenar",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Dirección de ordenamiento (ASC/DESC)",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Texto para búsqueda",
+            "schema": {}
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Límite de resultados por página",
+            "schema": {
+              "example": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamientos paginados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener tratamientos paginados",
+        "tags": [
+          "Treatments"
+        ]
+      }
+    },
+    "/treatments/all": {
+      "get": {
+        "operationId": "TreatmentsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de tratamientos activos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TreatmentResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener todos los tratamientos activos",
+        "tags": [
+          "Treatments"
+        ]
+      }
+    },
+    "/treatments/{id}": {
+      "get": {
+        "operationId": "TreatmentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tratamiento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamiento encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tratamiento no encontrado"
+          }
+        },
+        "summary": "Obtener un tratamiento por ID",
+        "tags": [
+          "Treatments"
+        ]
+      },
+      "patch": {
+        "operationId": "TreatmentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tratamiento a actualizar",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Datos a actualizar",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTreatmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tratamiento actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "404": {
+            "description": "Tratamiento no encontrado"
+          }
+        },
+        "summary": "Actualizar un tratamiento",
+        "tags": [
+          "Treatments"
+        ]
+      },
+      "delete": {
+        "operationId": "TreatmentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tratamiento a eliminar",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamiento eliminado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tratamiento no encontrado"
+          }
+        },
+        "summary": "Eliminar un tratamiento (soft delete)",
+        "tags": [
+          "Treatments"
+        ]
+      }
+    },
+    "/treatments/user/{userId}/all": {
+      "get": {
+        "operationId": "TreatmentsController_findAllByUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "ID del usuario",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tratamientos del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TreatmentResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "summary": "Obtener todos los tratamientos de un usuario",
+        "tags": [
+          "Treatments"
+        ]
+      }
+    },
+    "/treatments/user/{userId}": {
+      "get": {
+        "operationId": "TreatmentsController_findPaginatedByUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "ID del usuario",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda opcional.",
+            "schema": {
+              "example": "ejemplo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página para la paginación (base 1).",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "Número de elementos por página.",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Campo por el cual ordenar los resultados.",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Dirección del ordenamiento (ASC o DESC).",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por tipo de tratamiento",
+            "schema": {
+              "example": "Deshidratación",
+              "type": "string"
+            }
+          },
+          {
+            "name": "minTotalFlow",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por flujo total mínimo (bpd)",
+            "schema": {
+              "example": 1000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxTotalFlow",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por flujo total máximo (bpd)",
+            "schema": {
+              "example": 5000,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minWaterFraction",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por fracción de agua mínima",
+            "schema": {
+              "example": 0.1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxWaterFraction",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por fracción de agua máxima",
+            "schema": {
+              "example": 0.5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minApiGravity",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por gravedad API mínima",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxApiGravity",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por gravedad API máxima",
+            "schema": {
+              "example": 40,
+              "type": "number"
+            }
+          },
+          {
+            "name": "deleted",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por estado de eliminación lógica",
+            "schema": {
+              "example": false,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "createdById",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por ID de usuario creador",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por fecha mínima de creación (formato YYYY-MM-DD)",
+            "schema": {
+              "example": "2023-01-01",
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxCreatedAt",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por fecha máxima de creación (formato YYYY-MM-DD)",
+            "schema": {
+              "example": "2023-12-31",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tratamientos paginados del usuario",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "summary": "Obtener tratamientos paginados de un usuario",
+        "tags": [
+          "Treatments"
+        ]
+      }
+    },
+    "/treatment-options": {
+      "post": {
+        "operationId": "TreatmentOptionController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTreatmentOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Opción creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          }
+        },
+        "summary": "Crear una nueva opción de tratamiento",
+        "tags": [
+          "treatment-options"
+        ]
+      },
+      "get": {
+        "operationId": "TreatmentOptionController_findAll",
+        "parameters": [
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda opcional.",
+            "schema": {
+              "example": "ejemplo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página para la paginación (base 1).",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "Número de elementos por página.",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Campo por el cual ordenar los resultados.",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Dirección del ordenamiento (ASC o DESC).",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de opciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener todas las opciones de tratamiento paginadas",
+        "tags": [
+          "treatment-options"
+        ]
+      }
+    },
+    "/treatment-options/{id}": {
+      "get": {
+        "operationId": "TreatmentOptionController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "summary": "Obtener una opción de tratamiento por ID",
+        "tags": [
+          "treatment-options"
+        ]
+      },
+      "put": {
+        "operationId": "TreatmentOptionController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTreatmentOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Opción actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "summary": "Actualizar una opción de tratamiento existente",
+        "tags": [
+          "treatment-options"
+        ]
+      },
+      "delete": {
+        "operationId": "TreatmentOptionController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción marcada como eliminada"
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "summary": "Eliminar lógicamente una opción de tratamiento",
+        "tags": [
+          "treatment-options"
+        ]
+      }
+    },
+    "/treatment-options/type/{type}": {
+      "get": {
+        "operationId": "TreatmentOptionController_findByType",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de opciones del tipo especificado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener opciones por tipo (vertical/horizontal)",
+        "tags": [
+          "treatment-options"
+        ]
+      }
+    },
+    "/treatment-options/best-match": {
+      "get": {
+        "operationId": "TreatmentOptionController_findBestOption",
+        "parameters": [
+          {
+            "name": "heat",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "volume",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mejor opción encontrada o null",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Encontrar la mejor opción basada en parámetros técnicos",
+        "tags": [
+          "treatment-options"
+        ]
+      }
+    },
+    "/evaluations": {
+      "post": {
+        "operationId": "EvaluationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEvaluationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Evaluación creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear una nueva evaluación",
+        "tags": [
+          "Evaluations"
+        ]
+      },
+      "get": {
+        "operationId": "EvaluationsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de evaluaciones obtenida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EvaluationResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener todas las evaluaciones",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    },
+    "/evaluations/{id}": {
+      "get": {
+        "operationId": "EvaluationsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evaluación encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Evaluación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener evaluación por ID",
+        "tags": [
+          "Evaluations"
+        ]
+      },
+      "patch": {
+        "operationId": "EvaluationsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEvaluationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Evaluación actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Evaluación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar evaluación existente",
+        "tags": [
+          "Evaluations"
+        ]
+      },
+      "delete": {
+        "operationId": "EvaluationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Evaluación eliminada"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Evaluación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar evaluación",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    },
+    "/evaluations/{id}/calculate": {
+      "post": {
+        "operationId": "EvaluationsController_calculateResult",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado calculado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Evaluación sin criterios"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Evaluación no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Calcular resultado de evaluación",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    },
+    "/evaluations/from-template/{templateId}": {
+      "post": {
+        "operationId": "EvaluationsController_createFromTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Evaluación creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Plantilla no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear evaluación desde plantilla",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "TermoLab API",
+    "description": "API para gestión de tratamientos térmicos",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UserDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com"
+          },
+          "role": {
+            "type": "string",
+            "example": "user"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role"
+        ]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje descriptivo del resultado"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDataDto"
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2023-12-31T23:59:59Z"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "user",
+          "expiresAt"
+        ]
+      },
+      "RegisterDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RegisterResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa"
+          },
+          "message": {
+            "type": "string",
+            "description": "Mensaje descriptivo del resultado"
+          },
+          "user": {
+            "description": "Datos básicos del usuario registrado",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserDataDto"
+              }
+            ]
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2023-12-31T23:59:59Z",
+            "description": "Fecha de expiración del token en formato ISO"
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "user",
+          "expiresAt"
+        ]
+      },
+      "LogoutResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true,
+            "description": "Indica si el logout fue exitoso"
+          },
+          "message": {
+            "type": "string",
+            "example": "Sesión cerrada exitosamente",
+            "description": "Mensaje descriptivo del resultado"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre completo del usuario",
+            "example": "María González",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "birthDate": {
+            "type": "string",
+            "description": "Fecha de nacimiento (YYYY-MM-DD)",
+            "example": "1985-05-15"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario",
+            "enum": [
+              "admin",
+              "operator"
+            ],
+            "example": "operator"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico único",
+            "example": "maria.gonzalez@example.com"
+          }
+        },
+        "required": [
+          "name",
+          "birthDate",
+          "role",
+          "email"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre completo del usuario",
+            "example": "María González"
+          },
+          "birthDate": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de nacimiento",
+            "example": "1985-05-15"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario",
+            "enum": [
+              "admin",
+              "operator"
+            ],
+            "example": "operator"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico único",
+            "example": "maria.gonzalez@example.com"
+          },
+          "lastLogin": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha del último inicio de sesión",
+            "example": "2023-10-30T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "birthDate",
+          "role",
+          "email"
+        ]
+      },
+      "PaginationDataDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "description": "El número total de elementos en la colección completa.",
+            "example": 100
+          },
+          "currentPage": {
+            "type": "number",
+            "description": "El número de la página actual (base 1).",
+            "example": 1
+          },
+          "lastPage": {
+            "type": "number",
+            "description": "El número de la última página disponible.",
+            "example": 10
+          },
+          "pageSize": {
+            "type": "number",
+            "description": "El número de elementos por página.",
+            "example": 10
+          },
+          "totalPages": {
+            "type": "number",
+            "description": "El número total de páginas disponibles.",
+            "example": 10
+          },
+          "hasNextPage": {
+            "type": "boolean",
+            "description": "Indica si hay una página siguiente disponible.",
+            "example": true
+          },
+          "hasPrevPage": {
+            "type": "boolean",
+            "description": "Indica si hay una página anterior disponible.",
+            "example": false
+          }
+        },
+        "required": [
+          "total",
+          "currentPage",
+          "lastPage",
+          "pageSize",
+          "totalPages",
+          "hasNextPage",
+          "hasPrevPage"
+        ]
+      },
+      "PaginationDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "description": "Array de elementos para la página actual.",
+            "items": {}
+          },
+          "paginationData": {
+            "description": "Metadatos de paginación.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PaginationDataDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "paginationData"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre completo del usuario",
+            "example": "María González",
+            "minLength": 2,
+            "maxLength": 100
+          },
+          "birthDate": {
+            "type": "string",
+            "description": "Fecha de nacimiento (YYYY-MM-DD)",
+            "example": "1985-05-15"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario",
+            "enum": [
+              "admin",
+              "operator"
+            ],
+            "example": "operator"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico único",
+            "example": "maria.gonzalez@example.com"
+          }
+        }
+      },
+      "CreateTreatmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del tratamiento",
+            "example": "Tratamiento para crudo 18°API"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del tratamiento",
+            "example": "Diseño para 500 bbl/día con 20% agua"
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipo de tratador (vertical/horizontal)",
+            "example": "horizontal",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "totalFlow": {
+            "type": "number",
+            "description": "Flujo total de emulsión (bpd)",
+            "example": 500
+          },
+          "waterFraction": {
+            "type": "number",
+            "description": "Fracción de agua (%)",
+            "example": 20
+          },
+          "inputTemperature": {
+            "type": "number",
+            "description": "Temperatura de entrada (°F)",
+            "example": 75
+          },
+          "treatmentTemperature": {
+            "type": "number",
+            "description": "Temperatura de tratamiento (°F)",
+            "example": 140
+          },
+          "ambientTemperature": {
+            "type": "number",
+            "description": "Temperatura ambiente (°F)",
+            "example": 30
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "description": "Tiempo retención petróleo (min)",
+            "example": 60
+          },
+          "waterRetentionTime": {
+            "type": "number",
+            "description": "Tiempo retención agua (min)",
+            "example": 30
+          },
+          "windSpeed": {
+            "type": "number",
+            "description": "Velocidad del viento (mph)",
+            "example": 15
+          },
+          "apiGravity": {
+            "type": "number",
+            "description": "Gravedad API del crudo",
+            "example": 18
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "totalFlow",
+          "waterFraction",
+          "inputTemperature",
+          "treatmentTemperature",
+          "ambientTemperature",
+          "oilRetentionTime",
+          "waterRetentionTime",
+          "windSpeed",
+          "apiGravity"
+        ]
+      },
+      "TreatmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre del tratamiento",
+            "example": "Tratamiento para crudo 18°API"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del tratamiento",
+            "example": "Diseño para 500 bbl/día con 20% agua"
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipo de tratador (vertical/horizontal)",
+            "example": "horizontal",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "totalFlow": {
+            "type": "number",
+            "description": "Flujo total de emulsión (bpd)",
+            "example": 500
+          },
+          "waterFraction": {
+            "type": "number",
+            "description": "Fracción de agua (%)",
+            "example": 20
+          },
+          "inputTemperature": {
+            "type": "number",
+            "description": "Temperatura de entrada (°F)",
+            "example": 75
+          },
+          "treatmentTemperature": {
+            "type": "number",
+            "description": "Temperatura de tratamiento (°F)",
+            "example": 140
+          },
+          "ambientTemperature": {
+            "type": "number",
+            "description": "Temperatura ambiente (°F)",
+            "example": 30
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "description": "Tiempo retención petróleo (min)",
+            "example": 60
+          },
+          "waterRetentionTime": {
+            "type": "number",
+            "description": "Tiempo retención agua (min)",
+            "example": 30
+          },
+          "windSpeed": {
+            "type": "number",
+            "description": "Velocidad del viento (mph)",
+            "example": 15
+          },
+          "apiGravity": {
+            "type": "number",
+            "description": "Gravedad API del crudo",
+            "example": 18
+          },
+          "calculatedOilFlow": {
+            "type": "number",
+            "description": "Flujo de petróleo calculado (bpd)",
+            "example": 400
+          },
+          "calculatedWaterFlow": {
+            "type": "number",
+            "description": "Flujo de agua calculado (bpd)",
+            "example": 100
+          },
+          "oilRetentionVolume": {
+            "type": "number",
+            "description": "Volumen retención petróleo (bbl)",
+            "example": 16.67
+          },
+          "waterRetentionVolume": {
+            "type": "number",
+            "description": "Volumen retención agua (bbl)",
+            "example": 2.08
+          },
+          "requiredHeat": {
+            "type": "number",
+            "description": "Calor requerido (BTU/hr)",
+            "example": 262210
+          },
+          "heatLoss": {
+            "type": "number",
+            "description": "Pérdidas de calor (BTU/hr)",
+            "example": 87120
+          },
+          "totalHeat": {
+            "type": "number",
+            "description": "Calor total (BTU/hr)",
+            "example": 349330
+          },
+          "selectedDiameter": {
+            "type": "number",
+            "description": "Diámetro seleccionado (ft)",
+            "example": 4
+          },
+          "selectedLength": {
+            "type": "number",
+            "description": "Longitud seleccionada (ft)",
+            "example": 15
+          },
+          "designPressure": {
+            "type": "number",
+            "description": "Presión de diseño (psig)",
+            "example": 50
+          },
+          "createdBy": {
+            "description": "Usuario creador del tratamiento",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserResponseDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "type",
+          "totalFlow",
+          "waterFraction",
+          "inputTemperature",
+          "treatmentTemperature",
+          "ambientTemperature",
+          "oilRetentionTime",
+          "waterRetentionTime",
+          "windSpeed",
+          "apiGravity",
+          "calculatedOilFlow",
+          "calculatedWaterFlow",
+          "oilRetentionVolume",
+          "waterRetentionVolume",
+          "requiredHeat",
+          "heatLoss",
+          "totalHeat",
+          "selectedDiameter",
+          "selectedLength",
+          "designPressure",
+          "createdBy"
+        ]
+      },
+      "UpdateTreatmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del tratamiento",
+            "example": "Tratamiento para crudo 18°API"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del tratamiento",
+            "example": "Diseño para 500 bbl/día con 20% agua"
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipo de tratador (vertical/horizontal)",
+            "example": "horizontal",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "totalFlow": {
+            "type": "number",
+            "description": "Flujo total de emulsión (bpd)",
+            "example": 500
+          },
+          "waterFraction": {
+            "type": "number",
+            "description": "Fracción de agua (%)",
+            "example": 20
+          },
+          "inputTemperature": {
+            "type": "number",
+            "description": "Temperatura de entrada (°F)",
+            "example": 75
+          },
+          "treatmentTemperature": {
+            "type": "number",
+            "description": "Temperatura de tratamiento (°F)",
+            "example": 140
+          },
+          "ambientTemperature": {
+            "type": "number",
+            "description": "Temperatura ambiente (°F)",
+            "example": 30
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "description": "Tiempo retención petróleo (min)",
+            "example": 60
+          },
+          "waterRetentionTime": {
+            "type": "number",
+            "description": "Tiempo retención agua (min)",
+            "example": 30
+          },
+          "windSpeed": {
+            "type": "number",
+            "description": "Velocidad del viento (mph)",
+            "example": 15
+          },
+          "apiGravity": {
+            "type": "number",
+            "description": "Gravedad API del crudo",
+            "example": 18
+          }
+        }
+      },
+      "CreateTreatmentOptionDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Tipo de tratador (vertical/horizontal)",
+            "example": "horizontal",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "diameter": {
+            "type": "number",
+            "description": "Diámetro exterior (ft)",
+            "example": 4
+          },
+          "length": {
+            "type": "number",
+            "description": "Longitud estándar (ft)",
+            "example": 15
+          },
+          "designPressure": {
+            "type": "number",
+            "description": "Presión de diseño (psig)",
+            "example": 50
+          },
+          "minHeatCapacity": {
+            "type": "number",
+            "description": "Capacidad mínima de calor (BTU/hr)",
+            "example": 250000
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notas adicionales",
+            "example": "Para crudos entre 15-25°API"
+          }
+        },
+        "required": [
+          "type",
+          "diameter",
+          "length",
+          "designPressure",
+          "minHeatCapacity"
+        ]
+      },
+      "TreatmentOptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipo de tratador (vertical/horizontal)",
+            "example": "horizontal",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "diameter": {
+            "type": "number",
+            "description": "Diámetro exterior (ft)",
+            "example": 4
+          },
+          "length": {
+            "type": "number",
+            "description": "Longitud estándar (ft)",
+            "example": 15
+          },
+          "designPressure": {
+            "type": "number",
+            "description": "Presión de diseño (psig)",
+            "example": 50
+          },
+          "minHeatCapacity": {
+            "type": "number",
+            "description": "Capacidad mínima de calor (BTU/hr)",
+            "example": 250000
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notas adicionales",
+            "example": "Para crudos entre 15-25°API"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "type",
+          "diameter",
+          "length",
+          "designPressure",
+          "minHeatCapacity"
+        ]
+      },
+      "UpdateTreatmentOptionDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Tipo de tratador (vertical/horizontal)",
+            "example": "horizontal",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ]
+          },
+          "diameter": {
+            "type": "number",
+            "description": "Diámetro exterior (ft)",
+            "example": 4
+          },
+          "length": {
+            "type": "number",
+            "description": "Longitud estándar (ft)",
+            "example": 15
+          },
+          "designPressure": {
+            "type": "number",
+            "description": "Presión de diseño (psig)",
+            "example": 50
+          },
+          "minHeatCapacity": {
+            "type": "number",
+            "description": "Capacidad mínima de calor (BTU/hr)",
+            "example": 250000
+          },
+          "notes": {
+            "type": "string",
+            "description": "Notas adicionales",
+            "example": "Para crudos entre 15-25°API"
+          }
+        }
+      },
+      "CreateExternalTreatmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre identificador del tratador",
+            "example": "Tratador Field X-102",
+            "maxLength": 255
+          },
+          "type": {
+            "type": "string",
+            "description": "Configuración física del tratador",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ],
+            "example": "horizontal"
+          },
+          "totalFlow": {
+            "type": "number",
+            "description": "Flujo total de emulsión en barriles por día (bpd)",
+            "example": 500
+          },
+          "waterFraction": {
+            "type": "number",
+            "description": "Porcentaje de agua en la emulsión (%)",
+            "example": 20
+          },
+          "apiGravity": {
+            "type": "number",
+            "description": "Gravedad API del crudo procesado",
+            "example": 18
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "description": "Tiempo de retención de petróleo en minutos",
+            "example": 60
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "totalFlow"
+        ]
+      },
+      "CreateEvaluationCriteriaDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre descriptivo del parámetro evaluado",
+            "example": "Retención de petróleo",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "description": "Explicación detallada del criterio y metodología de evaluación",
+            "example": "Tiempo mínimo requerido: 60 minutos según norma API-12L sección 4.5"
+          },
+          "requiredValue": {
+            "type": "number",
+            "description": "Valor de referencia según normativa aplicable",
+            "example": 60
+          },
+          "actualValue": {
+            "type": "number",
+            "description": "Valor real obtenido durante la evaluación",
+            "example": 62.5
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Indica si el valor actual cumple con el requerimiento",
+            "example": true
+          },
+          "complianceMargin": {
+            "type": "number",
+            "description": "Porcentaje de cumplimiento respecto al valor requerido (100% = cumplimiento exacto)",
+            "example": 104.17
+          },
+          "isCritical": {
+            "type": "boolean",
+            "description": "Si es verdadero, el incumplimiento de este criterio rechaza automáticamente la evaluación",
+            "example": true,
+            "default": false
+          },
+          "weight": {
+            "type": "number",
+            "description": "Ponderación del criterio en la evaluación global (1-100)",
+            "example": 30,
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "requiredValue",
+          "actualValue",
+          "approved",
+          "complianceMargin"
+        ]
+      },
+      "CreateEvaluationDto": {
+        "type": "object",
+        "properties": {
+          "evaluationType": {
+            "type": "string",
+            "description": "Tipo de evaluación (internal: tratador registrado, external: tratador externo)",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "example": "internal"
+          },
+          "treatmentId": {
+            "type": "number",
+            "description": "ID del tratamiento registrado en el sistema (requerido para tipo internal)",
+            "example": 1
+          },
+          "externalTreatment": {
+            "description": "Datos completos de tratador externo (requerido para tipo external)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateExternalTreatmentDto"
+              }
+            ]
+          },
+          "evaluationDate": {
+            "type": "string",
+            "description": "Fecha y hora de la evaluación (formato ISO 8601)",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Resultado general de la evaluación",
+            "example": true
+          },
+          "comments": {
+            "type": "string",
+            "description": "Observaciones o comentarios sobre la evaluación",
+            "example": "Cumple con los requisitos mínimos pero requiere monitoreo adicional"
+          },
+          "criteria": {
+            "description": "Criterios técnicos evaluados",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateEvaluationCriteriaDto"
+            }
+          }
+        },
+        "required": [
+          "evaluationType",
+          "evaluationDate",
+          "approved",
+          "criteria"
+        ]
+      },
+      "ExternalTreatmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID único del tratador externo"
+          },
+          "name": {
+            "type": "string",
+            "example": "Tratador Field X-102",
+            "description": "Nombre identificador"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "vertical",
+              "horizontal"
+            ],
+            "example": "horizontal",
+            "description": "Configuración física del tratador"
+          },
+          "totalFlow": {
+            "type": "number",
+            "example": 500,
+            "description": "Flujo total en barriles por día (bpd)"
+          },
+          "waterFraction": {
+            "type": "number",
+            "example": 20,
+            "description": "Porcentaje de agua en emulsión"
+          },
+          "apiGravity": {
+            "type": "number",
+            "example": 18,
+            "description": "Gravedad API del crudo"
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "example": 60,
+            "description": "Tiempo de retención en minutos"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "totalFlow"
+        ]
+      },
+      "EvaluationCriteriaResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID único del criterio"
+          },
+          "name": {
+            "type": "string",
+            "example": "Retención de petróleo",
+            "description": "Nombre del criterio evaluado"
+          },
+          "description": {
+            "type": "string",
+            "example": "Tiempo mínimo requerido: 60 minutos",
+            "description": "Descripción técnica del criterio"
+          },
+          "requiredValue": {
+            "type": "number",
+            "example": 60,
+            "description": "Valor requerido por normativa"
+          },
+          "actualValue": {
+            "type": "number",
+            "example": 62.5,
+            "description": "Valor real obtenido en evaluación"
+          },
+          "approved": {
+            "type": "boolean",
+            "example": true,
+            "description": "Indica si cumple con el requerimiento"
+          },
+          "complianceMargin": {
+            "type": "number",
+            "example": 104.17,
+            "description": "Porcentaje de cumplimiento (100% = exacto)"
+          },
+          "isCritical": {
+            "type": "boolean",
+            "example": true,
+            "description": "Si es crítico para aprobación global"
+          },
+          "weight": {
+            "type": "number",
+            "example": 30,
+            "description": "Peso en evaluación global (1-100)"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "requiredValue",
+          "actualValue",
+          "approved",
+          "complianceMargin"
+        ]
+      },
+      "EvaluationResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID único de la evaluación"
+          },
+          "treatmentId": {
+            "type": "number",
+            "description": "ID del tratamiento relacionado (solo para tipo internal)",
+            "example": 1
+          },
+          "externalTreatment": {
+            "description": "Datos de tratador externo (solo para tipo external)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExternalTreatmentResponseDto"
+              }
+            ]
+          },
+          "evaluationType": {
+            "type": "string",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "example": "internal",
+            "description": "Tipo de evaluación"
+          },
+          "evaluationDate": {
+            "type": "string",
+            "example": "2023-10-27T10:30:00Z",
+            "description": "Fecha de evaluación"
+          },
+          "approved": {
+            "type": "boolean",
+            "example": true,
+            "description": "Resultado de evaluación"
+          },
+          "comments": {
+            "type": "string",
+            "example": "Cumple con los requisitos",
+            "description": "Comentarios adicionales"
+          },
+          "criteria": {
+            "description": "Criterios evaluados",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvaluationCriteriaResponseDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2023-10-27T10:00:00Z",
+            "description": "Fecha de creación"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2023-10-27T10:30:00Z",
+            "description": "Fecha de última actualización"
+          }
+        },
+        "required": [
+          "id",
+          "evaluationType",
+          "evaluationDate",
+          "approved",
+          "criteria",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateEvaluationDto": {
+        "type": "object",
+        "properties": {
+          "evaluationType": {
+            "type": "string",
+            "description": "Tipo de evaluación (internal: tratador registrado, external: tratador externo)",
+            "enum": [
+              "internal",
+              "external"
+            ],
+            "example": "internal"
+          },
+          "treatmentId": {
+            "type": "number",
+            "description": "ID del tratamiento registrado en el sistema (requerido para tipo internal)",
+            "example": 1
+          },
+          "externalTreatment": {
+            "description": "Datos completos de tratador externo (requerido para tipo external)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CreateExternalTreatmentDto"
+              }
+            ]
+          },
+          "evaluationDate": {
+            "type": "string",
+            "description": "Fecha y hora de la evaluación (formato ISO 8601)",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Resultado general de la evaluación",
+            "example": true
+          },
+          "comments": {
+            "type": "string",
+            "description": "Observaciones o comentarios sobre la evaluación",
+            "example": "Cumple con los requisitos mínimos pero requiere monitoreo adicional"
+          },
+          "criteria": {
+            "description": "Criterios técnicos evaluados",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateEvaluationCriteriaDto"
+            }
+          }
+        }
+      }
+    }
+  }
+}

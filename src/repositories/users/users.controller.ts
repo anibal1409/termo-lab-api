@@ -17,7 +17,6 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiParam,
-  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 
@@ -61,15 +60,13 @@ export class UsersController {
 
   @Get()
   @ApiOperation({ summary: 'Obtiene usuarios activos de forma paginada' })
-  @ApiQuery({
-    type: QueryBaseDto,
-    description: 'Parámetros de paginación y filtrado'
-  })
   @ApiOkResponse({
     description: 'Usuarios paginados',
-    type: PaginationDto<UserResponseDto>
+    type: PaginationDto<UserResponseDto>,
   })
-  async findPaginated(@Query() query: QueryBaseDto): Promise<PaginationDto<UserResponseDto>> {
+  async findPaginated(
+    @Query() query: QueryBaseDto,
+  ): Promise<PaginationDto<UserResponseDto>> {
     return this.usersService.findPaginated(query);
   }
 

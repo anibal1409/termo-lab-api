@@ -9,11 +9,19 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { User } from '../repositories/users/entities';
-import { LogoutResponseDto } from './dto';
+import {
+  User,
+  UserRole,
+} from '../repositories/users/entities';
+import {
+  LoginResponseDto,
+  LogoutResponseDto,
+  RegisterResponseDto,
+} from './dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
@@ -25,10 +33,14 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
-  ) { }
+    private readonly configService: ConfigService,
+  ) {}
 
-  async register(registerDto: RegisterDto): Promise<{ accessToken: string }> {
-    const { email, password, ...rest } = registerDto;
+  async register(
+    registerDto: RegisterDto,
+    res?: Response,
+  ): Promise<RegisterResponseDto> {
+    const { email, password, name } = registerDto;
 
     const userExists = await this.userRepository.findOne({ where: { email } });
     if (userExists) {
@@ -37,27 +49,76 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.userRepository.create({
-      ...rest,
       email,
+      name,
       password: hashedPassword,
+      role: UserRole.OPERATOR, // Rol por defecto según tu entidad
+      birthDate: new Date(), // Fecha por defecto, deberías recibirla en el DTO
     });
 
     await this.userRepository.save(user);
-    return this.generateToken(user);
+    const { expiresIn, expiresAt } = this.generateToken(user);
+
+    if (res) {
+      const { accessToken } = this.generateToken(user);
+      res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        maxAge: expiresIn * 1000,
+      });
+    }
+
+    return {
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      expiresAt: expiresAt.toISOString(),
+    };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
+  async login(
+    loginDto: LoginDto,
+    res?: Response, // Opcional: para enviar la cookie
+  ): Promise<LoginResponseDto> {
     const { email, password } = loginDto;
     const user = await this.userRepository.findOne({
       where: { email },
-      select: ['id', 'email', 'password', 'role'],
+      select: ['id', 'name', 'email', 'password', 'role'],
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.generateToken(user);
+    const { accessToken, expiresIn, expiresAt } = this.generateToken(user);
+
+    // Enviar token como cookie HTTP-only (si se proporciona 'res')
+    if (res) {
+      res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: expiresIn * 1000, // Tiempo en milisegundos
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      expiresAt: expiresAt.toISOString(),
+    };
   }
 
   async invalidateToken(token: string): Promise<void> {
@@ -95,18 +156,30 @@ export class AuthService {
     return user;
   }
 
-  private generateToken(user: User): { accessToken: string } {
+  private generateToken(user: User): {
+    accessToken: string;
+    expiresIn: number;
+    expiresAt: Date;
+  } {
+    const expiresIn = parseInt(
+      this.configService.get('JWT_EXPIRES_IN', '3600'),
+    );
+    const expiresAt = new Date(Date.now() + expiresIn * 1000);
+
     const payload: JwtPayload = {
       jti:
-        Math.random().toString(36).substring(2, 15) + // ID único
+        Math.random().toString(36).substring(2, 15) +
         Math.random().toString(36).substring(2, 15),
       id: user.id,
       email: user.email,
       role: user.role,
+      exp: Math.floor(expiresAt.getTime() / 1000),
     };
 
     return {
       accessToken: this.jwtService.sign(payload),
+      expiresIn,
+      expiresAt,
     };
   }
 
@@ -118,6 +191,7 @@ export class AuthService {
 
     if (token) {
       await this.invalidateToken(token);
+      res.clearCookie('access_token');
     }
 
     return {

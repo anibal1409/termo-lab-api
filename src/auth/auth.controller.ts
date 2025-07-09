@@ -12,6 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBody,
+  ApiCookieAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
@@ -19,12 +21,16 @@ import {
 
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
-import { LogoutResponseDto } from './dto';
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  LogoutResponseDto,
+  RegisterDto,
+  RegisterResponseDto,
+} from './dto';
 import { JwtAuthGuard } from './guards';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -32,46 +38,63 @@ export class AuthController {
   @Public()
   @Post('login')
   @ApiOperation({
-    summary: 'User login',
-    description: 'Authenticate user and return JWT token',
+    summary: 'Iniciar sesión',
+    description:
+      'Autentica al usuario y establece una cookie HTTP-only con el JWT',
   })
-  @ApiResponse({ status: 200, description: 'Successful login' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  @ApiBody({ type: LoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login exitoso (token en cookie)',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
+    return this.authService.login(loginDto, res);
   }
 
   @Public()
   @Post('register')
   @ApiOperation({
-    summary: 'User registration',
-    description: 'Register a new user account',
+    summary: 'Registrar usuario',
+    description: 'Crea una nueva cuenta de usuario',
   })
-  @ApiResponse({ status: 201, description: 'User successfully registered' })
-  @ApiResponse({ status: 400, description: 'Bad request' })
-  @ApiResponse({ status: 409, description: 'User already exists' })
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @ApiBody({ type: RegisterDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Usuario registrado (token en cookie)',
+    type: RegisterResponseDto,
+  })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  @ApiResponse({ status: 409, description: 'El usuario ya existe' })
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<RegisterResponseDto> {
+    return this.authService.register(registerDto, res);
   }
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    summary: 'User logout',
-    description: 'Invalidate JWT token and clear session',
+    summary: 'Cerrar sesión',
+    description: 'Invalida el token JWT y limpia la cookie',
   })
+  @ApiCookieAuth('access_token')
   @ApiResponse({
     status: 200,
-    description: 'Successful logout',
+    description: 'Sesión cerrada exitosamente',
     type: LogoutResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
   async logout(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<LogoutResponseDto> {
     const result = await this.authService.logout(req, res);
-    res.clearCookie('access_token');
     return result;
   }
 }

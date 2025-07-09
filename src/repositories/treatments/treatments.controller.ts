@@ -166,11 +166,6 @@ export class TreatmentsController {
     description: 'ID del usuario',
     type: Number,
   })
-  @ApiQuery({
-    type: QueryTreatmentDto,
-    required: false,
-    description: 'Parámetros de paginación y filtrado',
-  })
   @ApiOkResponse({
     description: 'Tratamientos paginados del usuario',
     type: PaginationDto<TreatmentResponseDto>,
