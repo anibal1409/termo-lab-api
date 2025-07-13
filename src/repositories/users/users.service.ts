@@ -1,5 +1,6 @@
 import {
   FindManyOptions,
+  Not,
   Raw,
   Repository,
 } from 'typeorm';
@@ -29,7 +30,7 @@ export class UsersService implements CrudRepository<User> {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
-  ) { }
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     const newUser = this.usersRepository.create(createUserDto);
@@ -37,9 +38,15 @@ export class UsersService implements CrudRepository<User> {
     return new UserResponseDto(createdUser);
   }
 
-  async findAll(): Promise<UserResponseDto[]> {
+  async findAll(excludeUserId?: number): Promise<UserResponseDto[]> {
+    const where: any = { deleted: false };
+
+    if (excludeUserId) {
+      where.id = Not(excludeUserId);
+    }
+
     const users = await this.usersRepository.find({
-      where: { deleted: false },
+      where,
       select: [
         'id',
         'name',
@@ -48,13 +55,15 @@ export class UsersService implements CrudRepository<User> {
         'birthDate',
         'createdAt',
         'updatedAt',
+        'lastLogin',
       ],
     });
-    return users.map(user => new UserResponseDto(user));
+    return users.map((user) => new UserResponseDto(user));
   }
 
   async findPaginated(
     query: QueryBaseDto,
+    excludeUserId?: number,
   ): Promise<PaginationDto<UserResponseDto>> {
     const {
       term,
@@ -64,8 +73,14 @@ export class UsersService implements CrudRepository<User> {
       order = 'DESC',
     } = query;
 
+    const where: any = { deleted: false };
+
+    if (excludeUserId) {
+      where.id = Not(excludeUserId);
+    }
+
     const findOptions: FindManyOptions<User> = {
-      where: { deleted: false },
+      where,
       take: size,
       skip: (page - 1) * size,
       order: { [sort]: order },
@@ -77,6 +92,7 @@ export class UsersService implements CrudRepository<User> {
         'birthDate',
         'createdAt',
         'updatedAt',
+        'lastLogin',
       ],
     };
 
@@ -143,7 +159,7 @@ export class UsersService implements CrudRepository<User> {
   async findByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.findOne({
       where: { email, deleted: false },
-      select: ['id', 'name', 'email', 'password', 'role'],
+      select: ['id', 'name', 'email', 'role'],
     });
   }
 }

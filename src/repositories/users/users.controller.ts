@@ -20,6 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { CurrentUser } from '../../auth/decorators';
 import {
   PaginationDto,
   QueryBaseDto,
@@ -29,6 +30,7 @@ import {
   UpdateUserDto,
   UserResponseDto,
 } from './dto';
+import { User } from './entities';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -49,13 +51,15 @@ export class UsersController {
   }
 
   @Get('all')
-  @ApiOperation({ summary: 'Obtiene todos los usuarios activos (lista completa)' })
+  @ApiOperation({
+    summary: 'Obtiene todos los usuarios activos (lista completa)',
+  })
   @ApiOkResponse({
     description: 'Lista completa de usuarios activos',
-    type: [UserResponseDto]
+    type: [UserResponseDto],
   })
-  async findAll(): Promise<UserResponseDto[]> {
-    return this.usersService.findAll();
+  async findAll(@CurrentUser() user: User): Promise<UserResponseDto[]> {
+    return this.usersService.findAll(user?.id);
   }
 
   @Get()
@@ -66,8 +70,9 @@ export class UsersController {
   })
   async findPaginated(
     @Query() query: QueryBaseDto,
+    @CurrentUser() user: User,
   ): Promise<PaginationDto<UserResponseDto>> {
-    return this.usersService.findPaginated(query);
+    return this.usersService.findPaginated(query, user?.id);
   }
 
   @Get(':id')
@@ -78,7 +83,9 @@ export class UsersController {
     type: UserResponseDto
   })
   @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<UserResponseDto> {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<UserResponseDto> {
     return this.usersService.findOne(id);
   }
 
@@ -88,7 +95,7 @@ export class UsersController {
   @ApiBody({ type: UpdateUserDto, description: 'Datos para actualizar' })
   @ApiOkResponse({
     description: 'Usuario actualizado',
-    type: UserResponseDto
+    type: UserResponseDto,
   })
   @ApiBadRequestResponse({ description: 'Datos inválidos' })
   @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
@@ -107,10 +114,12 @@ export class UsersController {
     schema: {
       type: 'object',
       properties: { message: { type: 'string' } }
-    }
+    },
   })
   @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ message: string }> {
     return this.usersService.remove(id);
   }
 }
