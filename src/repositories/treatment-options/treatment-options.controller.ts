@@ -52,9 +52,22 @@ export class TreatmentOptionController {
   @ApiResponse({
     status: 200,
     description: 'Lista paginada de opciones',
+    type: [TreatmentOptionResponseDto],
+  })
+  async findAll(): Promise<TreatmentOptionResponseDto[]> {
+    return this.treatmentOptionService.findAll();
+  }
+
+  @Get('/paginated')
+  @ApiOperation({
+    summary: 'Obtener todas las opciones de tratamiento paginadas',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista paginada de opciones',
     type: PaginationDto<TreatmentOptionListDto>,
   })
-  async findAll(
+  async findPaginated(
     @Query() query: QueryBaseDto,
   ): Promise<PaginationDto<TreatmentOptionListDto>> {
     return this.treatmentOptionService.findPaginated(query);

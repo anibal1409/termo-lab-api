@@ -922,6 +922,31 @@
       },
       "get": {
         "operationId": "TreatmentOptionController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista paginada de opciones",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Obtener todas las opciones de tratamiento paginadas",
+        "tags": [
+          "treatment-options"
+        ]
+      }
+    },
+    "/treatment-options/paginated": {
+      "get": {
+        "operationId": "TreatmentOptionController_findPaginated",
         "parameters": [
           {
             "name": "term",

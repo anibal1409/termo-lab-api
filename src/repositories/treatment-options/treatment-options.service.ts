@@ -54,8 +54,14 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
    * Obtiene todas las opciones de tratamiento no eliminadas (método interno)
    * @returns Promise<TreatmentOption[]> Lista de entidades TreatmentOption
    */
-  async findAll(): Promise<TreatmentOption[]> {
-    return this.treatmentOptionRepository.find({ where: { deleted: false } });
+  async findAll(): Promise<TreatmentOptionResponseDto[]> {
+    const treatmentOptions = await this.treatmentOptionRepository.find({ 
+      where: { deleted: false },
+    });
+
+    return treatmentOptions.map(
+      (option) => new TreatmentOptionResponseDto(option),
+    );
   }
 
   /**
