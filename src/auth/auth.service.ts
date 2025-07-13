@@ -82,17 +82,14 @@ export class AuthService {
     };
   }
 
-  async login(
-    loginDto: LoginDto,
-    res?: Response, // Opcional: para enviar la cookie
-  ): Promise<LoginResponseDto> {
+  async login(loginDto: LoginDto, res?: Response): Promise<LoginResponseDto> {
     const { email, password } = loginDto;
     const user = await this.userRepository.findOne({
       where: { email },
       select: ['id', 'name', 'email', 'password', 'role'],
     });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (!user || !(await user.comparePassword(password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -173,11 +170,11 @@ export class AuthService {
       id: user.id,
       email: user.email,
       role: user.role,
-      exp: Math.floor(expiresAt.getTime() / 1000),
+      // Elimina la propiedad 'exp' del payload
     };
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload, { expiresIn }), // Configura expiración aquí
       expiresIn,
       expiresAt,
     };

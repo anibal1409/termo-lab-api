@@ -101,14 +101,20 @@ export class User extends IdEntity {
    * Genera y hashea una contraseña aleatoria antes de insertar.
    */
   @BeforeInsert()
-  async generateAndHashPassword() {
-    // Genera una contraseña aleatoria de 12 caracteres
-    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
-    const randomPassword = randomBytes(8).toString('hex');
-    this.password = await bcrypt.hash(randomPassword, saltRounds);
+  async handlePassword() {
+    if (this.password === 'temp' || !this.password) {
+      // Genera contraseña aleatoria solo si no se proporcionó una
+      const randomPassword = randomBytes(8).toString('hex');
+      this.password = await this.hashPassword(randomPassword);
+    } else {
+      // Hashea la contraseña proporcionada
+      this.password = await this.hashPassword(this.password);
+    }
+  }
 
-    // En un sistema real, aquí enviarías el email con la contraseña temporal
-    // o un enlace para establecer contraseña
+  private async hashPassword(password: string): Promise<string> {
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
+    return bcrypt.hash(password, saltRounds);
   }
 
   /**
