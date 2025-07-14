@@ -10,7 +10,14 @@ import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { pagination } from '../../common/pagination/pagination';
 import { CrudRepository } from '../../common/use-case';
 import { normalizeText } from '../../common/utlis/string.utils';
+import {
+  TreatmentOption,
+} from '../treatment-options/entities/treatment-option.entity';
 import { User } from '../users/entities/user.entity';
+import {
+  CalculateTreatmentDto,
+  TreatmentCalculationsDto,
+} from './dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { QueryTreatmentDto } from './dto/query-treatment.dto';
 import { TreatmentResponseDto } from './dto/treatment-response.dto';
@@ -35,7 +42,9 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     private readonly treatmentRepository: Repository<Treatment>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-  ) {}
+    @InjectRepository(TreatmentOption)
+    private readonly treatmentOptionRepository: Repository<TreatmentOption>,
+  ) { }
 
   /**
    * Busca un tratamiento válido por su ID
@@ -140,8 +149,8 @@ export class TreatmentsService implements CrudRepository<Treatment> {
       const normalizedTerm = normalizeText(term);
       queryBuilder.andWhere(
         '(unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term)) OR ' +
-          'unaccent(LOWER(treatment.description)) LIKE unaccent(LOWER(:term)) OR ' +
-          'unaccent(LOWER(treatment.type)) LIKE unaccent(LOWER(:term)))',
+        'unaccent(LOWER(treatment.description)) LIKE unaccent(LOWER(:term)) OR ' +
+        'unaccent(LOWER(treatment.type)) LIKE unaccent(LOWER(:term)))',
         { term: `%${normalizedTerm}%` },
       );
     }
@@ -344,5 +353,85 @@ export class TreatmentsService implements CrudRepository<Treatment> {
 
   async restore(id: number): Promise<void> {
     await this.treatmentRepository.restore(id);
+  }
+  async calculateParameters(
+    data: CalculateTreatmentDto,
+  ): Promise<TreatmentCalculationsDto> {
+    // 1. Calcular capacidad de calor requerida
+    const heatCapacity = this.calculateHeatCapacity(data);
+
+    // 2. Calcular volumen de retención requerido
+    const retentionVolume = this.calculateRetentionVolume(data);
+
+    // 3. Calcular tiempo de residencia
+    const residenceTime = this.calculateResidenceTime(data, retentionVolume);
+
+    // 4. Buscar tratadores adecuados
+    const recommendedTreaters = await this.findSuitableTreaters(
+      heatCapacity,
+      retentionVolume,
+    );
+
+    return {
+      requiredHeatCapacity: heatCapacity,
+      requiredRetentionVolume: retentionVolume,
+      estimatedResidenceTime: residenceTime,
+      recommendedTreaters: recommendedTreaters.map(
+        (t) => t.notes || `${t.type} ${t.diameter}ft - LSS ${t.length}`,
+      ),
+    };
+  }
+
+  private calculateHeatCapacity(data: CalculateTreatmentDto): number {
+    // Constantes para el cálculo
+    const OIL_SPECIFIC_HEAT = 0.5; // BTU/lb-°F
+    const WATER_SPECIFIC_HEAT = 1.0; // BTU/lb-°F
+    const OIL_DENSITY = 141.5 / (131.5 + data.apiGravity); // lb/gal
+
+    // Convertir flujo a lb/hr
+    const oilFlow =
+      (data.totalFlow * (1 - data.waterFraction) * OIL_DENSITY * 24) / 24;
+    const waterFlow = (data.totalFlow * data.waterFraction * 8.34 * 24) / 24;
+
+    // Calcular capacidad de calor
+    const deltaT = data.targetTemperature - data.inletTemperature;
+    return (
+      (oilFlow * OIL_SPECIFIC_HEAT + waterFlow * WATER_SPECIFIC_HEAT) * deltaT
+    );
+  }
+
+  private calculateRetentionVolume(data: CalculateTreatmentDto): number {
+    // Tiempo de residencia estándar (30-60 minutos para deshidratación)
+    const STANDARD_RESIDENCE_TIME = 30; // minutos
+
+    // Convertir a bbl (1 bbl = 42 galones)
+    return (data.totalFlow * STANDARD_RESIDENCE_TIME) / (24 * 60);
+  }
+
+  private calculateResidenceTime(
+    data: CalculateTreatmentDto,
+    volume: number,
+  ): number {
+    // Tiempo en minutos = (Volumen * 42) / (Flujo / 24 / 60)
+    return (volume * 42) / (data.totalFlow / 24 / 60);
+  }
+
+  private async findSuitableTreaters(
+    heatRequired: number,
+    volumeRequired: number,
+  ): Promise<TreatmentOption[]> {
+    return this.treatmentOptionRepository
+      .createQueryBuilder('option')
+      .where('option.minHeatCapacity >= :heat', { heat: heatRequired })
+      .andWhere(
+        '(PI() * POWER(option.diameter/2, 2) * option.length * 0.1781 >= :volume',
+        {
+          volume: volumeRequired,
+        },
+      )
+      .andWhere('option.deleted = false')
+      .orderBy('option.minHeatCapacity', 'ASC')
+      .addOrderBy('option.diameter', 'ASC')
+      .getMany();
   }
 }

@@ -55,7 +55,7 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
    * @returns Promise<TreatmentOption[]> Lista de entidades TreatmentOption
    */
   async findAll(): Promise<TreatmentOptionResponseDto[]> {
-    const treatmentOptions = await this.treatmentOptionRepository.find({ 
+    const treatmentOptions = await this.treatmentOptionRepository.find({
       where: { deleted: false },
     });
 
@@ -202,12 +202,35 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
     heatRequired: number,
     volumeRequired: number,
   ): Promise<TreatmentOption | null> {
+    // Calcular volumen aproximado basado en diámetro y longitud
     return this.treatmentOptionRepository
       .createQueryBuilder('option')
       .where('option.minHeatCapacity >= :heat', { heat: heatRequired })
+      .andWhere(
+        '(PI() * POWER(option.diameter/2, 2) * option.length * 0.1781) >= :volume',
+        {
+          volume: volumeRequired,
+        },
+      ) // 0.1781 es factor de conversión a bbl
       .andWhere('option.deleted = false')
       .orderBy('option.minHeatCapacity', 'ASC')
       .addOrderBy('option.diameter', 'ASC')
       .getOne();
+  }
+
+  async findByCapacity(
+    minHeat: number,
+    maxHeat?: number,
+  ): Promise<TreatmentOption[]> {
+    const query = this.treatmentOptionRepository
+      .createQueryBuilder('option')
+      .where('option.minHeatCapacity >= :minHeat', { minHeat })
+      .andWhere('option.deleted = false');
+
+    if (maxHeat) {
+      query.andWhere('option.minHeatCapacity <= :maxHeat', { maxHeat });
+    }
+
+    return query.orderBy('option.minHeatCapacity', 'ASC').getMany();
   }
 }

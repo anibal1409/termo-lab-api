@@ -43,7 +43,15 @@ export class Treatment extends IdEntity {
     description: 'Flujo total de emulsión (bpd)',
     example: 500,
   })
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column({
+    type: 'decimal',
+    precision: 10,
+    scale: 2,
+    transformer: {
+      from: (value: string) => parseFloat(value),
+      to: (value: number) => value,
+    },
+  })
   totalFlow: number;
 
   @ApiProperty({

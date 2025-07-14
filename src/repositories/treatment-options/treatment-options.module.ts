@@ -9,6 +9,6 @@ import { TreatmentOptionService } from './treatment-options.service';
   imports: [TypeOrmModule.forFeature([TreatmentOption])],
   controllers: [TreatmentOptionController],
   providers: [TreatmentOptionService],
-  exports: [TreatmentOptionService],
+  exports: [TypeOrmModule, TreatmentOptionService],
 })
 export class TreatmentOptionsModule {}

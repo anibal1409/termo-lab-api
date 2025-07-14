@@ -23,10 +23,15 @@ import {
 
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { QueryBaseDto } from '../../common/pagination/dto/query-base.dto';
-import { QueryTreatmentDto } from './dto';
+import {
+  QueryTreatmentDto,
+  TreatmentCalculationsDto,
+} from './dto';
+import { CalculateTreatmentDto } from './dto/calculate-treatment.dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { TreatmentResponseDto } from './dto/treatment-response.dto';
 import { UpdateTreatmentDto } from './dto/update-treatment.dto';
+import { CalculateTreatmentValidationPipe } from './pipes';
 import { TreatmentsService } from './treatments.service';
 
 /**
@@ -57,6 +62,29 @@ export class TreatmentsController {
     @Body() createTreatmentDto: CreateTreatmentDto,
   ): Promise<TreatmentResponseDto> {
     return this.treatmentsService.create(createTreatmentDto, 1);
+  }
+
+  @Post('calculate')
+  @ApiOperation({
+    summary: 'Calcular parámetros de tratamiento',
+    description:
+      'Calcula los requerimientos técnicos para un tratamiento térmico basado en parámetros de flujo y composición',
+  })
+  @ApiBody({
+    type: CalculateTreatmentDto,
+    description: 'Datos de entrada para cálculo de tratamiento',
+  })
+  @ApiOkResponse({
+    description: 'Resultados del cálculo técnico',
+    type: TreatmentCalculationsDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Datos de entrada inválidos o fuera de rango',
+  })
+  async calculate(
+    @Body(new CalculateTreatmentValidationPipe()) data: CalculateTreatmentDto,
+  ): Promise<TreatmentCalculationsDto> {
+    return this.treatmentsService.calculateParameters(data);
   }
 
   /**

@@ -47,16 +47,6 @@ export class UsersService implements CrudRepository<User> {
 
     const users = await this.usersRepository.find({
       where,
-      select: [
-        'id',
-        'name',
-        'email',
-        'role',
-        'birthDate',
-        'createdAt',
-        'updatedAt',
-        'lastLogin',
-      ],
     });
     return users.map((user) => new UserResponseDto(user));
   }
@@ -84,16 +74,6 @@ export class UsersService implements CrudRepository<User> {
       take: size,
       skip: (page - 1) * size,
       order: { [sort]: order },
-      select: [
-        'id',
-        'name',
-        'email',
-        'role',
-        'birthDate',
-        'createdAt',
-        'updatedAt',
-        'lastLogin',
-      ],
     };
 
     if (term) {
@@ -159,7 +139,6 @@ export class UsersService implements CrudRepository<User> {
   async findByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.findOne({
       where: { email, deleted: false },
-      select: ['id', 'name', 'email', 'role'],
     });
   }
 }

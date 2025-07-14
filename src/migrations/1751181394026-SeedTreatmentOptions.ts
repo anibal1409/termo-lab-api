@@ -4,50 +4,85 @@ import {
 } from 'typeorm';
 
 export class SeedTreatmentOptions1751181394026 implements MigrationInterface {
+  // Datos para tratadores verticales (Tabla 1 de API-12L)
+  private readonly VERTICAL_TREATERS = [
+    { diameter: 3, length: 10, pressure: 50, heat: 100000, notes: 'LSS 10' },
+    { diameter: 3, length: 12, pressure: 50, heat: 100000, notes: 'LSS 12' },
+    { diameter: 3, length: 15, pressure: 50, heat: 100000, notes: 'LSS 15' },
+    { diameter: 4, length: 10, pressure: 50, heat: 250000, notes: 'LSS 10' },
+    { diameter: 4, length: 12, pressure: 50, heat: 250000, notes: 'LSS 12' },
+    { diameter: 4, length: 20, pressure: 50, heat: 250000, notes: 'LSS 20' },
+    { diameter: 6, length: 12, pressure: 50, heat: 500000, notes: 'LSS 12' },
+    { diameter: 6, length: 20, pressure: 50, heat: 500000, notes: 'LSS 20' },
+    { diameter: 8, length: 20, pressure: 40, heat: 1000000, notes: 'LSS 20' },
+    { diameter: 10, length: 20, pressure: 40, heat: 1250000, notes: 'LSS 20' },
+  ];
+
+  // Datos para tratadores horizontales (Tabla 2 de API-12L)
+  private readonly HORIZONTAL_TREATERS = [
+    { diameter: 3, length: 10, pressure: 50, heat: 150000, notes: 'LSS 10' },
+    { diameter: 3, length: 12, pressure: 50, heat: 150000, notes: 'LSS 12' },
+    { diameter: 3, length: 15, pressure: 50, heat: 150000, notes: 'LSS 15' },
+    { diameter: 4, length: 10, pressure: 50, heat: 250000, notes: 'LSS 10' },
+    { diameter: 4, length: 12, pressure: 50, heat: 250000, notes: 'LSS 12' },
+    { diameter: 6, length: 10, pressure: 50, heat: 500000, notes: 'LSS 10' },
+    { diameter: 6, length: 15, pressure: 50, heat: 500000, notes: 'LSS 15' },
+    { diameter: 6, length: 20, pressure: 50, heat: 500000, notes: 'LSS 20' },
+    { diameter: 8, length: 15, pressure: 50, heat: 750000, notes: 'LSS 15' },
+    { diameter: 8, length: 20, pressure: 50, heat: 750000, notes: 'LSS 20' },
+    { diameter: 10, length: 20, pressure: 50, heat: 2000000, notes: 'LSS 20' },
+    { diameter: 12, length: 30, pressure: 50, heat: 3200000, notes: 'LSS 30' },
+  ];
+
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Insertar datos iniciales basados en API-12L
     await this.seedInitialData(queryRunner);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE treatment_options;`);
+    // Eliminar todos los datos de la tabla
+    await queryRunner.query(`DELETE FROM treatment_options;`);
+
+    // Alternativamente, si se quiere eliminar la tabla completamente:
+    // await queryRunner.query(`DROP TABLE treatment_options;`);
   }
 
   private async seedInitialData(queryRunner: QueryRunner): Promise<void> {
-    // Datos para tratadores verticales (Tabla 1 de API-12L)
-    await queryRunner.query(`
-      INSERT INTO treatment_options 
-        (type, diameter, length, design_pressure, min_heat_capacity, notes)
-      VALUES
-        ('vertical', 3, 10, 50, 100000, 'Tratador vertical 3ft - LSS 10'),
-        ('vertical', 3, 12, 50, 100000, 'Tratador vertical 3ft - LSS 12'),
-        ('vertical', 3, 15, 50, 100000, 'Tratador vertical 3ft - LSS 15'),
-        ('vertical', 4, 10, 50, 250000, 'Tratador vertical 4ft - LSS 10'),
-        ('vertical', 4, 12, 50, 250000, 'Tratador vertical 4ft - LSS 12'),
-        ('vertical', 4, 20, 50, 250000, 'Tratador vertical 4ft - LSS 20'),
-        ('vertical', 6, 12, 50, 500000, 'Tratador vertical 6ft - LSS 12'),
-        ('vertical', 6, 20, 50, 500000, 'Tratador vertical 6ft - LSS 20'),
-        ('vertical', 8, 20, 40, 1000000, 'Tratador vertical 8ft - LSS 20'),
-        ('vertical', 10, 20, 40, 1250000, 'Tratador vertical 10ft - LSS 20');
-    `);
+    // Insertar tratadores verticales
+    await this.insertTreaters(queryRunner, 'vertical', this.VERTICAL_TREATERS);
 
-    // Datos para tratadores horizontales (Tabla 2 de API-12L)
-    await queryRunner.query(`
-      INSERT INTO treatment_options 
-        (type, diameter, length, design_pressure, min_heat_capacity, notes)
-      VALUES
-        ('horizontal', 3, 10, 50, 150000, 'Tratador horizontal 3ft - LSS 10'),
-        ('horizontal', 3, 12, 50, 150000, 'Tratador horizontal 3ft - LSS 12'),
-        ('horizontal', 3, 15, 50, 150000, 'Tratador horizontal 3ft - LSS 15'),
-        ('horizontal', 4, 10, 50, 250000, 'Tratador horizontal 4ft - LSS 10'),
-        ('horizontal', 4, 12, 50, 250000, 'Tratador horizontal 4ft - LSS 12'),
-        ('horizontal', 6, 10, 50, 500000, 'Tratador horizontal 6ft - LSS 10'),
-        ('horizontal', 6, 15, 50, 500000, 'Tratador horizontal 6ft - LSS 15'),
-        ('horizontal', 6, 20, 50, 500000, 'Tratador horizontal 6ft - LSS 20'),
-        ('horizontal', 8, 15, 50, 750000, 'Tratador horizontal 8ft - LSS 15'),
-        ('horizontal', 8, 20, 50, 750000, 'Tratador horizontal 8ft - LSS 20'),
-        ('horizontal', 10, 20, 50, 2000000, 'Tratador horizontal 10ft - LSS 20'),
-        ('horizontal', 12, 30, 50, 3200000, 'Tratador horizontal 12ft - LSS 30');
-    `);
+    // Insertar tratadores horizontales
+    await this.insertTreaters(
+      queryRunner,
+      'horizontal',
+      this.HORIZONTAL_TREATERS,
+    );
+  }
+
+  private async insertTreaters(
+    queryRunner: QueryRunner,
+    type: 'vertical' | 'horizontal',
+    treaters: Array<{
+      diameter: number;
+      length: number;
+      pressure: number;
+      heat: number;
+      notes: string;
+    }>,
+  ): Promise<void> {
+    for (const treater of treaters) {
+      await queryRunner.query(
+        `INSERT INTO treatment_options 
+         (type, diameter, length, design_pressure, min_heat_capacity, notes)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          type,
+          treater.diameter,
+          treater.length,
+          treater.pressure,
+          treater.heat,
+          `Tratador ${type} ${treater.diameter}ft - ${treater.notes}`,
+        ],
+      );
+    }
   }
 }

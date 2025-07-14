@@ -27,7 +27,7 @@ export class CreateSampleTreatments1751337651500 implements MigrationInterface {
         description: 'Diseño estándar para crudo 18°API',
         type: 'vertical',
         totalFlow: 500,
-        waterFraction: 20,
+        waterFraction: 0.20, // Cambiado a decimal
         inputTemperature: 75,
         treatmentTemperature: 140,
         ambientTemperature: 30,
@@ -57,7 +57,7 @@ export class CreateSampleTreatments1751337651500 implements MigrationInterface {
         description: 'Diseño para crudo pesado 15°API',
         type: 'horizontal',
         totalFlow: 1000,
-        waterFraction: 30,
+        waterFraction: 0.30, // Cambiado a decimal
         inputTemperature: 80,
         treatmentTemperature: 150,
         ambientTemperature: 25,

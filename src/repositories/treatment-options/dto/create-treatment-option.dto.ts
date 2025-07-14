@@ -4,6 +4,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
+  Min,
 } from 'class-validator';
 
 import { ApiProperty } from '@nestjs/swagger';
@@ -36,6 +38,8 @@ export class CreateTreatmentOptionDto {
     example: 4,
   })
   @IsNumber({}, { message: 'El diámetro debe ser un número.' })
+  @Min(1, { message: 'El diámetro mínimo es 1 ft.' })
+  @Max(20, { message: 'El diámetro máximo es 20 ft.' })
   @IsNotEmpty({ message: 'El diámetro no puede estar vacío.' })
   diameter: number;
 
@@ -47,6 +51,8 @@ export class CreateTreatmentOptionDto {
     example: 15,
   })
   @IsNumber({}, { message: 'La longitud debe ser un número.' })
+  @Min(5, { message: 'La longitud mínima es 5 ft.' })
+  @Max(40, { message: 'La longitud máxima es 40 ft.' })
   @IsNotEmpty({ message: 'La longitud no puede estar vacía.' })
   length: number;
 

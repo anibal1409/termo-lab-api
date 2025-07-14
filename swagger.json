@@ -504,6 +504,43 @@
         ]
       }
     },
+    "/treatments/calculate": {
+      "post": {
+        "description": "Calcula los requerimientos técnicos para un tratamiento térmico basado en parámetros de flujo y composición",
+        "operationId": "TreatmentsController_calculate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Datos de entrada para cálculo de tratamiento",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculateTreatmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultados del cálculo técnico",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentCalculationsDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o fuera de rango"
+          }
+        },
+        "summary": "Calcular parámetros de tratamiento",
+        "tags": [
+          "Treatments"
+        ]
+      }
+    },
     "/treatments/all": {
       "get": {
         "operationId": "TreatmentsController_findAll",
@@ -2089,6 +2126,80 @@
           "selectedLength",
           "designPressure",
           "createdBy"
+        ]
+      },
+      "CalculateTreatmentDto": {
+        "type": "object",
+        "properties": {
+          "totalFlow": {
+            "type": "number",
+            "description": "Flujo total de fluidos (bbl/día)",
+            "example": 5000
+          },
+          "waterFraction": {
+            "type": "number",
+            "description": "Fracción de agua (0-1)",
+            "example": 0.3
+          },
+          "apiGravity": {
+            "type": "number",
+            "description": "Gravedad API del crudo",
+            "example": 25
+          },
+          "inletTemperature": {
+            "type": "number",
+            "description": "Temperatura de entrada (°F)",
+            "example": 120
+          },
+          "targetTemperature": {
+            "type": "number",
+            "description": "Temperatura objetivo (°F)",
+            "example": 180
+          }
+        },
+        "required": [
+          "totalFlow",
+          "waterFraction",
+          "apiGravity",
+          "inletTemperature",
+          "targetTemperature"
+        ]
+      },
+      "TreatmentCalculationsDto": {
+        "type": "object",
+        "properties": {
+          "requiredHeatCapacity": {
+            "type": "number",
+            "description": "Capacidad de calor requerida (BTU/hr)",
+            "example": 2500000
+          },
+          "requiredRetentionVolume": {
+            "type": "number",
+            "description": "Volumen de retención requerido (bbl)",
+            "example": 500
+          },
+          "estimatedResidenceTime": {
+            "type": "number",
+            "description": "Tiempo de residencia estimado (minutos)",
+            "example": 30
+          },
+          "recommendedTreaters": {
+            "description": "Recomendaciones de tratadores adecuados",
+            "example": [
+              "Tratador horizontal 10ft - LSS 20",
+              "Tratador vertical 8ft - LSS 20"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "requiredHeatCapacity",
+          "requiredRetentionVolume",
+          "estimatedResidenceTime",
+          "recommendedTreaters"
         ]
       },
       "UpdateTreatmentDto": {
