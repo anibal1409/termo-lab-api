@@ -48,11 +48,11 @@ export class UserResponseDto extends BaseResponseDto {
   constructor(user: User) {
     super(user);
     Object.assign(this, {
-      name: user.name,
-      birthDate: user.birthDate,
-      role: user.role,
-      email: user.email,
-      lastLogin: user.lastLogin,
+      name: user?.name || '',
+      birthDate: user?.birthDate ? new Date(user?.birthDate) : null,
+      role: user?.role || UserRole.OPERATOR,
+      email: user?.email || '',
+      lastLogin: user?.lastLogin ? new Date(user?.lastLogin) : null,
     });
   }
 }

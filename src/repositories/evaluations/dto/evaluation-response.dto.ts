@@ -126,18 +126,22 @@ export class EvaluationResponseDto {
     this.createdAt = data.createdAt?.toISOString() || '';
     this.updatedAt = data.updatedAt?.toISOString() || '';
 
+    // Manejar evaluatedBy de forma segura
     this.evaluatedBy = data.evaluatedBy
       ? new UserResponseDto(data.evaluatedBy)
-      : undefined;
+      : new UserResponseDto({} as User); // O proporciona un objeto User vacío
 
-    this.criteria = data.criteria
-      ? data.criteria.map((c) => new EvaluationCriteriaResponseDto(c))
-      : [];
+    // Manejar criteria de forma segura
+    this.criteria = (data.criteria || []).map(
+      (c) => new EvaluationCriteriaResponseDto(c)
+    );
 
+    // Manejar externalTreatment de forma segura
     this.externalTreatment = data.externalTreatment
       ? new ExternalTreatmentResponseDto(data.externalTreatment)
       : undefined;
 
+    // Manejar treatment de forma segura
     this.treatment = data.treatment
       ? new TreatmentResponseDto(data.treatment)
       : undefined;

@@ -346,8 +346,8 @@ export class EvaluationsService {
       const normalizedTerm = normalizeText(term);
       queryBuilder.andWhere(
         '(unaccent(LOWER(evaluation.comments)) LIKE unaccent(LOWER(:term)) OR ' +
-        'unaccent(LOWER(externalTreatment.name)) LIKE unaccent(LOWER(:term)) OR ' +
-        'unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term))',
+          'unaccent(LOWER(externalTreatment.name)) LIKE unaccent(LOWER(:term)) OR ' +
+          'unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term))',
         { term: `%${normalizedTerm}%` },
       );
     }
@@ -398,12 +398,16 @@ export class EvaluationsService {
       .take(size)
       .getManyAndCount();
 
-    return pagination(
-      page,
-      size,
-      evaluations.map((evaluation) => new EvaluationResponseDto(evaluation)),
-      total,
-    );
+    // Validar y mapear los resultados de forma segura
+    const safeEvaluations = evaluations.map((evaluation) => {
+      // Asegurarse de que evaluatedBy existe
+      if (!evaluation.evaluatedBy) {
+        evaluation.evaluatedBy = {} as User;
+      }
+      return new EvaluationResponseDto(evaluation);
+    });
+
+    return pagination(page, size, safeEvaluations, total);
   }
 
   // ==================== MÉTODOS PRIVADOS ====================

@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsOptional } from 'class-validator'; // Importar decoradores de validación si se usan en respuestas
+import {
+  IsBoolean,
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+} from 'class-validator'; // Importar decoradores de validación si se usan en respuestas
 
 import { ApiProperty } from '@nestjs/swagger'; // Importar ApiProperty
 
@@ -75,11 +81,17 @@ export abstract class BaseResponseDto {
    * Constructor para mapear propiedades comunes desde una entidad o objeto.
    * @param data El objeto de origen (entidad o similar) con las propiedades comunes.
    */
-  constructor(data: { id: number; createdAt: Date; updatedAt: Date; status?: boolean; deleted?: boolean }) {
-    this.id = data.id;
-    this.createdAt = data.createdAt;
-    this.updatedAt = data.updatedAt;
-    this.status = data.status;
-    this.deleted = data.deleted;
+  constructor(data: {
+    id: number;
+    createdAt: Date;
+    updatedAt: Date;
+    status?: boolean;
+    deleted?: boolean;
+  }) {
+    this.id = data?.id || 0;
+    this.createdAt = data?.createdAt || new Date();
+    this.updatedAt = data?.updatedAt || new Date();
+    this.status = data?.status;
+    this.deleted = data?.deleted;
   }
 }
