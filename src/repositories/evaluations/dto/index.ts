@@ -6,4 +6,5 @@ export * from './evaluation-criteria-response.dto';
 export * from './evaluation-response.dto';
 export * from './evaluation-template-response.dto';
 export * from './external-treatment-response.dto';
+export * from './query-evaluation.dto';
 export * from './update-evaluation.dto';

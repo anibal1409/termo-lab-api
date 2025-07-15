@@ -1275,6 +1275,172 @@
         ]
       },
       "get": {
+        "operationId": "EvaluationsController_findPaginated",
+        "parameters": [
+          {
+            "name": "term",
+            "required": false,
+            "in": "query",
+            "description": "Término de búsqueda opcional.",
+            "schema": {
+              "example": "ejemplo",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Número de página para la paginación (base 1).",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "Número de elementos por página.",
+            "schema": {
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "description": "Campo por el cual ordenar los resultados.",
+            "schema": {
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "description": "Dirección del ordenamiento (ASC o DESC).",
+            "schema": {
+              "example": "DESC",
+              "type": "string",
+              "enum": [
+                "ASC",
+                "DESC"
+              ]
+            }
+          },
+          {
+            "name": "evaluationType",
+            "required": false,
+            "in": "query",
+            "description": "Filter by evaluation type",
+            "schema": {
+              "example": "internal",
+              "type": "string",
+              "enum": [
+                "internal",
+                "external"
+              ]
+            }
+          },
+          {
+            "name": "minScore",
+            "required": false,
+            "in": "query",
+            "description": "Filter by minimum score",
+            "schema": {
+              "example": 70,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxScore",
+            "required": false,
+            "in": "query",
+            "description": "Filter by maximum score",
+            "schema": {
+              "example": 100,
+              "type": "number"
+            }
+          },
+          {
+            "name": "approved",
+            "required": false,
+            "in": "query",
+            "description": "Filter by approval status",
+            "schema": {
+              "example": true,
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "templateId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by template ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minDate",
+            "required": false,
+            "in": "query",
+            "description": "Filter by minimum evaluation date (ISO string)",
+            "schema": {
+              "example": "2023-01-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxDate",
+            "required": false,
+            "in": "query",
+            "description": "Filter by maximum evaluation date (ISO string)",
+            "schema": {
+              "example": "2023-12-31T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "evaluatedById",
+            "required": false,
+            "in": "query",
+            "description": "Filter by evaluator user ID",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de evaluaciones paginadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginationDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener evaluaciones paginadas",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    },
+    "/evaluations/all": {
+      "get": {
         "operationId": "EvaluationsController_findAll",
         "parameters": [],
         "responses": {
@@ -1315,7 +1481,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1355,7 +1521,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1408,7 +1574,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -1443,7 +1609,7 @@
             "required": true,
             "in": "path",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -2523,6 +2689,17 @@
             "example": 30,
             "minimum": 1,
             "maximum": 100
+          },
+          "maxValue": {
+            "type": "number",
+            "description": "Valor máximo permitido (si aplica)",
+            "example": 120
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unidad de medida del valor",
+            "example": "minutos",
+            "maxLength": 20
           }
         },
         "required": [
@@ -2580,6 +2757,11 @@
             "items": {
               "$ref": "#/components/schemas/CreateEvaluationCriteriaDto"
             }
+          },
+          "templateId": {
+            "type": "number",
+            "description": "ID de la plantilla utilizada (opcional)",
+            "example": 1
           }
         },
         "required": [
@@ -2686,6 +2868,16 @@
             "type": "number",
             "example": 30,
             "description": "Peso en evaluación global (1-100)"
+          },
+          "maxValue": {
+            "type": "number",
+            "example": 120,
+            "description": "Valor máximo permitido (si aplica)"
+          },
+          "unit": {
+            "type": "string",
+            "example": "minutos",
+            "description": "Unidad de medida del valor"
           }
         },
         "required": [
@@ -2716,6 +2908,14 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/ExternalTreatmentResponseDto"
+              }
+            ]
+          },
+          "evaluatedBy": {
+            "description": "Usuario que realizó la evaluación",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserResponseDto"
               }
             ]
           },
@@ -2750,6 +2950,29 @@
               "$ref": "#/components/schemas/EvaluationCriteriaResponseDto"
             }
           },
+          "templateName": {
+            "type": "string",
+            "example": "Evaluación API-12L",
+            "description": "Nombre de la plantilla utilizada"
+          },
+          "templateVersion": {
+            "type": "string",
+            "example": "1.0.0",
+            "description": "Versión de la plantilla utilizada"
+          },
+          "score": {
+            "type": "number",
+            "example": 85.5,
+            "description": "Puntaje calculado de la evaluación"
+          },
+          "treatment": {
+            "description": "Tratamiento relacionado (solo para tipo internal)",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TreatmentResponseDto"
+              }
+            ]
+          },
           "createdAt": {
             "type": "string",
             "example": "2023-10-27T10:00:00Z",
@@ -2763,10 +2986,13 @@
         },
         "required": [
           "id",
+          "evaluatedBy",
           "evaluationType",
           "evaluationDate",
           "approved",
           "criteria",
+          "templateName",
+          "templateVersion",
           "createdAt",
           "updatedAt"
         ]
@@ -2817,6 +3043,11 @@
             "items": {
               "$ref": "#/components/schemas/CreateEvaluationCriteriaDto"
             }
+          },
+          "templateId": {
+            "type": "number",
+            "description": "ID de la plantilla utilizada (opcional)",
+            "example": 1
           }
         }
       }

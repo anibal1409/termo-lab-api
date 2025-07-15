@@ -13,6 +13,9 @@ import {
 } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 
+import { PaginationDto } from '../../../common/pagination/dto';
+import { pagination } from '../../../common/pagination/pagination';
+import { normalizeText } from '../../../common/utlis/string.utils';
 import { Treatment } from '../../treatments/entities/treatment.entity';
 import { User } from '../../users/entities/user.entity';
 import {
@@ -22,6 +25,7 @@ import {
   UpdateEvaluationDto,
 } from '../dto';
 import { EvaluationResponseDto } from '../dto/evaluation-response.dto';
+import { QueryEvaluationDto } from '../dto/query-evaluation.dto';
 import {
   Evaluation,
   EvaluationCriteria,
@@ -311,6 +315,95 @@ export class EvaluationsService {
       relations: ['treatment', 'externalTreatment', 'evaluatedBy'],
       withDeleted: false,
     });
+  }
+
+  async findPaginated(
+    query: QueryEvaluationDto,
+  ): Promise<PaginationDto<EvaluationResponseDto>> {
+    const {
+      page = 1,
+      size = 10,
+      term,
+      order = 'DESC',
+      sort = 'evaluationDate',
+      evaluationType,
+      minScore,
+      maxScore,
+      approved,
+      templateId,
+      minDate,
+      maxDate,
+      evaluatedById,
+    } = query;
+
+    const queryBuilder = this.evaluationRepository
+      .createQueryBuilder('evaluation')
+      .leftJoinAndSelect('evaluation.evaluatedBy', 'evaluatedBy')
+      .leftJoinAndSelect('evaluation.externalTreatment', 'externalTreatment')
+      .leftJoinAndSelect('evaluation.treatment', 'treatment');
+
+    if (term) {
+      const normalizedTerm = normalizeText(term);
+      queryBuilder.andWhere(
+        '(unaccent(LOWER(evaluation.comments)) LIKE unaccent(LOWER(:term)) OR ' +
+        'unaccent(LOWER(externalTreatment.name)) LIKE unaccent(LOWER(:term)) OR ' +
+        'unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term))',
+        { term: `%${normalizedTerm}%` },
+      );
+    }
+
+    // Apply filters
+    if (evaluationType) {
+      queryBuilder.andWhere('evaluation.evaluationType = :evaluationType', {
+        evaluationType,
+      });
+    }
+    if (approved !== undefined) {
+      queryBuilder.andWhere('evaluation.approved = :approved', { approved });
+    }
+    if (minScore !== undefined) {
+      queryBuilder.andWhere('evaluation.score >= :minScore', { minScore });
+    }
+    if (maxScore !== undefined) {
+      queryBuilder.andWhere('evaluation.score <= :maxScore', { maxScore });
+    }
+    if (templateId) {
+      queryBuilder.andWhere('evaluation.templateId = :templateId', {
+        templateId,
+      });
+    }
+    if (evaluatedById) {
+      queryBuilder.andWhere('evaluatedBy.id = :evaluatedById', {
+        evaluatedById,
+      });
+    }
+    if (minDate) {
+      queryBuilder.andWhere('evaluation.evaluationDate >= :minDate', {
+        minDate: new Date(minDate),
+      });
+    }
+    if (maxDate) {
+      queryBuilder.andWhere('evaluation.evaluationDate <= :maxDate', {
+        maxDate: new Date(maxDate),
+      });
+    }
+
+    // Apply sorting
+    if (sort && order) {
+      queryBuilder.orderBy(`evaluation.${sort}`, order);
+    }
+
+    const [evaluations, total] = await queryBuilder
+      .skip((page - 1) * size)
+      .take(size)
+      .getManyAndCount();
+
+    return pagination(
+      page,
+      size,
+      evaluations.map((evaluation) => new EvaluationResponseDto(evaluation)),
+      total,
+    );
   }
 
   // ==================== MÉTODOS PRIVADOS ====================

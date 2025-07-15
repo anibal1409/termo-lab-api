@@ -82,4 +82,12 @@ export class CreateEvaluationDto {
   @ValidateNested({ each: true })
   @Type(() => CreateEvaluationCriteriaDto)
   criteria: CreateEvaluationCriteriaDto[];
+
+  @ApiPropertyOptional({
+    description: 'ID de la plantilla utilizada (opcional)',
+    example: 1,
+  })
+  @IsNumber()
+  @IsOptional()
+  templateId?: number;
 }

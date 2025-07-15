@@ -4,6 +4,12 @@ import {
 } from '@nestjs/swagger';
 
 import {
+  TreatmentResponseDto,
+} from '../../treatments/dto/treatment-response.dto';
+import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { User } from '../../users/entities';
+import { Evaluation } from '../entities';
+import {
   EvaluationCriteriaResponseDto,
 } from './evaluation-criteria-response.dto';
 import {
@@ -33,6 +39,12 @@ export class EvaluationResponseDto {
     description: 'Datos de tratador externo (solo para tipo external)',
   })
   externalTreatment?: ExternalTreatmentResponseDto;
+
+  @ApiProperty({
+    description: 'Usuario que realizó la evaluación',
+    type: UserResponseDto,
+  })
+  evaluatedBy: UserResponseDto;
 
   @ApiProperty({
     enum: ['internal', 'external'],
@@ -66,6 +78,30 @@ export class EvaluationResponseDto {
   criteria: EvaluationCriteriaResponseDto[];
 
   @ApiProperty({
+    example: 'Evaluación API-12L',
+    description: 'Nombre de la plantilla utilizada',
+  })
+  templateName: string;
+
+  @ApiProperty({
+    example: '1.0.0',
+    description: 'Versión de la plantilla utilizada',
+  })
+  templateVersion: string;
+
+  @ApiPropertyOptional({
+    example: 85.5,
+    description: 'Puntaje calculado de la evaluación',
+  })
+  score?: number;
+
+  @ApiPropertyOptional({
+    description: 'Tratamiento relacionado (solo para tipo internal)',
+    type: TreatmentResponseDto,
+  })
+  treatment?: TreatmentResponseDto;
+
+  @ApiProperty({
     example: '2023-10-27T10:00:00Z',
     description: 'Fecha de creación',
   })
@@ -77,15 +113,22 @@ export class EvaluationResponseDto {
   })
   updatedAt: string;
 
-  constructor(data: Partial<EvaluationResponseDto>) {
+  constructor(data: Partial<Evaluation> & { evaluatedBy?: User }) {
     this.id = data.id || 0;
-    this.treatmentId = data.treatmentId;
+    this.treatmentId = data.treatment?.id;
     this.evaluationType = data.evaluationType || '';
-    this.evaluationDate = data.evaluationDate || '';
+    this.evaluationDate = data.evaluationDate?.toISOString() || '';
     this.approved = data.approved || false;
     this.comments = data.comments;
-    this.createdAt = data.createdAt || '';
-    this.updatedAt = data.updatedAt || '';
+    this.templateName = data.templateName || '';
+    this.templateVersion = data.templateVersion || '';
+    this.score = data.score;
+    this.createdAt = data.createdAt?.toISOString() || '';
+    this.updatedAt = data.updatedAt?.toISOString() || '';
+
+    this.evaluatedBy = data.evaluatedBy
+      ? new UserResponseDto(data.evaluatedBy)
+      : undefined;
 
     this.criteria = data.criteria
       ? data.criteria.map((c) => new EvaluationCriteriaResponseDto(c))
@@ -93,6 +136,10 @@ export class EvaluationResponseDto {
 
     this.externalTreatment = data.externalTreatment
       ? new ExternalTreatmentResponseDto(data.externalTreatment)
+      : undefined;
+
+    this.treatment = data.treatment
+      ? new TreatmentResponseDto(data.treatment)
       : undefined;
   }
 }

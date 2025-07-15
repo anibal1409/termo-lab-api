@@ -62,6 +62,18 @@ export class EvaluationCriteriaResponseDto {
   })
   weight?: number;
 
+  @ApiPropertyOptional({
+    example: 120,
+    description: 'Valor máximo permitido (si aplica)',
+  })
+  maxValue?: number;
+
+  @ApiPropertyOptional({
+    example: 'minutos',
+    description: 'Unidad de medida del valor',
+  })
+  unit?: string;
+
   constructor(data: Partial<EvaluationCriteriaResponseDto>) {
     this.id = data.id || 0;
     this.name = data.name || '';
@@ -72,5 +84,7 @@ export class EvaluationCriteriaResponseDto {
     this.complianceMargin = data.complianceMargin || 0;
     this.isCritical = data.isCritical;
     this.weight = data.weight;
+    this.maxValue = data.maxValue;
+    this.unit = data.unit;
   }
 }

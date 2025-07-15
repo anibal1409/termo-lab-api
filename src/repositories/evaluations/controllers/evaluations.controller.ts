@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -17,8 +18,12 @@ import {
 
 import { CurrentUser } from '../../../auth/decorators';
 import { JwtAuthGuard } from '../../../auth/guards';
+import { PaginationDto } from '../../../common/pagination/dto';
 import { User } from '../../users/entities/user.entity';
-import { CreateExternalTreatmentDto } from '../dto';
+import {
+  CreateExternalTreatmentDto,
+  QueryEvaluationDto,
+} from '../dto';
 import { CreateEvaluationDto } from '../dto/create-evaluation.dto';
 import { EvaluationResponseDto } from '../dto/evaluation-response.dto';
 import { UpdateEvaluationDto } from '../dto/update-evaluation.dto';
@@ -65,7 +70,7 @@ export class EvaluationsController {
    * @ApiResponse 200 - Lista de evaluaciones obtenida
    * @ApiResponse 401 - No autorizado
    */
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Obtener todas las evaluaciones' })
   @ApiResponse({
     status: 200,
@@ -75,6 +80,17 @@ export class EvaluationsController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   findAll() {
     return this.evaluationsService.findAll();
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Obtener evaluaciones paginadas' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de evaluaciones paginadas',
+    type: PaginationDto<EvaluationResponseDto>,
+  })
+  async findPaginated(@Query() query: QueryEvaluationDto) {
+    return this.evaluationsService.findPaginated(query);
   }
 
   /**
@@ -93,7 +109,7 @@ export class EvaluationsController {
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.evaluationsService.getEvaluationById(+id);
   }
 
@@ -116,7 +132,7 @@ export class EvaluationsController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() updateEvaluationDto: UpdateEvaluationDto,
   ) {
     return this.evaluationsService.update(+id, updateEvaluationDto);
@@ -134,7 +150,7 @@ export class EvaluationsController {
   @ApiResponse({ status: 200, description: 'Evaluación eliminada' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.evaluationsService.remove(+id);
   }
 
@@ -156,7 +172,7 @@ export class EvaluationsController {
   @ApiResponse({ status: 400, description: 'Evaluación sin criterios' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
-  calculateResult(@Param('id') id: string) {
+  calculateResult(@Param('id') id: number) {
     return this.evaluationsService.calculateEvaluationResult(+id);
   }
 

@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { BaseResponseDto } from '../../base';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
+import { Treatment } from '../entities';
 
 /**
  * DTO para la respuesta detallada de un tratamiento térmico.
@@ -97,7 +98,7 @@ export class TreatmentResponseDto extends BaseResponseDto {
   })
   createdBy: UserResponseDto;
 
-  constructor(treatment: any) {
+  constructor(treatment: Treatment) {
     super(treatment);
     this.name = treatment.name;
     this.description = treatment.description;

@@ -90,4 +90,22 @@ export class CreateEvaluationCriteriaDto {
   @Max(100)
   @IsOptional()
   weight?: number;
+
+  @ApiPropertyOptional({
+    description: 'Valor máximo permitido (si aplica)',
+    example: 120,
+  })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  maxValue?: number;
+
+  @ApiPropertyOptional({
+    description: 'Unidad de medida del valor',
+    example: 'minutos',
+    maxLength: 20,
+  })
+  @IsString()
+  @IsOptional()
+  unit?: string;
 }
