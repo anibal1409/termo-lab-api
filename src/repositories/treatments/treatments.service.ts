@@ -354,84 +354,163 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   async restore(id: number): Promise<void> {
     await this.treatmentRepository.restore(id);
   }
+  /**
+   * Calcula parámetros de tratamiento según fórmulas API-12L
+   * @param data - Datos de entrada para el cálculo
+   * @returns Resultados completos del cálculo según API-12L
+   */
   async calculateParameters(
     data: CalculateTreatmentDto,
   ): Promise<TreatmentCalculationsDto> {
-    // 1. Calcular capacidad de calor requerida
-    const heatCapacity = this.calculateHeatCapacity(data);
+    // 1. Calcular flujos según API-12L
+    const oilFlow = this.calculateOilFlow(data);
+    const waterFlow = this.calculateWaterFlow(data);
 
-    // 2. Calcular volumen de retención requerido
-    const retentionVolume = this.calculateRetentionVolume(data);
+    // 2. Calcular volúmenes de retención según API-12L
+    const { oilRetentionVolume, waterRetentionVolume } = this.calculateRetentionVolumes(data);
 
-    // 3. Calcular tiempo de residencia
-    const residenceTime = this.calculateResidenceTime(data, retentionVolume);
+    // 3. Calcular calor requerido según API-12L
+    const requiredHeat = this.calculateRequiredHeat(data);
 
-    // 4. Buscar tratadores adecuados
-    const recommendedTreaters = await this.findSuitableTreaters(
-      heatCapacity,
-      retentionVolume,
+    // 4. Buscar tratadores candidatos
+    const candidateTreaters = await this.findSuitableTreaters(
+      requiredHeat,
+      oilRetentionVolume,
+      waterRetentionVolume,
     );
 
+    // 5. Para cada candidato, calcular pérdidas de calor y seleccionar el mejor
+    let bestTreater = null;
+    let minTotalHeat = Infinity;
+
+    for (const treater of candidateTreaters) {
+      const heatLoss = this.calculateHeatLoss(data, treater.diameter, treater.length);
+      const totalHeat = requiredHeat + heatLoss; // Qtotal = Q + Qpérdida según API-12L
+
+      if (totalHeat < minTotalHeat) {
+        minTotalHeat = totalHeat;
+        bestTreater = { ...treater, totalHeat, heatLoss };
+      }
+    }
+
+    // 6. Calcular tiempo de residencia estimado
+    const maxRetentionVolume = Math.max(oilRetentionVolume, waterRetentionVolume);
+    const estimatedResidenceTime = (maxRetentionVolume * 1440) / data.totalFlow;
+
     return {
-      requiredHeatCapacity: heatCapacity,
-      requiredRetentionVolume: retentionVolume,
-      estimatedResidenceTime: residenceTime,
-      recommendedTreaters: recommendedTreaters.map(
-        (t) => t.notes || `${t.type} ${t.diameter}ft - LSS ${t.length}`,
+      calculatedOilFlow: oilFlow,
+      calculatedWaterFlow: waterFlow,
+      oilRetentionVolume,
+      waterRetentionVolume,
+      requiredHeatCapacity: requiredHeat,
+      heatLoss: bestTreater?.heatLoss || 0,
+      totalHeat: minTotalHeat,
+      recommendedDiameter: bestTreater?.diameter || 0,
+      recommendedLength: bestTreater?.length || 0,
+      recommendedPressure: bestTreater?.designPressure || 0,
+      recommendedTreaters: candidateTreaters.map(t => 
+        `Tratador ${t.type} ${t.diameter}ft - LSS ${t.length} - ${t.minHeatCapacity} BTU/hr`
       ),
+      requiredRetentionVolume: maxRetentionVolume,
+      estimatedResidenceTime,
     };
   }
 
-  private calculateHeatCapacity(data: CalculateTreatmentDto): number {
-    // Constantes para el cálculo
-    const OIL_SPECIFIC_HEAT = 0.5; // BTU/lb-°F
-    const WATER_SPECIFIC_HEAT = 1.0; // BTU/lb-°F
-    const OIL_DENSITY = 141.5 / (131.5 + data.apiGravity); // lb/gal
-
-    // Convertir flujo a lb/hr
-    const oilFlow =
-      (data.totalFlow * (1 - data.waterFraction) * OIL_DENSITY * 24) / 24;
-    const waterFlow = (data.totalFlow * data.waterFraction * 8.34 * 24) / 24;
-
-    // Calcular capacidad de calor
-    const deltaT = data.targetTemperature - data.inletTemperature;
-    return (
-      (oilFlow * OIL_SPECIFIC_HEAT + waterFlow * WATER_SPECIFIC_HEAT) * deltaT
-    );
+  /**
+   * Calcula flujo de petróleo según API-12L: Wo = W × (100 - X) / 100
+   */
+  private calculateOilFlow(data: CalculateTreatmentDto): number {
+    return data.totalFlow * (100 - data.waterFraction) / 100;
   }
 
-  private calculateRetentionVolume(data: CalculateTreatmentDto): number {
-    // Tiempo de residencia estándar (30-60 minutos para deshidratación)
-    const STANDARD_RESIDENCE_TIME = 30; // minutos
-
-    // Convertir a bbl (1 bbl = 42 galones)
-    return (data.totalFlow * STANDARD_RESIDENCE_TIME) / (24 * 60);
+  /**
+   * Calcula flujo de agua según API-12L: Ww = W × X / 100
+   */
+  private calculateWaterFlow(data: CalculateTreatmentDto): number {
+    return data.totalFlow * data.waterFraction / 100;
   }
 
-  private calculateResidenceTime(
-    data: CalculateTreatmentDto,
-    volume: number,
-  ): number {
-    // Tiempo en minutos = (Volumen * 42) / (Flujo / 24 / 60)
-    return (volume * 42) / (data.totalFlow / 24 / 60);
+  /**
+   * Calcula volúmenes de retención según API-12L
+   * Vp = Wo × (to / 1440) - Volumen retención petróleo
+   * Vw = Ww × (tw / 1440) - Volumen retención agua
+   */
+  private calculateRetentionVolumes(data: CalculateTreatmentDto): {
+    oilRetentionVolume: number;
+    waterRetentionVolume: number;
+  } {
+    const oilFlow = this.calculateOilFlow(data);
+    const waterFlow = this.calculateWaterFlow(data);
+
+    // Vp = Wo × (to / 1440) - Volumen retención petróleo
+    const oilRetentionVolume = oilFlow * (data.oilRetentionTime / 1440);
+
+    // Vw = Ww × (tw / 1440) - Volumen retención agua  
+    const waterRetentionVolume = waterFlow * (data.waterRetentionTime / 1440);
+
+    return { oilRetentionVolume, waterRetentionVolume };
   }
 
+  /**
+   * Calcula calor requerido según API-12L: Q = W × (6.44 + (8.14 × X/100)) × (T2 - T1)
+   */
+  private calculateRequiredHeat(data: CalculateTreatmentDto): number {
+    return data.totalFlow * 
+      (6.44 + (8.14 * data.waterFraction / 100)) * 
+      (data.targetTemperature - data.inletTemperature);
+  }
+
+  /**
+   * Calcula pérdidas de calor según API-12L: Qpérdida = K × D × L × (T2 - T3)
+   */
+  private calculateHeatLoss(data: CalculateTreatmentDto, diameter: number, length: number): number {
+    const K = this.getWindConstant(data.windSpeed);
+    
+    return K * diameter * length * 
+      (data.targetTemperature - data.ambientTemperature);
+  }
+
+  /**
+   * Obtiene constante K según velocidad del viento (API-12L)
+   */
+  private getWindConstant(windSpeed: number): number {
+    if (windSpeed <= 5) return 8.5;
+    if (windSpeed <= 10) return 10.2;
+    if (windSpeed <= 15) return 13.2;
+    if (windSpeed <= 20) return 16.8;
+    return 21.0; // > 20 mph
+  }
+
+  /**
+   * Calcula volumen interno del tratador en bbl
+   */
+  private calculateInternalVolume(diameter: number, length: number): number {
+    // V = π × (D/2)² × L × 0.1781 (conversión a bbl)
+    return Math.PI * Math.pow(diameter / 2, 2) * length * 0.1781;
+  }
+
+  /**
+   * Busca tratadores adecuados según API-12L
+   */
   private async findSuitableTreaters(
     heatRequired: number,
-    volumeRequired: number,
+    oilRetentionVolume: number,
+    waterRetentionVolume: number,
   ): Promise<TreatmentOption[]> {
-    return this.treatmentOptionRepository
+    const maxRetentionVolume = Math.max(oilRetentionVolume, waterRetentionVolume);
+
+    const candidates = await this.treatmentOptionRepository
       .createQueryBuilder('option')
       .where('option.minHeatCapacity >= :heat', { heat: heatRequired })
-      .andWhere(
-        '(PI() * POWER(option.diameter/2, 2) * option.length * 0.1781 >= :volume',
-        {
-          volume: volumeRequired,
-        },
-      )
       .andWhere('option.deleted = false')
       .orderBy('option.minHeatCapacity', 'ASC')
       .addOrderBy('option.diameter', 'ASC')
       .getMany();
+
+    // Filtrar por volumen interno
+    return candidates.filter(option => {
+      const internalVolume = this.calculateInternalVolume(option.diameter, option.length);
+      return internalVolume >= maxRetentionVolume;
+    });
   }
 }

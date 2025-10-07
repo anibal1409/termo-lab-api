@@ -1,0 +1,425 @@
+Programa para la Optimización del Proceso de Diseño de Tratadores Térmicos
+de Crudo bajo la Norma API-12L para PDVSA
+Guía paso a paso:
+
+
+Paso 1: Identificación de variables
+
+Variables involucradas en el diseño del tratador térmico:
+
+
+
+
+
+
+
+
+
+
+
+
+Flujo Total de Emulsión (W) - Bbls/día
+Fracción de Agua (X) - %
+Flujo de Aceite (Wo) - Bbls/día
+Flujo de Agua (Ww) - Bbls/día
+Temperatura de Entrada (T1) - °F
+Temperatura de Tratamiento (T2) - °F
+Temperatura Ambiente (T3) - °F
+Tiempo de Retención del Petróleo (To) - minutos
+Tiempo de Retención del Agua (Tw) - minutos
+Velocidad del Viento - MPH
+Gravedad API - °API
+
+
+
+Paso 2: Desarrollo de interfaces del programa
+
+Ejemplo de formularios de ingreso de datos
+Campo
+Flujo Total de Emulsión (W)
+Fracción de Agua (X)
+Temperatura de Entrada (T1)
+Temperatura de Tratamiento (T2)
+Temperatura de Ambiente (T3)
+Tiempo de Retención del Petróleo (to)
+Tiempo de Retención del Agua (tw)
+Velocidad del Viento
+Gravedad API
+
+
+Descripción
+Ingrese en Bbls/día
+Ingrese en %
+Ingrese en °F
+Ingrese en °F
+Ingrese en °F
+Ingrese en minutos
+Ingrese en minutos
+Ingrese en MPH
+Ingrese en °API
+
+Paso 3: Cálculos y optimización
+Para cada una de las variables identificadas, se aplican las mismas fórmulas
+
+descritas en la Tesis, según lo establecido en la norma API-12L:
+
+
+
+Cálculo de las tasas de flujo:
+o Tasa de flujo de petróleo:
+𝑊0 =
+
+𝑊 × (100 − 𝑋)
+100
+
+o Tasa de flujo de agua:
+𝑊w =
+
+
+𝑊 ×X
+100
+
+Cálculo de volúmenes de retención:
+o Volumen de retención del petróleo:
+𝑉𝑝 = 𝑊0 × (
+
+𝑡0
+)
+1440
+
+o Volumen de retención del agua:
+𝑉𝑤 = 𝑊w × (
+
+
+Paso 4: Cálculo de calentamiento
+𝑄 = 𝑊 × (6,44 + (8,14 ×
+
+
+
+𝑡w
+)
+1440
+
+𝑋
+)) × (𝑇2 − 𝑇1)
+100
+
+Paso 5: Cálculo de pérdidas de calor
+
+Se calcula las pérdidas de calor considerando la velocidad del viento y las
+dimensiones del tratador:
+𝑄𝑝é𝑟𝑑𝑖𝑑𝑎 = 𝐾 × 𝐷 × 𝐿 × (𝑇2 − 𝑇3)
+
+Donde K es una constante que depende de la velocidad del viento, D es el
+diámetro del tratador y L es la longitud del tratador.
+
+
+Paso 6: Cálculo del calor total
+𝑄𝑡𝑜𝑡𝑎𝑙 = 𝑄 + 𝑄𝑃é𝑟𝑑𝑖𝑑𝑎
+
+
+
+Paso 7: Selección de dimensiones del tratador
+
+Se usan las tablas de la norma API-12L para seleccionar el diámetro y longitud
+del tratador en función del volumen de retención y el calor total requerido.
+
+«Los tratadores provistos para esta especificación son verticales u horizontales
+y están disponibles en los tamaños y presiones que se muestran en la Tabla 1 y la
+Tabla 2 como estándares nominales de la industria. Otros tamaños y clasificaciones
+de presión pueden ser proporcionados por acuerdo entre comprador y fabricante.
+La temperatura máxima de diseño puede estar limitada por las clasificaciones de
+brida o el material de la junta y estas pueden ser consultadas en las secciones
+correspondientes del Código ASME que se encuentren por debajo –20° F.»
+Tabla 1 Dimensiones y presiones típicas para tratadores verticales
+Diámetro externo (ft)
+LSS
+Presión del diseño (psig)
+10, 12 o 15
+50
+3
+10, 12, 20, o 27 ½
+50
+4
+12, 20 o 27 ½
+50
+6
+20 o 27 ½
+40
+8
+20 o 27 ½
+40
+10
+Fuente: American Petroleum Institute (1994)
+Nota: esta tabla muestra el valor mínimo de diseño de presión para cada diámetro
+externo y así mismo la variación de las longitudes de costura de cabeza para un tratador
+vertical.
+Tabla 2 Dimensiones y presiones típicas para tratadores horizontales
+Diámetro externo (ft)
+LSS
+Presión del diseño (psig)
+10, 12 o 15
+50
+3
+10, 12 o 15
+50
+4
+10,
+15
+o
+20
+50
+6
+15, 20, 25 o 30
+50
+8
+20, 30, 40, 50 o 60
+50
+10
+30, 40, 50 0 60
+50
+12
+Fuente: American Petroleum Institute (1994)
+Nota: esta tabla muestra el valor mínimo de diseño de presión para cada diámetro
+externo y así mismo la variación de las longitudes de costura de cabeza para un tratador
+horizontal.
+
+
+Paso 8: Clasificación de cámara de fuegos
+
+Se selecciona el diámetro de salida definido por tres variables fundamentales,
+tasa de transferencia de calor por hora (BTU/hr), área mínima (ft²) y diámetro exterior
+(ft) La tabla 3 muestra algunas clasificaciones para la cámara de combustión de los
+tratadores de emulsión verticales y horizontales provistos para esta especificación. Esta
+tabla proporciona una guía general para seleccionar el tamaño adecuado de un horno,
+ya sea vertical u horizontal, en función de sus necesidades específicas. Los datos
+
+presentados se expresan en unidades del sistema inglés (pies, pies cuadrados y
+BTU/hora).
+Explicación de las columnas:
+
+
+Diámetro exterior (ft): indica el diámetro exterior del horno, su tamaño físico.
+
+
+
+Área mínima (sq. ft.): representa el área mínima de la superficie interior del
+horno requerida para una determinada capacidad de calentamiento.
+
+
+
+Capacidad calorífica (BTU/hr): indica la cantidad de calor que el horno puede
+generar por hora. Esta medida es importante para determinar la capacidad de
+calentamiento del horno y si será suficiente para la aplicación.
+Tabla 3. Clasificaciones típicas de cámaras de combustión
+Diámetro
+Área
+Cantidad
+Área mínima
+Cantidad
+externo (ft)
+mínima
+mínima de
+sq. ft.
+mínima de calor
+sq. ft.
+calor
+(para
+BTU/hr.
+(para
+BTU/hr.
+tratadores
+(para
+tratadores
+(para
+horizontales)
+tratadores
+verticales) tratadores
+horizontales)
+verticales)
+3
+10
+100.000
+15
+150.000
+4
+25
+250.000
+25
+250.000
+6
+50
+500.000
+50
+500.000
+8
+100
+1.000.000
+75
+750.000
+10
+125
+1.250.000
+200
+2.000.000
+12
+320
+3.200.000
+Fuente: American Petroleum Institute (1994)
+
+Nota: estos son los requisitos mínimos sugeridos. Deben considerarse los
+requerimientos de calor del proceso y las características del fluido al dimensionar la
+cámara de combustión.
+
+
+Paso 9: Generación de reportes
+
+Crea una plantilla de reportes que incluya todos los resultados calculados (el
+diámetro, longitud, calor requerido y capacidades de líquido). Un ejemplo de tabla
+de resultados sería:
+Parámetro
+Flujo Total de Emulsión (W)
+Fracción de Agua (X)
+Tasa de flujo de petróleo (Wo)
+
+Valor
+[Valor calculado] Bbl/día
+[Valor ingresado] %
+[Cálculo resultante] Bbl/día
+
+Tasa de flujo de agua (Ww)
+Volumen de retención del petróleo (Vp)
+Volumen de retención del agua (Vw)
+Calor requerido (Q)
+Pérdidas de calor
+Calor total (Qtotal)
+Diámetro del tratador
+Longitud del tratador
+
+[Cálculo resultante] Bbl/día
+[Cálculo resultante] Bbl
+[Cálculo resultante] Bbl
+[Cálculo resultante] BTU/hr
+[Cálculo resultante] BTU/hr
+[Cálculo resultante] BTU/hr
+[Valor seleccionado] ft
+[Valor seleccionado] ft
+
+Ejemplo tipo ejercicio: Diseño de un tratador térmico horizontal
+Datos iniciales
+Supongamos que se tienen las siguientes condiciones para un crudo pesado:
+
+
+
+
+
+
+
+
+
+Flujo Total de Emulsión (W): 500 Bbls/día
+Fracción de Agua (X): 20 %
+Temperatura de Entrada (T1): 75 °F
+Temperatura de Tratamiento (T2): 140 °F
+Tiempo de Retención del Petróleo (to): 60 minutos
+Tiempo de Retención del Agua (tw): 30 minutos
+Velocidad del Viento: 15 MPH
+Gravedad API: 18 °API
+
+-Paso 1: Cálculo de las tasas de flujo
+1. Tasa de flujo de petróleo (Wo):
+𝑊0 =
+
+𝑊 × (100 − 𝑋) 500 × (100 − 20)
+=
+= 400 𝐵𝑏𝑙𝑠/𝑑í𝑎
+100
+100
+
+2. Tasa de flujo de agua (Ww):
+𝑊w = W (
+
+X
+20
+) = 500 (
+) = 100 𝐵𝑏𝑙𝑠/𝑑í𝑎
+100
+100
+
+-Paso 2: Cálculo de volúmenes de retención
+1. Volumen de retención del petróleo (Vp):
+𝑉𝑝 = 𝑊0 × (
+
+𝑡0
+60
+) = 400 × (
+) ≈ 16,67 𝐵𝑏𝑙
+1440
+1440
+
+2. Volumen de retención del agua (Vw):
+
+𝑉𝑤 = 𝑊𝑤 × (
+
+𝑡𝑤
+30
+) = 100 × (
+) ≈ 2,08 𝐵𝑏𝑙
+1440
+1440
+
+-Paso 3: Cálculo de calor requerido para el tratamiento
+𝑄 = 𝑊 × (6,44 + (8,14 ×
+
+𝑄 = 500 × (6,44 + (8,14 ×
+
+𝑋
+)) × (𝑇2 − 𝑇1)
+100
+
+20
+)) × (140 − 75) ≈ 262.210 BTU/Hora
+100
+
+-Paso 4: Cálculo de pérdidas de calor
+Supongamos que, según la tabla de la norma API-12L, para una velocidad del viento
+de 15 MPH, la constante K es 13.2. Si el diámetro del tratador es 4 ft y la longitud es
+15 ft, calculamos las pérdidas de calor asumiendo que la temperatura ambiente T3 es
+30 °F:
+𝑄𝑝é𝑟𝑑𝑖𝑑𝑎 = 𝐾 × 𝐷 × 𝐿 × (𝑇2 − 𝑇3) = 13.2 × 4 × 15 × (140 − 30) ≈ 87.120 𝐵𝑇𝑈/𝐻𝑜𝑟𝑎
+
+-Paso 5: Cálculo del calor total
+𝑄𝑡𝑜𝑡𝑎𝑙 = 𝑄 + 𝑄𝑃é𝑟𝑑𝑖𝑑𝑎 = 262.210 + 87.120 ≈ 349.330 𝐵𝑇𝑈/ℎ𝑜𝑟𝑎
+
+-Paso 6: Selección de dimensiones del tratador
+Con el calor total calculado, se consulta la tabla de la norma API-12L para seleccionar
+el diámetro y longitud del tratador. Supongamos que, según la tabla, para un calor total
+de 349.330 BTU/hora, se recomienda un diámetro de 4 ft y una longitud de 15 ft.
+-Paso 8: Generación de reporte
+Parámetro
+Flujo Total de Emulsión (W)
+Fracción de Agua (X)
+Tasa de flujo de petróleo (Wo)
+Tasa de flujo de agua (Ww)
+Volumen de retención del petróleo (Vp)
+Volumen de retención del agua (Vw)
+Calor requerido (Q)
+Pérdidas de calor
+Calor total (Qtotal)
+Diámetro del tratador
+Longitud del tratador
+
+Valor
+500 Bbls/día
+20 %
+400 Bbls/día
+100 Bbls/día
+16,67 Bbl
+2,08 Bbl
+262.210 BTU/hora
+87.120 BTU/hora
+349.330 BTU/hora
+4 ft
+15 ft
+
+

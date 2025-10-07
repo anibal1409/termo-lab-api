@@ -1689,6 +1689,40 @@
           "Evaluations"
         ]
       }
+    },
+    "/thermal-calculations/calculate": {
+      "post": {
+        "description": "Calcula todos los parámetros térmicos según la metodología del PDF y la norma API-12L",
+        "operationId": "ThermalCalculationsController_calculateThermalResults",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Resultados térmicos calculados exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThermalCalculationResults"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Calcular resultados térmicos completos",
+        "tags": [
+          "Thermal Calculations"
+        ]
+      }
     }
   },
   "info": {
@@ -2299,73 +2333,151 @@
         "properties": {
           "totalFlow": {
             "type": "number",
-            "description": "Flujo total de fluidos (bbl/día)",
-            "example": 5000
+            "description": "Flujo total de emulsión (bbl/día)",
+            "example": 500
           },
           "waterFraction": {
             "type": "number",
-            "description": "Fracción de agua (0-1)",
-            "example": 0.3
-          },
-          "apiGravity": {
-            "type": "number",
-            "description": "Gravedad API del crudo",
-            "example": 25
+            "description": "Fracción de agua (%)",
+            "example": 20
           },
           "inletTemperature": {
             "type": "number",
             "description": "Temperatura de entrada (°F)",
-            "example": 120
+            "example": 75
           },
           "targetTemperature": {
             "type": "number",
-            "description": "Temperatura objetivo (°F)",
-            "example": 180
+            "description": "Temperatura de tratamiento (°F)",
+            "example": 140
+          },
+          "ambientTemperature": {
+            "type": "number",
+            "description": "Temperatura ambiente (°F)",
+            "example": 30
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "description": "Tiempo de retención del petróleo (minutos)",
+            "example": 60
+          },
+          "waterRetentionTime": {
+            "type": "number",
+            "description": "Tiempo de retención del agua (minutos)",
+            "example": 30
+          },
+          "windSpeed": {
+            "type": "number",
+            "description": "Velocidad del viento (mph)",
+            "example": 15
+          },
+          "apiGravity": {
+            "type": "number",
+            "description": "Gravedad API del crudo",
+            "example": 18
           }
         },
         "required": [
           "totalFlow",
           "waterFraction",
-          "apiGravity",
           "inletTemperature",
-          "targetTemperature"
+          "targetTemperature",
+          "ambientTemperature",
+          "oilRetentionTime",
+          "waterRetentionTime",
+          "windSpeed",
+          "apiGravity"
         ]
       },
       "TreatmentCalculationsDto": {
         "type": "object",
         "properties": {
+          "calculatedOilFlow": {
+            "type": "number",
+            "description": "Flujo de petróleo calculado según API-12L (bpd)",
+            "example": 400
+          },
+          "calculatedWaterFlow": {
+            "type": "number",
+            "description": "Flujo de agua calculado según API-12L (bpd)",
+            "example": 100
+          },
+          "oilRetentionVolume": {
+            "type": "number",
+            "description": "Volumen de retención de petróleo según API-12L (bbl)",
+            "example": 16.67
+          },
+          "waterRetentionVolume": {
+            "type": "number",
+            "description": "Volumen de retención de agua según API-12L (bbl)",
+            "example": 2.08
+          },
           "requiredHeatCapacity": {
             "type": "number",
-            "description": "Capacidad de calor requerida (BTU/hr)",
-            "example": 2500000
+            "description": "Capacidad de calor requerida según API-12L (BTU/hr)",
+            "example": 262210
           },
-          "requiredRetentionVolume": {
+          "heatLoss": {
             "type": "number",
-            "description": "Volumen de retención requerido (bbl)",
-            "example": 500
+            "description": "Pérdidas de calor según API-12L (BTU/hr)",
+            "example": 87120
           },
-          "estimatedResidenceTime": {
+          "totalHeat": {
             "type": "number",
-            "description": "Tiempo de residencia estimado (minutos)",
-            "example": 30
+            "description": "Calor total requerido según API-12L (BTU/hr)",
+            "example": 349330
+          },
+          "recommendedDiameter": {
+            "type": "number",
+            "description": "Diámetro recomendado según API-12L (ft)",
+            "example": 4
+          },
+          "recommendedLength": {
+            "type": "number",
+            "description": "Longitud recomendada según API-12L (ft)",
+            "example": 15
+          },
+          "recommendedPressure": {
+            "type": "number",
+            "description": "Presión de diseño recomendada según API-12L (psig)",
+            "example": 50
           },
           "recommendedTreaters": {
-            "description": "Recomendaciones de tratadores adecuados",
+            "description": "Lista de tratadores recomendados según API-12L",
             "example": [
-              "Tratador horizontal 10ft - LSS 20",
-              "Tratador vertical 8ft - LSS 20"
+              "Tratador horizontal 4ft - LSS 15 - 250000 BTU/hr",
+              "Tratador horizontal 6ft - LSS 12 - 500000 BTU/hr"
             ],
             "type": "array",
             "items": {
               "type": "string"
             }
+          },
+          "requiredRetentionVolume": {
+            "type": "number",
+            "description": "Volumen de retención total requerido (bbl)",
+            "example": 16.67
+          },
+          "estimatedResidenceTime": {
+            "type": "number",
+            "description": "Tiempo de residencia estimado (minutos)",
+            "example": 30
           }
         },
         "required": [
+          "calculatedOilFlow",
+          "calculatedWaterFlow",
+          "oilRetentionVolume",
+          "waterRetentionVolume",
           "requiredHeatCapacity",
+          "heatLoss",
+          "totalHeat",
+          "recommendedDiameter",
+          "recommendedLength",
+          "recommendedPressure",
+          "recommendedTreaters",
           "requiredRetentionVolume",
-          "estimatedResidenceTime",
-          "recommendedTreaters"
+          "estimatedResidenceTime"
         ]
       },
       "UpdateTreatmentDto": {
@@ -2635,6 +2747,91 @@
             "type": "number",
             "description": "Tiempo de retención de petróleo en minutos",
             "example": 60
+          },
+          "diameter": {
+            "type": "number",
+            "description": "Diámetro del tratador térmico en pies",
+            "example": 6
+          },
+          "length": {
+            "type": "number",
+            "description": "Longitud del tratador térmico en pies",
+            "example": 20
+          },
+          "freeWaterRemovalPercentage": {
+            "type": "number",
+            "description": "Porcentaje de agua libre retirada en el separador (%)",
+            "example": 85
+          },
+          "waterDropSize": {
+            "type": "number",
+            "description": "Tamaño de la gota de agua en micrones (µm)",
+            "example": 150
+          },
+          "waterSpecificGravity": {
+            "type": "number",
+            "description": "Gravedad específica del agua (adimensional)",
+            "example": 1
+          },
+          "oilSpecificHeat": {
+            "type": "number",
+            "description": "Calor específico del crudo en BTU/(lb·°F)",
+            "example": 0.45
+          },
+          "waterSpecificHeat": {
+            "type": "number",
+            "description": "Calor específico del agua en BTU/(lb·°F)",
+            "example": 1
+          },
+          "inletTemperature": {
+            "type": "number",
+            "description": "Temperatura del fluido a la entrada del tratador en °F",
+            "example": 75
+          },
+          "ambientTemperature": {
+            "type": "number",
+            "description": "Temperatura ambiente en °F",
+            "example": 30
+          },
+          "operatingPressure": {
+            "type": "number",
+            "description": "Presión de operación del tratador en psig",
+            "example": 50
+          },
+          "oilDensity": {
+            "type": "number",
+            "description": "Densidad del crudo en lb/pie³",
+            "example": 54.8
+          },
+          "waterDensity": {
+            "type": "number",
+            "description": "Densidad del agua en lb/pie³",
+            "example": 62.4
+          },
+          "oilViscosity": {
+            "type": "number",
+            "description": "Viscosidad del crudo en centipoises (cP)",
+            "example": 15.5
+          },
+          "factorK": {
+            "type": "number",
+            "description": "Factor K (constante de diseño)",
+            "example": 0.5
+          },
+          "lowLowWaterLevel": {
+            "type": "number",
+            "description": "Nivel desde el fondo al nivel bajo bajo de agua en pulgadas",
+            "example": 2
+          },
+          "waterOilInterfaceLevel": {
+            "type": "number",
+            "description": "Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas",
+            "example": 12
+          },
+          "highHighOilLevel": {
+            "type": "number",
+            "description": "Nivel desde el fondo al nivel alto alto de crudo en pulgadas",
+            "example": 24
           }
         },
         "required": [
@@ -3050,6 +3247,183 @@
             "example": 1
           }
         }
+      },
+      "ThermalCalculationResults": {
+        "type": "object",
+        "properties": {
+          "freeWaterAndSedimentPercentage": {
+            "type": "number",
+            "description": "Porcentaje de agua libre y sedimento"
+          },
+          "emulsifiedWaterPercentage": {
+            "type": "number",
+            "description": "Porcentaje de agua emulsionada"
+          },
+          "volumetricFlowRate": {
+            "type": "number",
+            "description": "Flujo volumétrico de fluidos en BPD"
+          },
+          "gasDensity": {
+            "type": "number",
+            "description": "Densidad del gas en lb/pie³"
+          },
+          "gasMolecularWeight": {
+            "type": "number",
+            "description": "Peso molecular del gas en lb/mol"
+          },
+          "oilArea": {
+            "type": "number",
+            "description": "Área ocupada por el crudo en pie²"
+          },
+          "oilRetentionVolume": {
+            "type": "number",
+            "description": "Volumen de retención del crudo en pie³"
+          },
+          "waterFlowRate": {
+            "type": "number",
+            "description": "Caudal de agua en BPD"
+          },
+          "dryOilFlowRate": {
+            "type": "number",
+            "description": "Caudal de crudo seco en BPD"
+          },
+          "estimatedRetentionTime": {
+            "type": "number",
+            "description": "Tiempo de retención estimado en minutos"
+          },
+          "lowWaterArea": {
+            "type": "number",
+            "description": "Área desde el fondo al nivel bajo bajo de agua en pie²"
+          },
+          "totalVesselArea": {
+            "type": "number",
+            "description": "Área total del recipiente en pie²"
+          },
+          "gasArea": {
+            "type": "number",
+            "description": "Área disponible para el gas en pie²"
+          },
+          "freeHeightForGas": {
+            "type": "number",
+            "description": "Altura libre para el gas en pies"
+          },
+          "waterRetentionVolume": {
+            "type": "number",
+            "description": "Volumen de retención de agua en pie³"
+          },
+          "waterCutLeavingTreater": {
+            "type": "number",
+            "description": "Corte de agua del crudo saliendo del tratador (%)"
+          },
+          "allowableGasVelocity": {
+            "type": "number",
+            "description": "Velocidad permisible para el gas en pie/s"
+          },
+          "requiredGasArea": {
+            "type": "number",
+            "description": "Área requerida para el gas en pie²"
+          },
+          "waterArea": {
+            "type": "number",
+            "description": "Área ocupada por el agua en pie²"
+          },
+          "waterLeavingWithOil": {
+            "type": "number",
+            "description": "Cantidad de agua saliendo con el crudo en BPD"
+          },
+          "dehydrationPercentage": {
+            "type": "number",
+            "description": "Porcentaje de deshidratación del equipo (%)"
+          },
+          "oilMassFlow": {
+            "type": "number",
+            "description": "Flujo másico del crudo en lb/h"
+          },
+          "waterMassFlow": {
+            "type": "number",
+            "description": "Flujo másico de agua en lb/h"
+          },
+          "heavyPhaseSettlingVelocity": {
+            "type": "number",
+            "description": "Velocidad de decantación de la fase pesada en pie/min"
+          },
+          "heavyPhaseSettlingTime": {
+            "type": "number",
+            "description": "Tiempo de decantación de la fase pesada en minutos"
+          },
+          "lightPhaseSettlingTime": {
+            "type": "number",
+            "description": "Tiempo de decantación de la fase liviana en minutos"
+          },
+          "totalHeatRequired": {
+            "type": "number",
+            "description": "Calor total requerido en BTU/h"
+          },
+          "freeWaterFlowEntering": {
+            "type": "number",
+            "description": "Caudal de agua libre entrando al tratador en BPD"
+          },
+          "emulsifiedWaterFlowEntering": {
+            "type": "number",
+            "description": "Caudal de agua emulsionada entrando al tratador en BPD"
+          },
+          "totalWaterToBeHandled": {
+            "type": "number",
+            "description": "Cantidad de agua total a ser manejada por el tratador en BPD"
+          },
+          "volumetricWaterFraction": {
+            "type": "number",
+            "description": "Fracción volumétrica del agua en la corriente de entrada"
+          },
+          "oilSpecificGravity": {
+            "type": "number",
+            "description": "Gravedad específica del crudo (adimensional)"
+          },
+          "calculatedOilDensity": {
+            "type": "number",
+            "description": "Densidad del crudo calculada en lb/pie³"
+          },
+          "calculatedWaterDensity": {
+            "type": "number",
+            "description": "Densidad del agua calculada en lb/pie³"
+          }
+        },
+        "required": [
+          "freeWaterAndSedimentPercentage",
+          "emulsifiedWaterPercentage",
+          "volumetricFlowRate",
+          "gasDensity",
+          "gasMolecularWeight",
+          "oilArea",
+          "oilRetentionVolume",
+          "waterFlowRate",
+          "dryOilFlowRate",
+          "estimatedRetentionTime",
+          "lowWaterArea",
+          "totalVesselArea",
+          "gasArea",
+          "freeHeightForGas",
+          "waterRetentionVolume",
+          "waterCutLeavingTreater",
+          "allowableGasVelocity",
+          "requiredGasArea",
+          "waterArea",
+          "waterLeavingWithOil",
+          "dehydrationPercentage",
+          "oilMassFlow",
+          "waterMassFlow",
+          "heavyPhaseSettlingVelocity",
+          "heavyPhaseSettlingTime",
+          "lightPhaseSettlingTime",
+          "totalHeatRequired",
+          "freeWaterFlowEntering",
+          "emulsifiedWaterFlowEntering",
+          "totalWaterToBeHandled",
+          "volumetricWaterFraction",
+          "oilSpecificGravity",
+          "calculatedOilDensity",
+          "calculatedWaterDensity"
+        ]
       }
     }
   }

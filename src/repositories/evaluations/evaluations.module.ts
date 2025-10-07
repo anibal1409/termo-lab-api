@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TreatmentsModule } from '../treatments/treatments.module';
 import { UsersModule } from '../users/users.module';
 import { EvaluationsController } from './controllers/evaluations.controller';
+import { ThermalCalculationsController } from './controllers/thermal-calculations.controller';
 import {
   Evaluation,
   EvaluationCriteria,
@@ -14,6 +15,7 @@ import {
 import {
   EvaluationCalculatorService,
   EvaluationsService,
+  ThermalCalculatorService,
 } from './services';
 
 /**
@@ -31,8 +33,8 @@ import {
     UsersModule,
     TreatmentsModule,
   ],
-  controllers: [EvaluationsController],
-  providers: [EvaluationsService, EvaluationCalculatorService],
-  exports: [EvaluationsService, EvaluationCalculatorService, TypeOrmModule],
+  controllers: [EvaluationsController, ThermalCalculationsController],
+  providers: [EvaluationsService, EvaluationCalculatorService, ThermalCalculatorService],
+  exports: [EvaluationsService, EvaluationCalculatorService, ThermalCalculatorService, TypeOrmModule],
 })
 export class EvaluationsModule {}

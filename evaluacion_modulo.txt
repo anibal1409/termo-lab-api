@@ -1,0 +1,642 @@
+Módulo de Evaluación
+Para cumplir con el segundo objetivo de esta investigación, se implementó una metodología
+estructurada compuesta por principios ágiles enmarcados en la metodología OPEN UP, abarcando la
+recolección y análisis de información relevante sobre el proceso de separación agua-crudo en los
+tratadores térmicos. Se llevaron a cabo entrevistas con expertos en el área, revisión de literatura
+histórica, y simulaciones informáticas que permitieron profundizar en el funcionamiento de estos
+sistemas y en las variables que influyen en el proceso. Esta etapa fue fundamental para modelar las
+deficiencias actuales que presenta PDVSA en la construcción y operación de tratadores térmicos
+horizontales, buscando optimizar su eficiencia y cumplimiento normativo bajo la norma API-12L.
+A partir del análisis inicial y la definición de variables clave, se procedió al desarrollo del módulo de
+evaluación, el cual constituye el segundo componente funcional del programa propuesto. Este módulo
+tiene como finalidad analizar el desempeño de los tratadores térmicos diseñados, permitiendo validar si
+cumplen con los requerimientos técnicos establecidos por la norma API-12L. Para ello, se integraron
+los parámetros de entrada previamente identificados con métodos de cálculo automatizados que
+generan indicadores técnicos fundamentales como volumen de tratamiento, eficiencia térmica,
+capacidad de separación y cumplimiento con los límites de agua y sedimento. Esta fase del sistema no
+solo permite evaluar el tratador bajo condiciones operativas específicas, sino también identificar
+oportunidades de mejora y ajustes de diseño en función de los resultados obtenidos.
+4.2.2.1 Identificación de variables
+En la Tabla 4-1se identificaron las siguientes variables clave como datos de entrada que influyen en el
+diseño y operación de los tratadores térmicos:
+Tabla 4-1 Identificación de variables para datos de entrada
+Variable
+Medida/Unidad
+Diámetro
+D  ft (pies)
+Longitud del Tratador Térmico
+L  ft (pies)
+Caudal total producido en el campo
+B.P.D
+(Agua + Crudo)
+Porcentaje de agua y sedimento
+%
+Porcentaje de agua libre retirada en el
+%
+separador
+Tamaño de la gota de agua
+micrones (µm)
+Gravedad específica del agua
+1
+Gravedad específica del crudo
+° API (grados API)
+Calor específico del crudo (CPO @ P, t)
+BTU / (lb · °F)
+Calor específico del agua (CPU @ P, t)
+BTU / (lb · °F)
+Temperatura del fluido a la entrada del
+°F
+Tratador térmico (T1)
+Temperatura ambiente
+°F
+Presión de operación del Tratador
+psig (Lbf /in² gauge)
+Densidad del crudo (PO @ P, t)
+Lb/pie3
+Densidad del agua (PU @ P, t)
+Lb/pie3
+Viscosidad del crudo @ P, t
+cP (centipoises)
+Factor K
+0,5
+Nivel desde el fondo a nivel bajo bajo de
+Pulgadas
+agua
+Nivel desde el fondo al nivel de Interfase
+Pulgadas
+Agua - Crudo
+Nivel desde el fondo al nivel alto alto de
+Pulgadas
+
+crudo
+Fuente: Autores (2024)
+La tabla anterior presenta las variables clave y sus valores utilizados para el dimensionamiento de
+tratadores térmicos, según los lineamientos de la norma API 12L. El apéndice D de esta norma
+proporcionó la base teórica y las ecuaciones necesarias para llevar a cabo dicha tabla, permitiendo así
+determinar las dimensiones óptimas del equipo. La siguiente tabla contiene aquellos campos calculados
+con datos que no son de entrada:
+
+Tabla 4-2 Campos calculados
+Campos
+Medida
+Porcentaje de agua libre y sedimento
+%
+Porcentaje de agua emulsionada en la
+%
+corriente de entrada del Tratador
+Flujo volumétrico de Fluidos a ser
+B.P.D
+manejados por el Tratador (Crudo + Agua)
+Densidad del gas (PG @ P, t)
+lb/pie³
+Peso molecular del gas
+lb/mol o g/mol
+Fuente: Autores (2024)
+Seguidamente se observa la Tabla 4-3 que contiene las propiedades de los componentes del gas natural
+con su peso molecular y las constantes de Peng-Robinson para cada componente listado:
+Tabla 4-3 Propiedades seleccionadas de componentes del gas natural
+Peso
+Símbolo
+PengPengComponente molecular
+para
+Robinson
+Robinson
+(lb/mol)
+cálculos
+aci
+bi
+Metano
+16,043
+C₁
+8.689,27150
+4,78139
+Etano
+30,070
+C₂
+21.040,78928
+7,22706
+Propano
+44,097
+C₃
+35.422,10919 10,04910
+n-Butano
+58,123
+n-C₄
+52.390,26345 12,92866
+i-Butano
+58,123
+i-C₄
+53.747,33576 12,91743
+n-Pentano
+72,151
+n-C₅
+77.058,90946 16,09538
+i-Pentano
+72,151
+i-C₅
+73.791,61728 15,72153
+100.593,2558
+n-Hexano
+86,178
+n-C₆
+19,44733
+9
+125.550,0947
+n-Heptano
+100,205
+n-C₇
+22,79766
+8
+153.145,5711
+n-Octano
+114,232
+n-C₈
+26,41229
+2
+181.771,1508
+n-Nonano
+128,259
+n-C₉
+29,98887
+2
+214.169,5666
+n-Decano
+142,286
+n-C₁₀
+34,01799
+4
+Dióxido de
+44,010
+CO₂
+14.755,59716
+4,75719
+carbono
+
+PengRobinson
+mi
+0,4963
+0,6334
+0,7157
+0,7892
+0,7648
+0,8682
+0,8212
+0,9373
+1,0090
+1,0840
+1,1462
+1,2069
+0,8252
+
+Nitrógeno
+Sulfuro de
+hidrógeno
+
+28,013
+
+N₂
+
+5.103,64937
+
+0,34830
+
+0,47592
+
+34,076
+
+H₂S
+
+18.240,77719
+
+4,78979
+
+0,6356
+
+Fuente: Autores (2024)
+Además de la tabla descrita anteriormente, lo siguiente se debe tomar en cuenta para el cálculo de Z:
+Z 3 − ( 1−B ) Z 2 + ( A−3 ( B 2 ) −2 ( B ) ) Z− ( ( A ) ( B ) −B 2−B 3 ) =0
+Tabla 4-4 Coeficientes para Z
+Coeficientes
+a
+b
+1
+0.8355419
+Valor Z
+
+c
+0.3803384
+
+(1.1)
+d
+0.0984922
+
+7.499E05
+
+0.4715718
+Fuente: Autores (2024)
+
+a∗P
+=0.790394
+R 2∗T 2
+b∗P
+B=
+=0.1644581
+R∗T
+A=
+
+(1.2)
+(1.3)
+
+4.2.2.2 Metodología de cálculo
+Para cada una de las variables identificadas, se aplicaron las siguientes fórmulas según lo establecido
+en la norma API-12L, cabe resaltar que se designaron ciertas variables para una mejor transcripción de
+las fórmulas:
+
+
+Área ocupada por el crudo:
+-Nivel desde el fondo al nivel alto alto del crudo = A
+-Área total del recipiente = B
+-Área total ocupada por el agua = C
+-Área desde el fondo del equipo = E
+2∗A
+2∗A
+( 2∗arccos 1−
+)−sin ¿ 2∗arccos 1−
+∗B−C−E
+D∗12
+D∗12
+
+(
+
+(
+
+)
+
+(
+
+))
+
+2∗π
+ Volumen de retención del crudo:
+Á rea ocupada por el crudo∗Longitud ( L )
+(1.5)
+ Caudal de agua:
+-Flujo volumétrico de fluido a ser manejado por el equipo (Crudo + Agua) = Q f
+-Fracción volumétrica de agua en la corriente de entrada del equipo = F
+Q f ∗F
+(1.6)
+ Caudal de crudo seco:
+-Flujo volumétrico de fluido a ser manejado por el equipo (Crudo + Agua) = Q f
+Q f −Caudal de agua
+(1.7)
+ Tiempo de retención estimado (T0):
+-Volumen de retención del crudo = G
+G
+∗24∗60
+5,6146
+(1.8)
+Caudal de crudo seco
+ Área desde el fondo del equipo al nivel bajo bajo de agua:
+
+(
+
+)
+
+(1.4)
+
+-Nivel fondo al nivel bajo bajo de agua = H
+-Área total del recipiente = B
+2∗H
+2∗H
+( 2∗arccos 1−
+)−sin ¿ 2∗arccos 1−
+∗B
+D∗12
+D∗12
+
+(
+
+)
+
+(
+
+(
+
+))
+
+(1.9)
+
+2∗π
+Área total del recipiente:
+
+
+π∗D 2
+4
+ Área disponible para el gas:
+-Altura libre para el gas = I
+-Área total del recipiente = B
+2∗I
+2∗I
+( 2∗arccos 1−
+)−sin ¿ 2∗arccos 1−
+∗B
+D∗12
+D∗12
+
+(
+
+)
+
+(
+
+(
+
+(1.10)
+
+))
+
+(1.11)
+
+2∗π
+ Altura libre para el gas:
+0 ,5∗12
+ Volumen de retención de agua:
+-Área total ocupada por el agua = C
+C∗Longitud ( L )
+ Corte de agua del crudo saliendo del tratador térmico:
++Cantidad de agua saliendo con el crudo∗100
+Cantidad de agua saliendo con el crudo+Caudal de crudo seco
+ Velocidad permisible para el gas:
+-Densidad del crudo = J
+-Densidad del gas = L
+( J −L ) 0 ,5
+Factor K∗
+L
+ Área requerida para el gas:
+-Flujo volumen del gas = Q g
+-Temperatura final = T f
+-Presión de operación = M
+Velocidad permisible para el gas
+,7∗Q g∗( T f +460 )∗0,994
+1.000 .000∗14
+24∗3600∗( 60+460 )∗( M +14 ,7 )
+
+(
+
+
+
+(1.12)
+(1.13)
+
+)
+
+(1.14)
+
+(1.15)
+
+(1.16)
+
+Área ocupada por el agua:
+-Nivel desde el fondo al nivel de interfase Agua-Crudo = N
+-Área desde el fondo del equipo al nivel bajo bajo de agua = N b
+-Área total del recipiente = N r
+2∗N
+2∗N
+( D∗12
+))−sin ¿ (2∗arccos (1− D∗12
+)∗N )−N
+
+( 2∗arccos 1−
+
+r
+
+b
+
+(1.17)
+
+2∗π
+ Cantidad de agua saliendo con el crudo:
+-Flujo de agua a ser manejado por el tratador F-1801 en función del agua libre y emulsionada retirada
+en el despojador de agua libre V-2701 = F AT
+
+-Porcentaje de deshidratación del equipo = P D
+−¿( P ∗F )
++ F AT
+¿
+100
+ Porcentaje de deshidratación del equipo ( P D ):
+-Volumen de retención de agua = V A
+-Cantidad de agua libre entrando = c AL
+-Cantidad de agua emulsionada entrando = C AE
+-Tiempo de decantación de la fase pesada = T DP
+VA
+100∗
+5,6146
+D
+
+AT
+
+( )
+∗10
+∗T
+( C60∗24
+)+( C60∗24
+)
+AL
+
+AE
+
+(1.18)
+
+(1.19)
+
+DP
+
+ Flujo másico del crudo:
+14 ,58∗Caudal de crudo seco∗Gravedad espec í fica del crudo
+(1.20)
+ Flujo másico de agua:
+14 ,58∗Caudal de agua∗Gravedad espec í fica del agua
+(1.21)
+V
+ Velocidad de decantación de la fase pesada DP :
+-Tamaño de la gota de agua = T GA
+-Densidad del agua = D A
+-Densidad del crudo = D C
+-Viscosidad del crudo = V C
+2
+18,4663∗( T GA ) ∗( D A −D C )
+(1.22)
+VC
+ Tiempo de decantación de la fase pesada T DP :
+-Nivel desde el fondo al nivel alto alto de crudo = N FA
+-Nivel desde el fondo al nivel de interfase Agua-Crudo = N
+-Velocidad de decantación de la fase pesada = V DP
+( N FA −N )
+12
+(1.23)
+V DP
+ Tiempo de decantación de la fase liviana:
+-Tiempo de decantación de la fase pesada = T DP
+T DP
+(1.24)
+60
+ Calor total requerido:
+Calor absorbido por el proceso ( heat duty ) + P é rdidas de calor (1.25)
+ Caudal de agua libre entrando al tratador térmico:
+-Porcentaje de agua emulsionada en la corriente de entrada al tratador = P AT
+-Porcentaje de agua libre retirada en el separador = P AL
+-Caudal de agua producida = C AP
+
++
+
+(( (
+
+)
+
+100−P AT )∗C AP
+∗( 100−P AL )
+100
+100
+
+)
+
+(1.26)
+
+ Caudal de agua emulsionada entrando al tratador térmico:
+-Porcentaje de agua emulsionada = P AE
+-Caudal de agua producida = C AP
+( C AP∗P AE )
+(1.27)
++
+100
+ Cantidad de agua total a ser manejada por el tratador térmico:
+-Cantidad de agua libre entrando al tratador = C ALT
+-Cantidad de agua emulsionada entrando al tratador = C AET
+C ALT +C AET
+(1.28)
+
+(
+
+)
+
+
+
+Fracción volumétrica del agua en la corriente de entrada al tratador térmico:
+Cantidad de agua total a ser manejada por el tratador
+(1.29)
+Flujo volum é trico de fluido a ser manejado por el tratador ( crudo+agua )
+ Caudal de crudo seco:
+-Flujo volumétrico de fluido a ser manejado por el tratador = F VT
+-Cantidad de agua total a ser manejada por el tratador = C AT
+F VT −C AT
+(1.30)
+ Densidad de un gas real:
+-P: Presión absoluta (Psia = Psig + 14.7)
+- PM g: Peso molecular del gas (Lb/mol)
+-Z: Factor de compresibilidad
+-R: Constante de los gases = 10.7316
+-T: Temperatura absoluta (° R = ° F + 459.67)
+Ecuación de estado para gases reales:
+P ∙ PM g
+ρ g=
+(lb / pie ³ )
+(1.31)
+Z∗R∗T
+ Gravedad específica del crudo (¿crudo):
+La gravedad API es una escala específica de la industria petrolera para medir la densidad relativa del
+crudo, mientras que la gravedad específica (GE) es una medida general de densidad relativa al agua. A
+continuación, se muestran las fórmulas para determinar cada una:
+1. Fórmula de la gravedad API:
+141.5
+° API =
+−131.5
+¿ a 60 ° F
+Ejemplo: Si un crudo tiene una GE de 1,0 (igual al agua), su gravedad API es:
+141.5
+API =
+−131.5=10.0 ° API
+1.0
+2. Fórmula de la gravedad específica (GE):
+141.5
+¿ a 60 ° F=
+° API +131.5
+Ejemplo: Un crudo de 30°API tiene:
+141.5
+¿=
+≈ 0.876( adimensional )
+30+131.5
+Por lo tanto, La gravedad específica del crudo (GE) se calcula directamente a partir de los grados API
+(°API) mediante la siguiente ecuación:
+141.5
+¿crudo =
+(1.32)
+° API +131.5
+ Calor específico del crudo (C po):
+
+-T: Temperatura del crudo (°F)
+-¿crudo: Gravedad específica del crudo
+Correlación de Katz (1942) para crudos líquidos:
+0.388+0.00045 ⋅T
+C po ​=
+(1.33)
+√ ¿crudo
+ Calor específico del agua (C pw ):
+-Temperatura del agua (°F)
+Correlación para agua líquida (rango 32–212°F):
+C pw =1.0−0.000117 ⋅(T −60 )
+(1.34)
+ Densidad del crudo ( ρ 0):
+-¿crudo: Gravedad específica del crudo
+-T: Temperatura del crudo (°F)
+Ajuste por temperatura (ecuación de Standing, 1977):
+¿crudo ⋅ 62.4
+ρ0=
+(lb / pie ³ )
+(1.35)
+1+0.00065 ⋅(T −60 )
+ Densidad del agua ( ρ w ):
+-T: Temperatura del agua (°F).
+Ajuste por temperatura:
+ρ w =62.4−0.013 ⋅(T −60 )(lb / pie ³ )
+(1.36)
+4.2.2.3 Simulación informática
+Las gráficas presentadas a continuación (ver Figura 4-1, Figura 4-2 y Figura 4-3) ilustran los resultados
+obtenidos a partir de la simulación del proceso de separación agua-crudo en un tratador térmico,
+utilizando el software MATLAB. Estas visualizaciones permiten observar de manera clara y concisa las
+tasas de flujo de petróleo y agua, así como los volúmenes de retención y el calor requerido para el
+tratamiento. Cada gráfico ha sido diseñado para facilitar la comprensión de cómo las variables influyen
+en el rendimiento del tratador térmico, proporcionando una herramienta visual que complementa los
+cálculos realizados y ayuda a identificar patrones y tendencias en el comportamiento del sistema.
+
+Figura 4-1 Tasas de flujo de petróleo y agua
+Fuente: Autores (2024)
+
+Figura 4-2 Volúmenes de retención
+Fuente: Autores (2024)
+
+Figura 4-3 Calor requerido para el tratamiento
+Fuente: Autores (2024)
+La simulación en MATLAB ha demostrado ser una herramienta valiosa para comprender y optimizar el
+proceso de separación agua-crudo en tratadores térmicos. Los resultados obtenidos, corroborados por la
+norma API-12L, permitieron identificar las condiciones operativas óptimas para maximizar la
+eficiencia de tratamiento. Esta investigación proporciona una guía práctica para ingenieros y
+diseñadores, facilitando la toma de decisiones informadas en la selección y configuración de equipos
+para el procesamiento de crudos.
+
+4.2.2.4 Diagrama de variables
+
+Figura 4-4 Diagrama de variables (1/2)
+Fuente: Autores (2024)
+
+Figura 4-5 Diagrama de variables (2/2)
+Fuente: Autores (2024)
+Las Figura 4-4 y Figura 4-5 presentan un diagrama que describe el proceso de tratamiento de
+emulsiones, comenzando con la entrada del flujo total de emulsión y dividiéndose en fracciones de
+agua y aceite. Se consideran las temperaturas de entrada y tratamiento, así como los tiempos de
+retención y volúmenes de retención necesarios para calcular el calor requerido para el tratamiento. Este
+diagrama es útil para entender las interacciones entre las variables involucradas en el proceso,
+proporciona una representación clara de cómo se procesan las emulsiones, facilitando la comprensión
+de cada paso y su interrelación en el tratamiento.
+
+
