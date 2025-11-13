@@ -8,11 +8,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { QueryBaseDto } from '../../common/pagination/dto';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';

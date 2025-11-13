@@ -1,19 +1,9 @@
 import * as cookieParser from 'cookie-parser';
 import * as csurf from 'csurf';
 
-import {
-  ConsoleLogger,
-  Logger,
-  ValidationPipe,
-} from '@nestjs/common';
-import {
-  NestFactory,
-  Reflector,
-} from '@nestjs/core';
-import {
-  DocumentBuilder,
-  SwaggerModule,
-} from '@nestjs/swagger';
+import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';

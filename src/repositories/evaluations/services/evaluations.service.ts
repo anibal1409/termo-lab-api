@@ -6,11 +6,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PaginationDto } from '../../../common/pagination/dto';
@@ -25,6 +21,7 @@ import {
   UpdateEvaluationDto,
 } from '../dto';
 import { EvaluationResponseDto } from '../dto/evaluation-response.dto';
+import { EvaluationTemplateResponseDto } from '../dto/evaluation-template-response.dto';
 import { QueryEvaluationDto } from '../dto/query-evaluation.dto';
 import {
   Evaluation,
@@ -89,6 +86,24 @@ export class EvaluationsService {
       evaluation.evaluationType = createDto.evaluationType;
       evaluation.evaluationDate = new Date(createDto.evaluationDate);
       evaluation.comments = createDto.comments;
+      evaluation.thermalCalculations = createDto.thermalCalculations;
+      evaluation.templateId = createDto.templateId;
+
+      // Si se proporciona templateId, cargar nombre y versión de la plantilla
+      if (createDto.templateId) {
+        try {
+          const template = await this.templateRepository.findOne({
+            where: { id: createDto.templateId },
+          });
+          if (template) {
+            evaluation.templateName = template.name;
+            evaluation.templateVersion = template.version;
+          }
+        } catch (error) {
+          // Si no se puede cargar la plantilla, continuar sin nombre/versión
+          console.warn(`No se pudo cargar la plantilla ${createDto.templateId}`);
+        }
+      }
 
       await this.handleTreatmentAssignment(createDto, evaluation);
 
@@ -178,7 +193,7 @@ export class EvaluationsService {
     type: EvaluationResponseDto,
   })
   @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
-  async getEvaluationById(id: number): Promise<Evaluation> {
+  async getEvaluationById(id: number): Promise<EvaluationResponseDto> {
     const evaluation = await this.evaluationRepository.findOne({
       where: { id },
       relations: [
@@ -194,7 +209,7 @@ export class EvaluationsService {
       throw new NotFoundException(`Evaluación con ID ${id} no encontrada`);
     }
 
-    return evaluation;
+    return new EvaluationResponseDto(evaluation);
   }
 
   /**
@@ -262,14 +277,39 @@ export class EvaluationsService {
         evaluation.comments = updateDto.comments;
       }
 
-      if (updateDto.approved !== undefined) {
-        evaluation.approved = updateDto.approved;
-      }
+        if (updateDto.approved !== undefined) {
+          evaluation.approved = updateDto.approved;
+        }
+
+        if (updateDto.thermalCalculations !== undefined) {
+          evaluation.thermalCalculations = updateDto.thermalCalculations;
+        }
+
+        if (updateDto.templateId !== undefined) {
+          evaluation.templateId = updateDto.templateId;
+        }
 
       // Si se actualizan criterios, recalcular resultado
       if (updateDto.criteria) {
         await this.updateEvaluationCriteria(id, updateDto.criteria);
         return this.calculateEvaluationResult(id);
+      }
+
+      // Si se actualiza templateId, también actualizar templateName y templateVersion si se proporcionan
+      if (updateDto.templateId && updateDto.templateId !== evaluation.templateId) {
+        // Si se proporciona un nuevo templateId, cargar la plantilla para obtener nombre y versión
+        try {
+          const template = await this.templateRepository.findOne({
+            where: { id: updateDto.templateId },
+          });
+          if (template) {
+            evaluation.templateName = template.name;
+            evaluation.templateVersion = template.version;
+          }
+        } catch (error) {
+          // Si no se puede cargar la plantilla, continuar sin actualizar nombre/versión
+          console.warn(`No se pudo cargar la plantilla ${updateDto.templateId}`);
+        }
       }
 
       return this.evaluationRepository.save(evaluation);
@@ -524,6 +564,7 @@ export class EvaluationsService {
     const evaluation = new Evaluation();
     evaluation.evaluatedBy = user;
     evaluation.evaluationDate = new Date();
+    evaluation.templateId = template.id;
     evaluation.templateVersion = template.version;
     evaluation.templateName = template.name;
     return evaluation;
@@ -596,5 +637,69 @@ export class EvaluationsService {
     // Luego crear los nuevos
     const evaluation = await this.getFullEvaluation(evaluationId);
     await this.saveEvaluationCriteria(criteriaDtos, evaluation);
+  }
+
+  /**
+   * @description Obtiene todas las plantillas activas
+   * @ApiOperation Obtener plantillas activas
+   * @ApiResponse 200 - Lista de plantillas activas
+   */
+  @ApiOperation({ summary: 'Obtener todas las plantillas activas' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de plantillas activas',
+    type: [EvaluationTemplateResponseDto],
+  })
+  async getActiveTemplates(): Promise<EvaluationTemplateResponseDto[]> {
+    try {
+      const templates = await this.templateRepository.find({
+        where: { isActive: true },
+        relations: ['criteria'],
+        order: { name: 'ASC' },
+      });
+
+      return templates.map((template) => {
+        const dto = new EvaluationTemplateResponseDto({
+          id: template.id,
+          name: template.name,
+          version: template.version,
+          applicableTo: template.applicableTo,
+          criteriaCount: template.criteria?.length || 0,
+          createdAt: template.createdAt?.toISOString() || '',
+        });
+        return dto;
+      });
+    } catch (error) {
+      this.handleEvaluationError(error);
+    }
+  }
+
+  /**
+   * @description Obtiene una plantilla con sus criterios
+   * @ApiOperation Obtener plantilla por ID
+   * @ApiResponse 200 - Plantilla encontrada
+   * @ApiResponse 404 - Plantilla no encontrada
+   */
+  @ApiOperation({ summary: 'Obtener plantilla por ID con criterios' })
+  @ApiResponse({
+    status: 200,
+    description: 'Plantilla encontrada',
+  })
+  @ApiResponse({ status: 404, description: 'Plantilla no encontrada' })
+  async getTemplateById(id: number): Promise<EvaluationTemplate> {
+    try {
+      const template = await this.templateRepository.findOne({
+        where: { id },
+        relations: ['criteria'],
+      });
+
+      if (!template) {
+        throw new NotFoundException(`Plantilla con ID ${id} no encontrada`);
+      }
+
+      return template;
+    } catch (error) {
+      this.handleEvaluationError(error);
+    }
   }
 }

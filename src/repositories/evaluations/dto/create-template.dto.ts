@@ -8,10 +8,7 @@ import {
   Min,
 } from 'class-validator';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * @description DTO para crear un criterio de plantilla de evaluación

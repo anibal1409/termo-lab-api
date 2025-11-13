@@ -1,7 +1,4 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateUnaccentExtension1752379896329
   implements MigrationInterface

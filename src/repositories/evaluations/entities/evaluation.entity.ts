@@ -1,15 +1,6 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { IdEntity } from '../../base';
 import { Treatment } from '../../treatments/entities/treatment.entity';
@@ -114,6 +105,14 @@ export class Evaluation extends IdEntity {
 
   @Column({ nullable: true })
   @ApiPropertyOptional({
+    example: 1,
+    description: 'ID de la plantilla utilizada (si aplica)',
+    required: false,
+  })
+  templateId?: number;
+
+  @Column({ nullable: true })
+  @ApiPropertyOptional({
     example: '1.0.0',
     description: 'Versión de la plantilla usada (si aplica)',
     required: false,
@@ -127,6 +126,17 @@ export class Evaluation extends IdEntity {
     required: false,
   })
   templateName?: string;
+
+  /**
+   * @description Datos de cálculos térmicos realizados durante la evaluación
+   */
+  @Column({ type: 'json', nullable: true })
+  @ApiPropertyOptional({
+    description:
+      'Datos completos de cálculos térmicos según metodología API-12L (input, results, complianceWarnings)',
+    required: false,
+  })
+  thermalCalculations?: any;
 
   /**
    * @description Lista de criterios evaluados

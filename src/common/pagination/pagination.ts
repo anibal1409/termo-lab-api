@@ -9,7 +9,12 @@ import { PaginationDto } from './dto/pagination.dto';
  * @param total El número total de elementos disponibles en la colección completa.
  * @returns Un objeto PaginationDto<T> con los datos paginados y los metadatos de paginación.
  */
-export function pagination<T>(page: number, size: number, data: T[], total: number): PaginationDto<T> {
+export function pagination<T>(
+  page: number,
+  size: number,
+  data: T[],
+  total: number,
+): PaginationDto<T> {
   const currentPage = page;
   const lastPage = Math.ceil(total / size);
   const hasNextPage = currentPage < lastPage;

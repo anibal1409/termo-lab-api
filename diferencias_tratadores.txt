@@ -1,0 +1,59 @@
+4.2.1.7 Paso 7: Selección de dimensiones del tratador
+Con el volumen de retención y el calor total, se seleccionan el diámetro y la longitud del
+tratador de acuerdo con las tablas de la norma API-12L:
+Tabla 4.1 Dimensiones y presiones típicas para tratadores verticales
+Diámetro externo (ft)
+3
+4
+6
+8
+10
+
+LSS
+10, 12 o 15
+10, 12, 20, o 27 ½
+12, 20 o 27 ½
+20 o 27 ½
+20 o 27 ½
+
+Presión del diseño (psig)
+50
+50
+50
+40
+40
+
+Fuente: American Petroleum Institute (1994)
+-Nota: esta tabla muestra el valor mínimo de diseño de presión para cada diámetro externo
+y así mismo la variación de las longitudes de costura de cabeza para un tratador vertical.
+Tabla 4.2 Dimensiones y presiones típicas para tratadores horizontales
+Diámetro externo (ft)
+3
+4
+6
+8
+10
+12
+
+LSS
+10, 12 o 15
+10, 12 o 15
+10, 15 o 20
+15, 20, 25 o 30
+20, 30, 40, 50 o 60
+30, 40, 50 0 60
+
+Presión del diseño (psig)
+50
+50
+50
+50
+50
+50
+
+Fuente: American Petroleum Institute (1994)
+-Nota: esta tabla muestra el valor mínimo de diseño de presión para cada diámetro externo
+y así mismo la variación de las longitudes de costura de cabeza para un tratador horizontal.
+Estas tablas definen valores estándar de diámetro, longitud (LSS) y presión de diseño.
+
+

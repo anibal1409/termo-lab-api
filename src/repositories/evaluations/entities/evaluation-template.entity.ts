@@ -1,18 +1,9 @@
-import {
-  Column,
-  Entity,
-  OneToMany,
-} from 'typeorm';
+import { Column, Entity, OneToMany } from 'typeorm';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { IdEntity } from '../../base';
-import {
-  EvaluationTemplateCriteria,
-} from './evaluation-template-criteria.entity';
+import { EvaluationTemplateCriteria } from './evaluation-template-criteria.entity';
 
 /**
  * @description Entidad para plantillas de evaluación de tratadores.

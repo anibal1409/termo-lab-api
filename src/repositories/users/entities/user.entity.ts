@@ -1,15 +1,8 @@
 import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
-import {
-  BeforeInsert,
-  Column,
-  Entity,
-} from 'typeorm';
+import { BeforeInsert, Column, Entity } from 'typeorm';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { IdEntity } from '../../base';
 
@@ -83,7 +76,7 @@ export class User extends IdEntity {
     type: 'varchar',
     length: 255,
     select: false,
-    default: () => "'temp'" // Valor temporal, se actualiza en @BeforeInsert
+    default: () => "'temp'", // Valor temporal, se actualiza en @BeforeInsert
   })
   password: string;
 

@@ -1,20 +1,11 @@
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-import {
-  TreatmentResponseDto,
-} from '../../treatments/dto/treatment-response.dto';
+import { TreatmentResponseDto } from '../../treatments/dto/treatment-response.dto';
 import { UserResponseDto } from '../../users/dto/user-response.dto';
 import { User } from '../../users/entities';
 import { Evaluation } from '../entities';
-import {
-  EvaluationCriteriaResponseDto,
-} from './evaluation-criteria-response.dto';
-import {
-  ExternalTreatmentResponseDto,
-} from './external-treatment-response.dto';
+import { EvaluationCriteriaResponseDto } from './evaluation-criteria-response.dto';
+import { ExternalTreatmentResponseDto } from './external-treatment-response.dto';
 
 /**
  * @description DTO para respuesta de evaluaciones
@@ -77,23 +68,35 @@ export class EvaluationResponseDto {
   })
   criteria: EvaluationCriteriaResponseDto[];
 
-  @ApiProperty({
+  @ApiPropertyOptional({
+    example: 1,
+    description: 'ID de la plantilla utilizada',
+  })
+  templateId?: number;
+
+  @ApiPropertyOptional({
     example: 'Evaluación API-12L',
     description: 'Nombre de la plantilla utilizada',
   })
-  templateName: string;
+  templateName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: '1.0.0',
     description: 'Versión de la plantilla utilizada',
   })
-  templateVersion: string;
+  templateVersion?: string;
 
   @ApiPropertyOptional({
     example: 85.5,
     description: 'Puntaje calculado de la evaluación',
   })
   score?: number;
+
+  @ApiPropertyOptional({
+    description:
+      'Datos de cálculos térmicos realizados durante la evaluación (input, results, complianceWarnings)',
+  })
+  thermalCalculations?: any;
 
   @ApiPropertyOptional({
     description: 'Tratamiento relacionado (solo para tipo internal)',
@@ -120,9 +123,11 @@ export class EvaluationResponseDto {
     this.evaluationDate = data.evaluationDate?.toISOString() || '';
     this.approved = data.approved || false;
     this.comments = data.comments;
+    this.templateId = data.templateId;
     this.templateName = data.templateName || '';
     this.templateVersion = data.templateVersion || '';
     this.score = data.score;
+    this.thermalCalculations = data.thermalCalculations;
     this.createdAt = data.createdAt?.toISOString() || '';
     this.updatedAt = data.updatedAt?.toISOString() || '';
 
@@ -133,7 +138,7 @@ export class EvaluationResponseDto {
 
     // Manejar criteria de forma segura
     this.criteria = (data.criteria || []).map(
-      (c) => new EvaluationCriteriaResponseDto(c)
+      (c) => new EvaluationCriteriaResponseDto(c),
     );
 
     // Manejar externalTreatment de forma segura

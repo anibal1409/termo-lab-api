@@ -21,12 +21,11 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { Public } from '../../auth/decorators';
+
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { QueryBaseDto } from '../../common/pagination/dto/query-base.dto';
-import {
-  QueryTreatmentDto,
-  TreatmentCalculationsDto,
-} from './dto';
+import { QueryTreatmentDto, TreatmentCalculationsDto } from './dto';
 import { CalculateTreatmentDto } from './dto/calculate-treatment.dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { TreatmentResponseDto } from './dto/treatment-response.dto';
@@ -64,6 +63,7 @@ export class TreatmentsController {
     return this.treatmentsService.create(createTreatmentDto, 1);
   }
 
+  @Public() // ✅ Endpoint público - No requiere autenticación para cálculos
   @Post('calculate')
   @ApiOperation({
     summary: 'Calcular parámetros de tratamiento',
@@ -84,7 +84,16 @@ export class TreatmentsController {
   async calculate(
     @Body(new CalculateTreatmentValidationPipe()) data: CalculateTreatmentDto,
   ): Promise<TreatmentCalculationsDto> {
-    return this.treatmentsService.calculateParameters(data);
+    console.log('=== CONTROLLER: calculate endpoint ===');
+    console.log('Datos validados:', JSON.stringify(data, null, 2));
+    try {
+      const result = await this.treatmentsService.calculateParameters(data);
+      console.log('✅ Controller: Cálculo exitoso');
+      return result;
+    } catch (error) {
+      console.error('❌ Controller: Error en calculateParameters:', error);
+      throw error;
+    }
   }
 
   /**

@@ -13,7 +13,8 @@ export default new DataSource({
   database: process.env.DB_NAME,
   entities: ['src/**/*.entity{.ts,.js}'],
   migrations: ['src/migrations/*{.ts,.js}'],
-  synchronize: process.env.DB_SYNCHRONIZE === 'true',
+  synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.DB_LOGGING === 'true',
+  migrationsRun: process.env.NODE_ENV === 'production',
   ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });

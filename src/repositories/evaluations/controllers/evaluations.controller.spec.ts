@@ -1,7 +1,4 @@
-import {
-  Test,
-  TestingModule,
-} from '@nestjs/testing';
+import { Test, TestingModule } from '@nestjs/testing';
 
 import { EvaluationsService } from '../services/evaluations.service';
 import { EvaluationsController } from './evaluations.controller';

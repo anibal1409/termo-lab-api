@@ -6,6 +6,11 @@ import { TreatmentOptionsModule } from './treatment-options/treatment-options.mo
 import { EvaluationsModule } from './evaluations/evaluations.module';
 
 @Module({
-  imports: [UsersModule, TreatmentsModule, TreatmentOptionsModule, EvaluationsModule],
+  imports: [
+    UsersModule,
+    TreatmentsModule,
+    TreatmentOptionsModule,
+    EvaluationsModule,
+  ],
 })
 export class RepositoriesModule {}

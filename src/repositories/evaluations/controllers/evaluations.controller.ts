@@ -20,12 +20,10 @@ import { CurrentUser } from '../../../auth/decorators';
 import { JwtAuthGuard } from '../../../auth/guards';
 import { PaginationDto } from '../../../common/pagination/dto';
 import { User } from '../../users/entities/user.entity';
-import {
-  CreateExternalTreatmentDto,
-  QueryEvaluationDto,
-} from '../dto';
+import { CreateExternalTreatmentDto, QueryEvaluationDto } from '../dto';
 import { CreateEvaluationDto } from '../dto/create-evaluation.dto';
 import { EvaluationResponseDto } from '../dto/evaluation-response.dto';
+import { EvaluationTemplateResponseDto } from '../dto/evaluation-template-response.dto';
 import { UpdateEvaluationDto } from '../dto/update-evaluation.dto';
 import { EvaluationsService } from '../services/evaluations.service';
 
@@ -174,6 +172,43 @@ export class EvaluationsController {
   @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
   calculateResult(@Param('id') id: number) {
     return this.evaluationsService.calculateEvaluationResult(+id);
+  }
+
+  /**
+   * @description Obtiene todas las plantillas activas
+   * @ApiOperation Obtener plantillas activas
+   * @ApiResponse 200 - Lista de plantillas activas
+   * @ApiResponse 401 - No autorizado
+   */
+  @Get('templates/active')
+  @ApiOperation({ summary: 'Obtener todas las plantillas activas' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de plantillas activas',
+    type: [EvaluationTemplateResponseDto],
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  getActiveTemplates() {
+    return this.evaluationsService.getActiveTemplates();
+  }
+
+  /**
+   * @description Obtiene una plantilla con sus criterios
+   * @ApiOperation Obtener plantilla por ID
+   * @ApiResponse 200 - Plantilla encontrada
+   * @ApiResponse 401 - No autorizado
+   * @ApiResponse 404 - Plantilla no encontrada
+   */
+  @Get('templates/:id')
+  @ApiOperation({ summary: 'Obtener plantilla por ID con criterios' })
+  @ApiResponse({
+    status: 200,
+    description: 'Plantilla encontrada',
+  })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiResponse({ status: 404, description: 'Plantilla no encontrada' })
+  getTemplateById(@Param('id') id: number) {
+    return this.evaluationsService.getTemplateById(+id);
   }
 
   /**

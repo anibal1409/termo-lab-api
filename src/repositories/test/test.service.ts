@@ -65,8 +65,16 @@ export class TestService implements CrudRepository<Test> {
    * @param query Los parámetros de consulta para paginación, búsqueda y ordenamiento.
    * @returns Una promesa que resuelve con un objeto PaginationDto<TestResponseDto>.
    */
-  async findPaginated(query: QueryBaseDto): Promise<PaginationDto<TestResponseDto>> {
-    const { term, page = 1, size = 10, sort = 'createdAt', order = 'DESC' } = query;
+  async findPaginated(
+    query: QueryBaseDto,
+  ): Promise<PaginationDto<TestResponseDto>> {
+    const {
+      term,
+      page = 1,
+      size = 10,
+      sort = 'createdAt',
+      order = 'DESC',
+    } = query;
 
     // Configuración base para la consulta
     const findOptions: FindManyOptions<Test> = {
@@ -80,9 +88,12 @@ export class TestService implements CrudRepository<Test> {
       const normalizedTerm = normalizeText(term);
       findOptions.where = {
         ...findOptions.where,
-        name: Raw((alias) => `unaccent(LOWER(${alias})) LIKE unaccent(LOWER(:value))`, {
-          value: `%${normalizedTerm}%`,
-        }),
+        name: Raw(
+          (alias) => `unaccent(LOWER(${alias})) LIKE unaccent(LOWER(:value))`,
+          {
+            value: `%${normalizedTerm}%`,
+          },
+        ),
       };
     }
 
@@ -117,7 +128,9 @@ export class TestService implements CrudRepository<Test> {
 
     // Si no se encuentra el Test (incluyendo si está eliminado lógicamente), lanza una excepción
     if (!test) {
-      throw new NotFoundException(`Test con ID ${id} no encontrado o no válido.`);
+      throw new NotFoundException(
+        `Test con ID ${id} no encontrado o no válido.`,
+      );
     }
 
     return test;
@@ -146,7 +159,10 @@ export class TestService implements CrudRepository<Test> {
    * @returns Una promesa que resuelve con el Test actualizado como TestResponseDto.
    * @throws NotFoundException Si el Test con el ID dado no existe o está eliminado lógicamente.
    */
-  async update(id: number, updateTestDto: UpdateTestDto): Promise<TestResponseDto> {
+  async update(
+    id: number,
+    updateTestDto: UpdateTestDto,
+  ): Promise<TestResponseDto> {
     // Busca el Test existente y válido por ID utilizando findValid
     const testToUpdate = await this.findValid(id);
 

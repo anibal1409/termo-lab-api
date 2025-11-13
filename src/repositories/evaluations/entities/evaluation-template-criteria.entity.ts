@@ -1,13 +1,6 @@
-import {
-  Column,
-  Entity,
-  ManyToOne,
-} from 'typeorm';
+import { Column, Entity, ManyToOne } from 'typeorm';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { IdEntity } from '../../base';
 import { EvaluationTemplate } from './evaluation-template.entity';
@@ -73,7 +66,7 @@ export class EvaluationTemplateCriteria extends IdEntity {
     description: 'Peso del criterio en la evaluación general (1-100)',
     example: 30,
     minimum: 1,
-    maximum: 100
+    maximum: 100,
   })
   @Column('int')
   weight: number;

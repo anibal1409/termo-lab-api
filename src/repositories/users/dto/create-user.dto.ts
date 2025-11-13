@@ -37,7 +37,10 @@ export class CreateUserDto {
     description: 'Fecha de nacimiento (YYYY-MM-DD)',
     example: '1985-05-15',
   })
-  @IsDateString({}, { message: 'La fecha de nacimiento debe ser una fecha válida.' })
+  @IsDateString(
+    {},
+    { message: 'La fecha de nacimiento debe ser una fecha válida.' },
+  )
   birthDate: string;
 
   /**

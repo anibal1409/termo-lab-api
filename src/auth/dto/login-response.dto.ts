@@ -17,6 +17,9 @@ export class UserDataDto {
 }
 
 export class LoginResponseDto extends AuthResponseDto {
+  @ApiProperty({ description: 'Token de acceso JWT' })
+  accessToken: string;
+
   @ApiProperty({ type: () => UserDataDto })
   user: UserDataDto;
 

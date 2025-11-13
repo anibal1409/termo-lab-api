@@ -1,7 +1,4 @@
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class SeedTreatmentOptions1751181394026 implements MigrationInterface {
   // Datos para tratadores verticales (Tabla 1 de API-12L)

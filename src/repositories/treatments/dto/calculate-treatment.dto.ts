@@ -1,9 +1,4 @@
-import {
-  IsNotEmpty,
-  IsNumber,
-  Max,
-  Min,
-} from 'class-validator';
+import { IsNotEmpty, IsNumber, Max, Min } from 'class-validator';
 
 // treatment-calculations.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
@@ -98,4 +93,3 @@ export class CalculateTreatmentDto {
   @Max(50)
   apiGravity: number;
 }
-

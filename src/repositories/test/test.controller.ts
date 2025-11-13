@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query } from '@nestjs/common'; // Importar ParseIntPipe y Query
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common'; // Importar ParseIntPipe y Query
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -77,13 +87,16 @@ export class TestController {
   @ApiOperation({ summary: 'Obtiene Tests válidos de forma paginada' }) // Descripción de la operación
   @ApiQuery({
     type: QueryBaseDto,
-    description: 'Parámetros de consulta para paginación, búsqueda y ordenamiento',
+    description:
+      'Parámetros de consulta para paginación, búsqueda y ordenamiento',
   }) // Documenta los parámetros de consulta
   @ApiOkResponse({
     description: 'Lista paginada de Tests válidos.',
     type: PaginationDto<TestResponseDto>,
   }) // Documenta una respuesta exitosa (OK) con el DTO de paginación
-  async findPaginated(@Query() query: QueryBaseDto): Promise<PaginationDto<TestResponseDto>> {
+  async findPaginated(
+    @Query() query: QueryBaseDto,
+  ): Promise<PaginationDto<TestResponseDto>> {
     // Acepta QueryBaseDto y retorna PaginationDto
     return this.testService.findPaginated(query); // Llama al método findPaginated del servicio
   }
@@ -102,7 +115,9 @@ export class TestController {
     type: TestResponseDto,
   }) // Documenta una respuesta exitosa con el DTO de respuesta
   @ApiNotFoundResponse({ description: 'Test no encontrado o no válido.' }) // Documenta una posible respuesta de error (Not Found)
-  async findOne(@Param('id', ParseIntPipe) id: number): Promise<TestResponseDto> {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<TestResponseDto> {
     // Usa ParseIntPipe para convertir el ID a número y validar, retorna TestResponseDto
     return this.testService.findOne(id); // Llama al método findOne del servicio
   }
@@ -132,7 +147,10 @@ export class TestController {
   }) // Documenta una respuesta exitosa con el DTO de respuesta
   @ApiBadRequestResponse({ description: 'Solicitud inválida.' }) // Documenta posibles errores
   @ApiNotFoundResponse({ description: 'Test no encontrado o no válido.' }) // Documenta posibles errores
-  async update(@Param('id', ParseIntPipe) id: number, @Body() updateTestDto: UpdateTestDto): Promise<TestResponseDto> {
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTestDto: UpdateTestDto,
+  ): Promise<TestResponseDto> {
     // Usa ParseIntPipe, retorna TestResponseDto
     return this.testService.update(id, updateTestDto);
   }
@@ -159,7 +177,9 @@ export class TestController {
   @ApiNotFoundResponse({
     description: 'Test no encontrado o ya marcado como eliminado.',
   }) // Documenta una posible respuesta de error
-  async remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
+  async remove(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<{ message: string }> {
     // Usa ParseIntPipe
     return this.testService.remove(id);
   }

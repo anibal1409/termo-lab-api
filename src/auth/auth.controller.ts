@@ -1,16 +1,6 @@
-import {
-  Request,
-  Response,
-} from 'express';
+import { Request, Response } from 'express';
 
-import {
-  Body,
-  Controller,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import {
   ApiBody,
   ApiCookieAuth,

@@ -18,7 +18,8 @@ export class CalculateTreatmentValidationPipe implements PipeTransform {
       );
     }
 
-    if (dto.waterFraction > 0.9) {
+    // ✅ Corregido: waterFraction viene en formato porcentaje (0-100), no decimal (0-1)
+    if (dto.waterFraction > 90) {
       throw new BadRequestException(
         'Para fracciones de agua >90%, considere un sistema de tratamiento diferente',
       );
