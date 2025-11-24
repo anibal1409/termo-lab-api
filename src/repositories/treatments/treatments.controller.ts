@@ -60,7 +60,25 @@ export class TreatmentsController {
   async create(
     @Body() createTreatmentDto: CreateTreatmentDto,
   ): Promise<TreatmentResponseDto> {
-    return this.treatmentsService.create(createTreatmentDto, 1);
+    console.log('[Controller] === RECIBIENDO SOLICITUD DE CREACIÓN ===');
+    console.log('[Controller] CreateTreatmentDto recibido:', JSON.stringify(createTreatmentDto, null, 2));
+    console.log('[Controller] Validando datos de entrada...');
+    
+    try {
+      console.log('[Controller] Llamando a treatmentsService.create() con userId: 1');
+      const result = await this.treatmentsService.create(createTreatmentDto, 1);
+      console.log('[Controller] ✅ Tratamiento creado exitosamente en el servicio');
+      console.log('[Controller] TreatmentResponseDto a retornar:', JSON.stringify(result, null, 2));
+      return result;
+    } catch (error) {
+      console.error('[Controller] ❌ Error al crear tratamiento:', error);
+      console.error('[Controller] Detalles del error:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name
+      });
+      throw error;
+    }
   }
 
   @Public() // ✅ Endpoint público - No requiere autenticación para cálculos
@@ -84,14 +102,35 @@ export class TreatmentsController {
   async calculate(
     @Body(new CalculateTreatmentValidationPipe()) data: CalculateTreatmentDto,
   ): Promise<TreatmentCalculationsDto> {
-    console.log('=== CONTROLLER: calculate endpoint ===');
-    console.log('Datos validados:', JSON.stringify(data, null, 2));
+    console.log('[Controller] === RECIBIENDO SOLICITUD DE CÁLCULO ===');
+    console.log('[Controller] CalculateTreatmentDto validado recibido:', JSON.stringify(data, null, 2));
+    console.log('[Controller] Datos desglosados:', {
+      totalFlow: data.totalFlow,
+      waterFraction: data.waterFraction,
+      apiGravity: data.apiGravity,
+      inletTemperature: data.inletTemperature,
+      targetTemperature: data.targetTemperature,
+      ambientTemperature: data.ambientTemperature,
+      oilRetentionTime: data.oilRetentionTime,
+      waterRetentionTime: data.waterRetentionTime,
+      windSpeed: data.windSpeed
+    });
+    
     try {
+      console.log('[Controller] Llamando a treatmentsService.calculateParameters()...');
       const result = await this.treatmentsService.calculateParameters(data);
-      console.log('✅ Controller: Cálculo exitoso');
+      console.log('[Controller] ✅ Cálculo completado exitosamente');
+      console.log('[Controller] Resultado a retornar:', JSON.stringify(result, null, 2));
       return result;
     } catch (error) {
-      console.error('❌ Controller: Error en calculateParameters:', error);
+      console.error('[Controller] ❌ ERROR AL CALCULAR PARÁMETROS:', error);
+      console.error('[Controller] Tipo de error:', error?.constructor?.name);
+      console.error('[Controller] Mensaje del error:', error?.message);
+      console.error('[Controller] Stack trace:', error?.stack);
+      console.error('[Controller] Nombre del error:', error?.name);
+      if (error?.response) {
+        console.error('[Controller] Error response:', error.response);
+      }
       throw error;
     }
   }

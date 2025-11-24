@@ -195,10 +195,12 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
     heatRequired: number,
     volumeRequired: number,
   ): Promise<TreatmentOption | null> {
+    // ✅ Corregido: redondear heatRequired a entero porque minHeatCapacity es int en la BD
+    const heatRequiredInt = Math.ceil(heatRequired);
     // Calcular volumen aproximado basado en diámetro y longitud
     return this.treatmentOptionRepository
       .createQueryBuilder('option')
-      .where('option.minHeatCapacity >= :heat', { heat: heatRequired })
+      .where('option.minHeatCapacity >= :heat', { heat: heatRequiredInt })
       .andWhere(
         '(PI() * POWER(option.diameter/2, 2) * option.length * 0.1781) >= :volume',
         {
@@ -215,13 +217,17 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
     minHeat: number,
     maxHeat?: number,
   ): Promise<TreatmentOption[]> {
+    // ✅ Corregido: redondear valores a enteros porque minHeatCapacity es int en la BD
+    const minHeatInt = Math.ceil(minHeat);
+    const maxHeatInt = maxHeat ? Math.floor(maxHeat) : undefined;
+    
     const query = this.treatmentOptionRepository
       .createQueryBuilder('option')
-      .where('option.minHeatCapacity >= :minHeat', { minHeat })
+      .where('option.minHeatCapacity >= :minHeat', { minHeat: minHeatInt })
       .andWhere('option.deleted = false');
 
-    if (maxHeat) {
-      query.andWhere('option.minHeatCapacity <= :maxHeat', { maxHeat });
+    if (maxHeatInt !== undefined) {
+      query.andWhere('option.minHeatCapacity <= :maxHeat', { maxHeat: maxHeatInt });
     }
 
     return query.orderBy('option.minHeatCapacity', 'ASC').getMany();

@@ -76,21 +76,61 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     createTreatmentDto: CreateTreatmentDto,
     userId: number,
   ): Promise<TreatmentResponseDto> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
+    console.log('[Service] === INICIANDO CREACIÓN DE TRATAMIENTO ===');
+    console.log('[Service] CreateTreatmentDto recibido:', JSON.stringify(createTreatmentDto, null, 2));
+    console.log('[Service] userId recibido:', userId);
+    
+    try {
+      console.log('[Service] 1. Buscando usuario con id:', userId);
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
 
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
+      if (!user) {
+        console.error('[Service] ❌ Usuario no encontrado con id:', userId);
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      console.log('[Service] ✅ Usuario encontrado:', { id: user.id, name: user.name });
+
+      console.log('[Service] 2. Creando entidad Treatment con datos:', createTreatmentDto);
+      const treatment = this.treatmentRepository.create({
+        ...createTreatmentDto,
+        createdBy: user,
+      });
+      console.log('[Service] ✅ Entidad Treatment creada:', {
+        name: treatment.name,
+        type: treatment.type,
+        totalFlow: treatment.totalFlow,
+        waterFraction: treatment.waterFraction
+      });
+
+      console.log('[Service] 3. Guardando tratamiento en base de datos...');
+      const savedTreatment = await this.treatmentRepository.save(treatment);
+      console.log('[Service] ✅ Tratamiento guardado exitosamente con id:', savedTreatment.id);
+      console.log('[Service] Datos guardados:', {
+        id: savedTreatment.id,
+        name: savedTreatment.name,
+        type: savedTreatment.type,
+        totalFlow: savedTreatment.totalFlow,
+        createdAt: savedTreatment.createdAt
+      });
+
+      console.log('[Service] 4. Convirtiendo a TreatmentResponseDto...');
+      const responseDto = new TreatmentResponseDto(savedTreatment);
+      console.log('[Service] ✅ TreatmentResponseDto generado:', JSON.stringify(responseDto, null, 2));
+      
+      console.log('[Service] === CREACIÓN COMPLETADA EXITOSAMENTE ===');
+      return responseDto;
+    } catch (error) {
+      console.error('[Service] ❌ ERROR EN CREACIÓN DE TRATAMIENTO:', error);
+      console.error('[Service] Detalles del error:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+        code: error?.code
+      });
+      throw error;
     }
-
-    const treatment = this.treatmentRepository.create({
-      ...createTreatmentDto,
-      createdBy: user,
-    });
-
-    const savedTreatment = await this.treatmentRepository.save(treatment);
-    return new TreatmentResponseDto(savedTreatment);
   }
 
   /**
@@ -354,130 +394,250 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   async calculateParameters(
     data: CalculateTreatmentDto,
   ): Promise<TreatmentCalculationsDto> {
+    console.log('[Service] === INICIANDO CÁLCULO DE PARÁMETROS ===');
+    console.log('[Service] CalculateTreatmentDto recibido:', JSON.stringify(data, null, 2));
+    
     try {
-      console.log('=== INICIANDO CÁLCULO ===');
-      console.log('Datos recibidos:', JSON.stringify(data, null, 2));
-      console.log('✅ Servicio TreatmentsService inicializado correctamente');
+      console.log('[Service] ✅ Servicio TreatmentsService inicializado correctamente');
 
       // 1. Calcular flujos según API-12L
-      console.log('1. Calculando flujos...');
-      const oilFlow = this.calculateOilFlow(data);
-      const waterFlow = this.calculateWaterFlow(data);
-      console.log(`   OilFlow: ${oilFlow}, WaterFlow: ${waterFlow}`);
+      console.log('[Service] 1. Calculando flujos...');
+      console.log('[Service] Datos para cálculo de flujos:', {
+        totalFlow: data.totalFlow,
+        waterFraction: data.waterFraction
+      });
+      let oilFlow: number;
+      let waterFlow: number;
+      try {
+        oilFlow = this.calculateOilFlow(data);
+        waterFlow = this.calculateWaterFlow(data);
+        console.log('[Service] ✅ Flujos calculados:', {
+          oilFlow,
+          waterFlow
+        });
+      } catch (error) {
+        console.error('[Service] ❌ Error al calcular flujos:', error);
+        throw error;
+      }
 
       // 2. Calcular volúmenes de retención según API-12L
-      console.log('2. Calculando volúmenes de retención...');
-      const { oilRetentionVolume, waterRetentionVolume } =
-        this.calculateRetentionVolumes(data);
-      console.log(
-        `   OilRetentionVolume: ${oilRetentionVolume}, WaterRetentionVolume: ${waterRetentionVolume}`,
-      );
+      console.log('[Service] 2. Calculando volúmenes de retención...');
+      let oilRetentionVolume: number;
+      let waterRetentionVolume: number;
+      try {
+        const retentionVolumes = this.calculateRetentionVolumes(data);
+        oilRetentionVolume = retentionVolumes.oilRetentionVolume;
+        waterRetentionVolume = retentionVolumes.waterRetentionVolume;
+        console.log('[Service] ✅ Volúmenes de retención calculados:', {
+          oilRetentionVolume,
+          waterRetentionVolume
+        });
+      } catch (error) {
+        console.error('[Service] ❌ Error al calcular volúmenes de retención:', error);
+        throw error;
+      }
 
       // 3. Calcular calor requerido según API-12L
-      console.log('3. Calculando calor requerido...');
-      const requiredHeat = this.calculateRequiredHeat(data);
-      console.log(`   RequiredHeat: ${requiredHeat}`);
+      console.log('[Service] 3. Calculando calor requerido...');
+      console.log('[Service] Datos para cálculo de calor:', {
+        oilFlow,
+        waterFlow,
+        inletTemperature: data.inletTemperature,
+        targetTemperature: data.targetTemperature,
+        apiGravity: data.apiGravity
+      });
+      let requiredHeat: number;
+      try {
+        requiredHeat = this.calculateRequiredHeat(data);
+        console.log('[Service] ✅ Calor requerido calculado:', requiredHeat);
+      } catch (error) {
+        console.error('[Service] ❌ Error al calcular calor requerido:', error);
+        throw error;
+      }
 
       // 4. Buscar tratadores candidatos
-      console.log('4. Buscando tratadores candidatos...');
-      console.log(
-        `   Parámetros: heatRequired=${requiredHeat}, oilVolume=${oilRetentionVolume}, waterVolume=${waterRetentionVolume}`,
-      );
-      const candidateTreaters = await this.findSuitableTreaters(
-        requiredHeat,
-        oilRetentionVolume,
-        waterRetentionVolume,
-      );
-      console.log(`   Candidatos encontrados: ${candidateTreaters.length}`);
+      console.log('[Service] 4. Buscando tratadores candidatos...');
+      console.log('[Service] Parámetros de búsqueda:', {
+        heatRequired: requiredHeat,
+        oilVolume: oilRetentionVolume,
+        waterVolume: waterRetentionVolume
+      });
+      let candidateTreaters: TreatmentOption[];
+      try {
+        candidateTreaters = await this.findSuitableTreaters(
+          requiredHeat,
+          oilRetentionVolume,
+          waterRetentionVolume,
+        );
+        console.log('[Service] ✅ Candidatos encontrados:', candidateTreaters.length);
+      } catch (error) {
+        console.error('[Service] ❌ Error al buscar tratadores candidatos:', error);
+        throw error;
+      }
 
       // 5. Para cada candidato, calcular pérdidas de calor y seleccionar el mejor
-      console.log('5. Evaluando candidatos...');
+      console.log('[Service] 5. Evaluando candidatos...');
       let bestTreater = null;
       let minTotalHeat = 0;
       let heatLoss = 0;
 
-      if (candidateTreaters.length > 0) {
-        minTotalHeat = Infinity;
-        for (const treater of candidateTreaters) {
-          heatLoss = this.calculateHeatLoss(
-            data,
-            treater.diameter,
-            treater.length,
-          );
-          const totalHeat = requiredHeat + heatLoss; // Qtotal = Q + Qpérdida según API-12L
+      try {
+        if (candidateTreaters.length > 0) {
+          console.log('[Service] Evaluando', candidateTreaters.length, 'candidatos...');
+          minTotalHeat = Infinity;
+          for (let i = 0; i < candidateTreaters.length; i++) {
+            const treater = candidateTreaters[i];
+            console.log(`[Service] Evaluando candidato ${i + 1}/${candidateTreaters.length}:`, {
+              type: treater.type,
+              diameter: treater.diameter,
+              length: treater.length
+            });
+            try {
+              heatLoss = this.calculateHeatLoss(
+                data,
+                treater.diameter,
+                treater.length,
+              );
+              const totalHeat = requiredHeat + heatLoss; // Qtotal = Q + Qpérdida según API-12L
+              console.log(`[Service] Candidato ${i + 1}: heatLoss=${heatLoss}, totalHeat=${totalHeat}`);
 
-          if (totalHeat < minTotalHeat) {
-            minTotalHeat = totalHeat;
-            bestTreater = { ...treater, totalHeat, heatLoss };
+              if (totalHeat < minTotalHeat) {
+                minTotalHeat = totalHeat;
+                bestTreater = { ...treater, totalHeat, heatLoss };
+                console.log(`[Service] ✅ Nuevo mejor tratador encontrado: ${bestTreater.type}`);
+              }
+            } catch (error) {
+              console.error(`[Service] ❌ Error al evaluar candidato ${i + 1}:`, error);
+              throw error;
+            }
           }
+          console.log('[Service] ✅ Evaluación completada:', {
+            mejorTratador: bestTreater?.type,
+            totalHeat: minTotalHeat
+          });
+        } else {
+          // Si no hay tratadores candidatos, usar valores por defecto
+          console.log('[Service] No hay candidatos, usando valores por defecto');
+          minTotalHeat = requiredHeat;
+          heatLoss = 0;
         }
-        console.log(
-          `   Mejor tratador: ${bestTreater?.type}, TotalHeat: ${minTotalHeat}`,
-        );
-      } else {
-        // Si no hay tratadores candidatos, usar valores por defecto
-        minTotalHeat = requiredHeat;
-        heatLoss = 0;
-        console.log('   No hay candidatos, usando valores por defecto');
+      } catch (error) {
+        console.error('[Service] ❌ Error al evaluar candidatos:', error);
+        throw error;
       }
 
       // 6. Calcular tiempo de residencia estimado
-      console.log('6. Calculando tiempo de residencia...');
-      const maxRetentionVolume = Math.max(
-        oilRetentionVolume,
-        waterRetentionVolume,
-      );
-      const estimatedResidenceTime =
-        (maxRetentionVolume * 1440) / data.totalFlow;
-      console.log(`   EstimatedResidenceTime: ${estimatedResidenceTime}`);
+      console.log('[Service] 6. Calculando tiempo de residencia...');
+      let maxRetentionVolume: number;
+      let estimatedResidenceTime: number;
+      try {
+        maxRetentionVolume = Math.max(
+          oilRetentionVolume,
+          waterRetentionVolume,
+        );
+        estimatedResidenceTime =
+          (maxRetentionVolume * 1440) / data.totalFlow;
+        console.log('[Service] ✅ Tiempo de residencia calculado:', {
+          maxRetentionVolume,
+          estimatedResidenceTime
+        });
+      } catch (error) {
+        console.error('[Service] ❌ Error al calcular tiempo de residencia:', error);
+        throw error;
+      }
 
       // 7. Validar cumplimiento API-12L
-      console.log('7. Validando cumplimiento API-12L...');
-      const complianceResult = this.validateAPI12LCompliance({
+      console.log('[Service] 7. Validando cumplimiento API-12L...');
+      let complianceResult: { compliant: boolean; warnings: string[] };
+      try {
+        complianceResult = this.validateAPI12LCompliance({
+          oilFlow,
+          waterFlow,
+          oilRetentionVolume,
+          waterRetentionVolume,
+          estimatedResidenceTime,
+          requiredHeat,
+          apiGravity: data.apiGravity,
+        });
+        console.log('[Service] ✅ Validación API-12L completada:', {
+          compliant: complianceResult.compliant,
+          warnings: complianceResult.warnings.length
+        });
+      } catch (error) {
+        console.error('[Service] ❌ Error al validar cumplimiento API-12L:', error);
+        throw error;
+      }
+
+      console.log('[Service] 8. Preparando respuesta...');
+      console.log('[Service] Valores para respuesta:', {
         oilFlow,
         waterFlow,
         oilRetentionVolume,
         waterRetentionVolume,
-        estimatedResidenceTime,
         requiredHeat,
-        apiGravity: data.apiGravity,
-      });
-      console.log(`   API-12L Compliance: ${complianceResult.compliant}`);
-
-      console.log('8. Preparando respuesta...');
-      const result = {
-        calculatedOilFlow: oilFlow,
-        calculatedWaterFlow: waterFlow,
-        oilRetentionVolume,
-        waterRetentionVolume,
-        requiredHeatCapacity: requiredHeat,
         heatLoss: bestTreater?.heatLoss || heatLoss,
-        totalHeat: minTotalHeat,
-        recommendedDiameter: bestTreater?.diameter || 0,
-        recommendedLength: bestTreater?.length || 0,
-        recommendedPressure: bestTreater?.designPressure || 0,
-        recommendedTreaters: candidateTreaters.map(
-          (t) =>
-            `Tratador ${t.type} ${t.diameter}ft - LSS ${t.length} - ${t.minHeatCapacity} BTU/hr`,
-        ),
-        requiredRetentionVolume: maxRetentionVolume,
+        minTotalHeat,
+        bestTreater: bestTreater ? {
+          type: bestTreater.type,
+          diameter: bestTreater.diameter,
+          length: bestTreater.length,
+          designPressure: bestTreater.designPressure
+        } : null,
+        candidateTreatersCount: candidateTreaters?.length || 0,
+        maxRetentionVolume,
         estimatedResidenceTime,
-        api12lCompliance: complianceResult.compliant,
-        complianceWarnings: complianceResult.warnings,
-        separationEfficiency: this.calculateSeparationEfficiency(
-          estimatedResidenceTime,
+        complianceResult: {
+          compliant: complianceResult.compliant,
+          warningsCount: complianceResult.warnings.length
+        }
+      });
+      
+      let result: TreatmentCalculationsDto;
+      try {
+        result = {
+          calculatedOilFlow: oilFlow,
+          calculatedWaterFlow: waterFlow,
           oilRetentionVolume,
           waterRetentionVolume,
-        ),
-      };
+          requiredHeatCapacity: requiredHeat,
+          heatLoss: bestTreater?.heatLoss || heatLoss,
+          totalHeat: minTotalHeat,
+          recommendedDiameter: bestTreater?.diameter || 0,
+          recommendedLength: bestTreater?.length || 0,
+          recommendedPressure: bestTreater?.designPressure || 0,
+          recommendedTreaters: (candidateTreaters || []).map(
+            (t) =>
+              `Tratador ${t.type} ${t.diameter}ft - LSS ${t.length} - ${t.minHeatCapacity} BTU/hr`,
+          ),
+          requiredRetentionVolume: maxRetentionVolume,
+          estimatedResidenceTime,
+          api12lCompliance: complianceResult.compliant,
+          complianceWarnings: complianceResult.warnings,
+          separationEfficiency: this.calculateSeparationEfficiency(
+            estimatedResidenceTime,
+            oilRetentionVolume,
+            waterRetentionVolume,
+          ),
+        };
+        console.log('[Service] ✅ Resultado construido exitosamente');
+      } catch (error) {
+        console.error('[Service] ❌ Error al construir resultado:', error);
+        throw error;
+      }
 
-      console.log('Resultado:', JSON.stringify(result, null, 2));
-      console.log('=== CÁLCULO COMPLETADO ===');
+      console.log('[Service] ✅ Resultado preparado:', JSON.stringify(result, null, 2));
+      console.log('[Service] === CÁLCULO COMPLETADO EXITOSAMENTE ===');
 
       return result;
     } catch (error) {
-      console.error('❌ ERROR EN CÁLCULO:', error);
-      console.error('Stack trace:', error.stack);
+      console.error('[Service] ❌ ERROR EN CÁLCULO DE PARÁMETROS:', error);
+      console.error('[Service] Tipo de error:', error?.constructor?.name);
+      console.error('[Service] Mensaje del error:', error?.message);
+      console.error('[Service] Stack trace completo:', error?.stack);
+      console.error('[Service] Nombre del error:', error?.name);
+      if (error?.code) {
+        console.error('[Service] Código del error:', error.code);
+      }
       throw error;
     }
   }
@@ -616,47 +776,101 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     oilRetentionVolume: number,
     waterRetentionVolume: number,
   ): Promise<TreatmentOption[]> {
-    console.log(`   [findSuitableTreaters] Iniciando búsqueda...`);
+    console.log('[Service] [findSuitableTreaters] === INICIANDO BÚSQUEDA DE TRATADORES ===');
+    console.log('[Service] [findSuitableTreaters] Parámetros de búsqueda:', {
+      heatRequired,
+      oilRetentionVolume,
+      waterRetentionVolume
+    });
+    
     const maxRetentionVolume = Math.max(
       oilRetentionVolume,
       waterRetentionVolume,
     );
-    console.log(
-      `   [findSuitableTreaters] maxRetentionVolume: ${maxRetentionVolume}`,
-    );
+    console.log('[Service] [findSuitableTreaters] maxRetentionVolume calculado:', maxRetentionVolume);
 
     try {
-      console.log(`   [findSuitableTreaters] Ejecutando query...`);
-      const candidates = await this.treatmentOptionRepository
+      console.log('[Service] [findSuitableTreaters] Verificando repositorio...');
+      if (!this.treatmentOptionRepository) {
+        console.error('[Service] [findSuitableTreaters] ❌ ERROR: treatmentOptionRepository no está inicializado');
+        throw new Error('treatmentOptionRepository no está disponible');
+      }
+      console.log('[Service] [findSuitableTreaters] ✅ Repositorio verificado');
+
+      // ✅ Corregido: redondear heatRequired a entero porque minHeatCapacity es int en la BD
+      // Usamos Math.ceil() para redondear hacia arriba (mejor tener margen de seguridad)
+      const heatRequiredInt = Math.ceil(heatRequired);
+      console.log('[Service] [findSuitableTreaters] Construyendo query...');
+      console.log('[Service] [findSuitableTreaters] Condiciones:', {
+        minHeatCapacity: `>= ${heatRequiredInt} (redondeado de ${heatRequired})`,
+        deleted: false
+      });
+      
+      const queryBuilder = this.treatmentOptionRepository
         .createQueryBuilder('option')
-        .where('option.minHeatCapacity >= :heat', { heat: heatRequired })
+        .where('option.minHeatCapacity >= :heat', { heat: heatRequiredInt })
         .andWhere('option.deleted = false')
         .orderBy('option.minHeatCapacity', 'ASC')
-        .addOrderBy('option.diameter', 'ASC')
-        .getMany();
+        .addOrderBy('option.diameter', 'ASC');
+      
+      console.log('[Service] [findSuitableTreaters] Query construida, ejecutando...');
+      
+      const candidates = await queryBuilder.getMany();
 
-      console.log(
-        `   [findSuitableTreaters] Query ejecutada. Candidatos iniciales: ${candidates.length}`,
-      );
+      console.log('[Service] [findSuitableTreaters] ✅ Query ejecutada exitosamente');
+      console.log('[Service] [findSuitableTreaters] Candidatos iniciales encontrados:', candidates.length);
+      
+      if (candidates.length === 0) {
+        console.log('[Service] [findSuitableTreaters] ⚠️ No se encontraron candidatos iniciales');
+        return [];
+      }
 
       // Filtrar por volumen interno
-      const filtered = candidates.filter((option) => {
-        const internalVolume = this.calculateInternalVolume(
-          option.diameter,
-          option.length,
-        );
-        console.log(
-          `   [findSuitableTreaters] Opción ${option.diameter}ft x ${option.length}ft: volumen=${internalVolume}, requerido=${maxRetentionVolume}`,
-        );
-        return internalVolume >= maxRetentionVolume;
+      console.log('[Service] [findSuitableTreaters] Filtrando candidatos por volumen interno...');
+      const filtered = candidates.filter((option, index) => {
+        try {
+          const internalVolume = this.calculateInternalVolume(
+            option.diameter,
+            option.length,
+          );
+          const meetsVolume = internalVolume >= maxRetentionVolume;
+          console.log(`[Service] [findSuitableTreaters] Candidato ${index + 1}/${candidates.length}:`, {
+            type: option.type,
+            diameter: option.diameter,
+            length: option.length,
+            internalVolume,
+            maxRetentionVolume,
+            meetsVolume
+          });
+          return meetsVolume;
+        } catch (error) {
+          console.error(`[Service] [findSuitableTreaters] ❌ Error al calcular volumen para candidato ${index + 1}:`, error);
+          return false;
+        }
       });
 
-      console.log(
-        `   [findSuitableTreaters] Candidatos finales: ${filtered.length}`,
-      );
+      console.log('[Service] [findSuitableTreaters] ✅ Filtrado completado');
+      console.log('[Service] [findSuitableTreaters] Candidatos finales:', filtered.length);
+      console.log('[Service] [findSuitableTreaters] === BÚSQUEDA COMPLETADA ===');
+      
       return filtered;
     } catch (error) {
-      console.error('   [findSuitableTreaters] ERROR:', error);
+      console.error('[Service] [findSuitableTreaters] ❌ ERROR EN BÚSQUEDA:', error);
+      console.error('[Service] [findSuitableTreaters] Tipo de error:', error?.constructor?.name);
+      console.error('[Service] [findSuitableTreaters] Mensaje:', error?.message);
+      console.error('[Service] [findSuitableTreaters] Stack:', error?.stack);
+      
+      // Si es un error de TypeORM, agregar más detalles
+      if (error?.name === 'QueryFailedError' || error?.code) {
+        console.error('[Service] [findSuitableTreaters] Error de base de datos:', {
+          code: error.code,
+          detail: error.detail,
+          hint: error.hint,
+          query: error.query,
+          parameters: error.parameters
+        });
+      }
+      
       throw error;
     }
   }
