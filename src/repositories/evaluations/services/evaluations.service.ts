@@ -99,9 +99,8 @@ export class EvaluationsService {
             evaluation.templateName = template.name;
             evaluation.templateVersion = template.version;
           }
-        } catch (error) {
+        } catch {
           // Si no se puede cargar la plantilla, continuar sin nombre/versión
-          console.warn(`No se pudo cargar la plantilla ${createDto.templateId}`);
         }
       }
 
@@ -181,52 +180,49 @@ export class EvaluationsService {
   }
 
   /**
-   * @description Obtiene evaluación por ID
+   * @description Obtiene evaluación por ID del usuario actual
    * @ApiOperation Obtener evaluación por ID
    * @ApiResponse 200 - Evaluación encontrada
-   * @ApiResponse 404 - Evaluación no encontrada
+   * @ApiResponse 404 - Evaluación no encontrada o no pertenece al usuario actual
    */
-  @ApiOperation({ summary: 'Obtener evaluación por ID' })
+  @ApiOperation({ summary: 'Obtener evaluación por ID del usuario actual' })
   @ApiResponse({
     status: 200,
     description: 'Evaluación encontrada',
     type: EvaluationResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
-  async getEvaluationById(id: number): Promise<EvaluationResponseDto> {
-    const evaluation = await this.evaluationRepository.findOne({
-      where: { id },
-      relations: [
-        'treatment',
-        'externalTreatment',
-        'criteria',
-        'evaluatedBy',
-        'treatment.createdBy',
-      ],
-    });
-
-    if (!evaluation) {
-      throw new NotFoundException(`Evaluación con ID ${id} no encontrada`);
-    }
-
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
+  async getEvaluationById(
+    id: number,
+    userId: number,
+  ): Promise<EvaluationResponseDto> {
+    const evaluation = await this.getFullEvaluation(id, userId);
     return new EvaluationResponseDto(evaluation);
   }
 
   /**
-   * @description Calcula resultado de evaluación
+   * @description Calcula resultado de evaluación del usuario actual
    * @ApiOperation Calcular resultado de evaluación
    * @ApiResponse 200 - Resultado calculado
    * @ApiResponse 400 - Evaluación sin criterios
-   * @ApiResponse 404 - Evaluación no encontrada
+   * @ApiResponse 404 - Evaluación no encontrada o no pertenece al usuario actual
    */
-  @ApiOperation({ summary: 'Calcular resultado de evaluación' })
+  @ApiOperation({
+    summary: 'Calcular resultado de evaluación del usuario actual',
+  })
   @ApiResponse({
     status: 200,
     description: 'Resultado calculado',
     type: EvaluationResponseDto,
   })
-  async calculateEvaluationResult(evaluationId: number): Promise<Evaluation> {
-    const evaluation = await this.getFullEvaluation(evaluationId);
+  async calculateEvaluationResult(
+    evaluationId: number,
+    userId: number,
+  ): Promise<Evaluation> {
+    const evaluation = await this.getFullEvaluation(evaluationId, userId);
 
     if (!evaluation.criteria || evaluation.criteria.length === 0) {
       throw new BadRequestException(
@@ -252,51 +248,59 @@ export class EvaluationsService {
   }
 
   /**
-   * @description Actualiza una evaluación existente
+   * @description Actualiza una evaluación existente del usuario actual
    * @param id ID de la evaluación a actualizar
    * @param updateDto Datos para actualizar
+   * @param userId ID del usuario actual
    * @returns Evaluación actualizada
    */
-  @ApiOperation({ summary: 'Actualizar evaluación' })
+  @ApiOperation({ summary: 'Actualizar evaluación del usuario actual' })
   @ApiResponse({
     status: 200,
     description: 'Evaluación actualizada exitosamente',
     type: EvaluationResponseDto,
   })
   @ApiResponse({ status: 400, description: 'Datos de entrada inválidos' })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
   async update(
     id: number,
     updateDto: UpdateEvaluationDto,
+    userId: number,
   ): Promise<Evaluation> {
     try {
-      const evaluation = await this.getFullEvaluation(id);
+      const evaluation = await this.getFullEvaluation(id, userId);
 
       // Actualizar campos permitidos
       if (updateDto.comments !== undefined) {
         evaluation.comments = updateDto.comments;
       }
 
-        if (updateDto.approved !== undefined) {
-          evaluation.approved = updateDto.approved;
-        }
+      if (updateDto.approved !== undefined) {
+        evaluation.approved = updateDto.approved;
+      }
 
-        if (updateDto.thermalCalculations !== undefined) {
-          evaluation.thermalCalculations = updateDto.thermalCalculations;
-        }
+      if (updateDto.thermalCalculations !== undefined) {
+        evaluation.thermalCalculations = updateDto.thermalCalculations;
+      }
 
-        if (updateDto.templateId !== undefined) {
-          evaluation.templateId = updateDto.templateId;
-        }
+      if (updateDto.templateId !== undefined) {
+        evaluation.templateId = updateDto.templateId;
+      }
 
       // Si se actualizan criterios, recalcular resultado
       if (updateDto.criteria) {
         await this.updateEvaluationCriteria(id, updateDto.criteria);
-        return this.calculateEvaluationResult(id);
+        return this.calculateEvaluationResult(id, userId);
       }
 
       // Si se actualiza templateId, también actualizar templateName y templateVersion si se proporcionan
-      if (updateDto.templateId && updateDto.templateId !== evaluation.templateId) {
+      if (
+        updateDto.templateId &&
+        updateDto.templateId !== evaluation.templateId
+      ) {
         // Si se proporciona un nuevo templateId, cargar la plantilla para obtener nombre y versión
         try {
           const template = await this.templateRepository.findOne({
@@ -306,9 +310,8 @@ export class EvaluationsService {
             evaluation.templateName = template.name;
             evaluation.templateVersion = template.version;
           }
-        } catch (error) {
+        } catch {
           // Si no se puede cargar la plantilla, continuar sin actualizar nombre/versión
-          console.warn(`No se pudo cargar la plantilla ${updateDto.templateId}`);
         }
       }
 
@@ -319,15 +322,22 @@ export class EvaluationsService {
   }
 
   /**
-   * @description Elimina una evaluación (soft delete)
+   * @description Elimina una evaluación del usuario actual (soft delete)
    * @param id ID de la evaluación a eliminar
+   * @param userId ID del usuario actual
    * @returns Resultado de la operación
    */
-  @ApiOperation({ summary: 'Eliminar evaluación' })
+  @ApiOperation({ summary: 'Eliminar evaluación del usuario actual' })
   @ApiResponse({ status: 200, description: 'Evaluación eliminada' })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada' })
-  async remove(id: number): Promise<{ affected?: number }> {
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
+  async remove(id: number, userId: number): Promise<{ affected?: number }> {
     try {
+      // Validar que la evaluación pertenece al usuario
+      await this.getFullEvaluation(id, userId);
+
       const result = await this.evaluationRepository.softDelete(id);
 
       if (result.affected === 0) {
@@ -341,17 +351,21 @@ export class EvaluationsService {
   }
 
   /**
-   * @description Obtiene todas las evaluaciones
-   * @returns Lista de evaluaciones
+   * @description Obtiene todas las evaluaciones del usuario actual
+   * @param userId ID del usuario actual
+   * @returns Lista de evaluaciones del usuario
    */
-  @ApiOperation({ summary: 'Obtener todas las evaluaciones' })
+  @ApiOperation({
+    summary: 'Obtener todas las evaluaciones del usuario actual',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Lista de evaluaciones obtenida',
+    description: 'Lista de evaluaciones del usuario obtenida',
     type: [EvaluationResponseDto],
   })
-  async findAll(): Promise<Evaluation[]> {
+  async findAll(userId: number): Promise<Evaluation[]> {
     return this.evaluationRepository.find({
+      where: { evaluatedBy: { id: userId } },
       relations: ['treatment', 'externalTreatment', 'evaluatedBy'],
       withDeleted: false,
     });
@@ -359,6 +373,7 @@ export class EvaluationsService {
 
   async findPaginated(
     query: QueryEvaluationDto,
+    userId: number,
   ): Promise<PaginationDto<EvaluationResponseDto>> {
     const {
       page = 1,
@@ -373,14 +388,14 @@ export class EvaluationsService {
       templateId,
       minDate,
       maxDate,
-      evaluatedById,
     } = query;
 
     const queryBuilder = this.evaluationRepository
       .createQueryBuilder('evaluation')
       .leftJoinAndSelect('evaluation.evaluatedBy', 'evaluatedBy')
       .leftJoinAndSelect('evaluation.externalTreatment', 'externalTreatment')
-      .leftJoinAndSelect('evaluation.treatment', 'treatment');
+      .leftJoinAndSelect('evaluation.treatment', 'treatment')
+      .where('evaluatedBy.id = :userId', { userId });
 
     if (term) {
       const normalizedTerm = normalizeText(term);
@@ -412,11 +427,7 @@ export class EvaluationsService {
         templateId,
       });
     }
-    if (evaluatedById) {
-      queryBuilder.andWhere('evaluatedBy.id = :evaluatedById', {
-        evaluatedById,
-      });
-    }
+    // Nota: evaluatedById se ignora ya que siempre filtramos por el usuario actual
     if (minDate) {
       queryBuilder.andWhere('evaluation.evaluationDate >= :minDate', {
         minDate: new Date(minDate),
@@ -521,14 +532,26 @@ export class EvaluationsService {
       await this.criteriaRepository.save(criteria);
     }
   }
-  private async getFullEvaluation(id: number): Promise<Evaluation> {
+  private async getFullEvaluation(
+    id: number,
+    userId?: number,
+  ): Promise<Evaluation> {
+    const whereCondition: any = { id };
+    if (userId !== undefined) {
+      whereCondition.evaluatedBy = { id: userId };
+    }
+
     const evaluation = await this.evaluationRepository.findOne({
-      where: { id },
+      where: whereCondition,
       relations: ['treatment', 'externalTreatment', 'criteria', 'evaluatedBy'],
     });
 
     if (!evaluation) {
-      throw new NotFoundException(`Evaluación con ID ${id} no encontrada`);
+      const message =
+        userId !== undefined
+          ? `Evaluación con ID ${id} no encontrada o no pertenece al usuario actual`
+          : `Evaluación con ID ${id} no encontrada`;
+      throw new NotFoundException(message);
     }
 
     return evaluation;
@@ -619,7 +642,6 @@ export class EvaluationsService {
     ) {
       throw error;
     }
-    console.error('Error en evaluación:', error);
     throw new InternalServerErrorException('Error al procesar la evaluación');
   }
 

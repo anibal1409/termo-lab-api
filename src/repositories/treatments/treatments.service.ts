@@ -41,25 +41,33 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   /**
    * Busca un tratamiento válido por su ID
    * @param id - ID del tratamiento (número o string)
+   * @param userId - ID del usuario actual (opcional, si se proporciona valida que el tratamiento pertenezca al usuario)
    * @returns Tratamiento encontrado
-   * @throws NotFoundException si el tratamiento no existe o está eliminado
+   * @throws NotFoundException si el tratamiento no existe, está eliminado o no pertenece al usuario
    */
-  async findValid(id: number | string): Promise<Treatment> {
+  async findValid(id: number | string, userId?: number): Promise<Treatment> {
     const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
 
     if (isNaN(numericId)) {
       throw new NotFoundException(`ID de tratamiento inválido: ${id}`);
     }
 
+    const whereCondition: any = { id: numericId, deleted: false };
+    if (userId !== undefined) {
+      whereCondition.createdBy = { id: userId };
+    }
+
     const treatment = await this.treatmentRepository.findOne({
-      where: { id: numericId, deleted: false },
+      where: whereCondition,
       relations: ['createdBy'],
     });
 
     if (!treatment) {
-      throw new NotFoundException(
-        `Tratamiento con ID ${id} no encontrado o no válido`,
-      );
+      const message =
+        userId !== undefined
+          ? `Tratamiento con ID ${id} no encontrado, no válido o no pertenece al usuario actual`
+          : `Tratamiento con ID ${id} no encontrado o no válido`;
+      throw new NotFoundException(message);
     }
 
     return treatment;
@@ -76,82 +84,47 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     createTreatmentDto: CreateTreatmentDto,
     userId: number,
   ): Promise<TreatmentResponseDto> {
-    console.log('[Service] === INICIANDO CREACIÓN DE TRATAMIENTO ===');
-    console.log('[Service] CreateTreatmentDto recibido:', JSON.stringify(createTreatmentDto, null, 2));
-    console.log('[Service] userId recibido:', userId);
-    
-    try {
-      console.log('[Service] 1. Buscando usuario con id:', userId);
-      const user = await this.userRepository.findOne({
-        where: { id: userId },
-      });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
-      if (!user) {
-        console.error('[Service] ❌ Usuario no encontrado con id:', userId);
-        throw new NotFoundException('Usuario no encontrado');
-      }
-      console.log('[Service] ✅ Usuario encontrado:', { id: user.id, name: user.name });
-
-      console.log('[Service] 2. Creando entidad Treatment con datos:', createTreatmentDto);
-      const treatment = this.treatmentRepository.create({
-        ...createTreatmentDto,
-        createdBy: user,
-      });
-      console.log('[Service] ✅ Entidad Treatment creada:', {
-        name: treatment.name,
-        type: treatment.type,
-        totalFlow: treatment.totalFlow,
-        waterFraction: treatment.waterFraction
-      });
-
-      console.log('[Service] 3. Guardando tratamiento en base de datos...');
-      const savedTreatment = await this.treatmentRepository.save(treatment);
-      console.log('[Service] ✅ Tratamiento guardado exitosamente con id:', savedTreatment.id);
-      console.log('[Service] Datos guardados:', {
-        id: savedTreatment.id,
-        name: savedTreatment.name,
-        type: savedTreatment.type,
-        totalFlow: savedTreatment.totalFlow,
-        createdAt: savedTreatment.createdAt
-      });
-
-      console.log('[Service] 4. Convirtiendo a TreatmentResponseDto...');
-      const responseDto = new TreatmentResponseDto(savedTreatment);
-      console.log('[Service] ✅ TreatmentResponseDto generado:', JSON.stringify(responseDto, null, 2));
-      
-      console.log('[Service] === CREACIÓN COMPLETADA EXITOSAMENTE ===');
-      return responseDto;
-    } catch (error) {
-      console.error('[Service] ❌ ERROR EN CREACIÓN DE TRATAMIENTO:', error);
-      console.error('[Service] Detalles del error:', {
-        message: error?.message,
-        stack: error?.stack,
-        name: error?.name,
-        code: error?.code
-      });
-      throw error;
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
     }
+
+    const treatment = this.treatmentRepository.create({
+      ...createTreatmentDto,
+      createdBy: user,
+    });
+
+    const savedTreatment = await this.treatmentRepository.save(treatment);
+    const responseDto = new TreatmentResponseDto(savedTreatment);
+
+    return responseDto;
   }
 
   /**
-   * Obtiene todos los tratamientos activos
-   * @returns Lista de tratamientos convertidos a DTO
+   * Obtiene todos los tratamientos activos del usuario actual
+   * @param userId - ID del usuario actual
+   * @returns Lista de tratamientos del usuario convertidos a DTO
    */
-  async findAll(): Promise<TreatmentResponseDto[]> {
+  async findAll(userId: number): Promise<TreatmentResponseDto[]> {
     const treatments = await this.treatmentRepository.find({
-      where: { deleted: false },
+      where: { createdBy: { id: userId }, deleted: false },
       relations: ['createdBy'],
     });
     return treatments.map((treatment) => new TreatmentResponseDto(treatment));
   }
 
   /**
-   * Obtiene tratamientos paginados con filtros avanzados
+   * Obtiene tratamientos paginados con filtros avanzados del usuario actual
    * @param query - Parámetros de paginación y filtrado
+   * @param userId - ID del usuario actual
    * @returns Objeto con datos paginados y metadatos
    */
   async findPaginated(
     query: QueryTreatmentDto,
+    userId: number,
   ): Promise<PaginationDto<TreatmentResponseDto>> {
     const {
       page = 1,
@@ -167,7 +140,6 @@ export class TreatmentsService implements CrudRepository<Treatment> {
       minApiGravity,
       maxApiGravity,
       deleted = false,
-      createdById,
       minCreatedAt,
       maxCreatedAt,
     } = query;
@@ -175,7 +147,8 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     const queryBuilder = this.treatmentRepository
       .createQueryBuilder('treatment')
       .leftJoinAndSelect('treatment.createdBy', 'createdBy')
-      .where('treatment.deleted = :deleted', { deleted });
+      .where('treatment.deleted = :deleted', { deleted })
+      .andWhere('createdBy.id = :userId', { userId });
 
     if (term) {
       const normalizedTerm = normalizeText(term);
@@ -213,8 +186,7 @@ export class TreatmentsService implements CrudRepository<Treatment> {
       queryBuilder.andWhere('treatment.apiGravity <= :maxApiGravity', {
         maxApiGravity,
       });
-    if (createdById)
-      queryBuilder.andWhere('createdBy.id = :createdById', { createdById });
+    // Nota: createdById se ignora ya que siempre filtramos por el usuario actual
     if (minCreatedAt)
       queryBuilder.andWhere('treatment.createdAt >= :minCreatedAt', {
         minCreatedAt: new Date(minCreatedAt),
@@ -242,28 +214,31 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   }
 
   /**
-   * Obtiene un tratamiento por su ID
+   * Obtiene un tratamiento por su ID del usuario actual
    * @param id - ID del tratamiento
+   * @param userId - ID del usuario actual
    * @returns Tratamiento encontrado convertido a DTO
-   * @throws NotFoundException si el tratamiento no existe o está eliminado
+   * @throws NotFoundException si el tratamiento no existe, está eliminado o no pertenece al usuario
    */
-  async findOne(id: number): Promise<TreatmentResponseDto> {
-    const treatment = await this.findValid(id);
+  async findOne(id: number, userId: number): Promise<TreatmentResponseDto> {
+    const treatment = await this.findValid(id, userId);
     return new TreatmentResponseDto(treatment);
   }
 
   /**
-   * Actualiza un tratamiento existente
+   * Actualiza un tratamiento existente del usuario actual
    * @param id - ID del tratamiento a actualizar
    * @param updateTreatmentDto - Datos a actualizar
+   * @param userId - ID del usuario actual
    * @returns Tratamiento actualizado convertido a DTO
-   * @throws NotFoundException si el tratamiento no existe o está eliminado
+   * @throws NotFoundException si el tratamiento no existe, está eliminado o no pertenece al usuario
    */
   async update(
     id: number,
     updateTreatmentDto: UpdateTreatmentDto,
+    userId: number,
   ): Promise<TreatmentResponseDto> {
-    const treatment = await this.findValid(id);
+    const treatment = await this.findValid(id, userId);
     const updatedTreatment = await this.treatmentRepository.save({
       ...treatment,
       ...updateTreatmentDto,
@@ -272,13 +247,14 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   }
 
   /**
-   * Elimina lógicamente un tratamiento
+   * Elimina lógicamente un tratamiento del usuario actual
    * @param id - ID del tratamiento a eliminar
+   * @param userId - ID del usuario actual
    * @returns Mensaje de confirmación
-   * @throws NotFoundException si el tratamiento no existe o ya está eliminado
+   * @throws NotFoundException si el tratamiento no existe, ya está eliminado o no pertenece al usuario
    */
-  async remove(id: number): Promise<{ message: string }> {
-    const treatment = await this.findValid(id);
+  async remove(id: number, userId: number): Promise<{ message: string }> {
+    const treatment = await this.findValid(id, userId);
     treatment.deleted = true;
     await this.treatmentRepository.save(treatment);
     return { message: 'Tratamiento eliminado correctamente' };
@@ -394,252 +370,98 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   async calculateParameters(
     data: CalculateTreatmentDto,
   ): Promise<TreatmentCalculationsDto> {
-    console.log('[Service] === INICIANDO CÁLCULO DE PARÁMETROS ===');
-    console.log('[Service] CalculateTreatmentDto recibido:', JSON.stringify(data, null, 2));
-    
-    try {
-      console.log('[Service] ✅ Servicio TreatmentsService inicializado correctamente');
+    // 1. Calcular flujos según API-12L
+    const oilFlow = this.calculateOilFlow(data);
+    const waterFlow = this.calculateWaterFlow(data);
 
-      // 1. Calcular flujos según API-12L
-      console.log('[Service] 1. Calculando flujos...');
-      console.log('[Service] Datos para cálculo de flujos:', {
-        totalFlow: data.totalFlow,
-        waterFraction: data.waterFraction
-      });
-      let oilFlow: number;
-      let waterFlow: number;
-      try {
-        oilFlow = this.calculateOilFlow(data);
-        waterFlow = this.calculateWaterFlow(data);
-        console.log('[Service] ✅ Flujos calculados:', {
-          oilFlow,
-          waterFlow
-        });
-      } catch (error) {
-        console.error('[Service] ❌ Error al calcular flujos:', error);
-        throw error;
-      }
+    // 2. Calcular volúmenes de retención según API-12L
+    const retentionVolumes = this.calculateRetentionVolumes(data);
+    const oilRetentionVolume = retentionVolumes.oilRetentionVolume;
+    const waterRetentionVolume = retentionVolumes.waterRetentionVolume;
 
-      // 2. Calcular volúmenes de retención según API-12L
-      console.log('[Service] 2. Calculando volúmenes de retención...');
-      let oilRetentionVolume: number;
-      let waterRetentionVolume: number;
-      try {
-        const retentionVolumes = this.calculateRetentionVolumes(data);
-        oilRetentionVolume = retentionVolumes.oilRetentionVolume;
-        waterRetentionVolume = retentionVolumes.waterRetentionVolume;
-        console.log('[Service] ✅ Volúmenes de retención calculados:', {
-          oilRetentionVolume,
-          waterRetentionVolume
-        });
-      } catch (error) {
-        console.error('[Service] ❌ Error al calcular volúmenes de retención:', error);
-        throw error;
-      }
+    // 3. Calcular calor requerido según API-12L
+    const requiredHeat = this.calculateRequiredHeat(data);
 
-      // 3. Calcular calor requerido según API-12L
-      console.log('[Service] 3. Calculando calor requerido...');
-      console.log('[Service] Datos para cálculo de calor:', {
-        oilFlow,
-        waterFlow,
-        inletTemperature: data.inletTemperature,
-        targetTemperature: data.targetTemperature,
-        apiGravity: data.apiGravity
-      });
-      let requiredHeat: number;
-      try {
-        requiredHeat = this.calculateRequiredHeat(data);
-        console.log('[Service] ✅ Calor requerido calculado:', requiredHeat);
-      } catch (error) {
-        console.error('[Service] ❌ Error al calcular calor requerido:', error);
-        throw error;
-      }
+    // 4. Buscar tratadores candidatos
+    const candidateTreaters = await this.findSuitableTreaters(
+      requiredHeat,
+      oilRetentionVolume,
+      waterRetentionVolume,
+    );
 
-      // 4. Buscar tratadores candidatos
-      console.log('[Service] 4. Buscando tratadores candidatos...');
-      console.log('[Service] Parámetros de búsqueda:', {
-        heatRequired: requiredHeat,
-        oilVolume: oilRetentionVolume,
-        waterVolume: waterRetentionVolume
-      });
-      let candidateTreaters: TreatmentOption[];
-      try {
-        candidateTreaters = await this.findSuitableTreaters(
-          requiredHeat,
-          oilRetentionVolume,
-          waterRetentionVolume,
+    // 5. Para cada candidato, calcular pérdidas de calor y seleccionar el mejor
+    let bestTreater = null;
+    let minTotalHeat = 0;
+    let heatLoss = 0;
+
+    if (candidateTreaters.length > 0) {
+      minTotalHeat = Infinity;
+      for (let i = 0; i < candidateTreaters.length; i++) {
+        const treater = candidateTreaters[i];
+        heatLoss = this.calculateHeatLoss(
+          data,
+          treater.diameter,
+          treater.length,
         );
-        console.log('[Service] ✅ Candidatos encontrados:', candidateTreaters.length);
-      } catch (error) {
-        console.error('[Service] ❌ Error al buscar tratadores candidatos:', error);
-        throw error;
-      }
+        const totalHeat = requiredHeat + heatLoss; // Qtotal = Q + Qpérdida según API-12L
 
-      // 5. Para cada candidato, calcular pérdidas de calor y seleccionar el mejor
-      console.log('[Service] 5. Evaluando candidatos...');
-      let bestTreater = null;
-      let minTotalHeat = 0;
-      let heatLoss = 0;
-
-      try {
-        if (candidateTreaters.length > 0) {
-          console.log('[Service] Evaluando', candidateTreaters.length, 'candidatos...');
-          minTotalHeat = Infinity;
-          for (let i = 0; i < candidateTreaters.length; i++) {
-            const treater = candidateTreaters[i];
-            console.log(`[Service] Evaluando candidato ${i + 1}/${candidateTreaters.length}:`, {
-              type: treater.type,
-              diameter: treater.diameter,
-              length: treater.length
-            });
-            try {
-              heatLoss = this.calculateHeatLoss(
-                data,
-                treater.diameter,
-                treater.length,
-              );
-              const totalHeat = requiredHeat + heatLoss; // Qtotal = Q + Qpérdida según API-12L
-              console.log(`[Service] Candidato ${i + 1}: heatLoss=${heatLoss}, totalHeat=${totalHeat}`);
-
-              if (totalHeat < minTotalHeat) {
-                minTotalHeat = totalHeat;
-                bestTreater = { ...treater, totalHeat, heatLoss };
-                console.log(`[Service] ✅ Nuevo mejor tratador encontrado: ${bestTreater.type}`);
-              }
-            } catch (error) {
-              console.error(`[Service] ❌ Error al evaluar candidato ${i + 1}:`, error);
-              throw error;
-            }
-          }
-          console.log('[Service] ✅ Evaluación completada:', {
-            mejorTratador: bestTreater?.type,
-            totalHeat: minTotalHeat
-          });
-        } else {
-          // Si no hay tratadores candidatos, usar valores por defecto
-          console.log('[Service] No hay candidatos, usando valores por defecto');
-          minTotalHeat = requiredHeat;
-          heatLoss = 0;
+        if (totalHeat < minTotalHeat) {
+          minTotalHeat = totalHeat;
+          bestTreater = { ...treater, totalHeat, heatLoss };
         }
-      } catch (error) {
-        console.error('[Service] ❌ Error al evaluar candidatos:', error);
-        throw error;
       }
+    } else {
+      // Si no hay tratadores candidatos, usar valores por defecto
+      minTotalHeat = requiredHeat;
+      heatLoss = 0;
+    }
 
-      // 6. Calcular tiempo de residencia estimado
-      console.log('[Service] 6. Calculando tiempo de residencia...');
-      let maxRetentionVolume: number;
-      let estimatedResidenceTime: number;
-      try {
-        maxRetentionVolume = Math.max(
-          oilRetentionVolume,
-          waterRetentionVolume,
-        );
-        estimatedResidenceTime =
-          (maxRetentionVolume * 1440) / data.totalFlow;
-        console.log('[Service] ✅ Tiempo de residencia calculado:', {
-          maxRetentionVolume,
-          estimatedResidenceTime
-        });
-      } catch (error) {
-        console.error('[Service] ❌ Error al calcular tiempo de residencia:', error);
-        throw error;
-      }
+    // 6. Calcular tiempo de residencia estimado
+    const maxRetentionVolume = Math.max(
+      oilRetentionVolume,
+      waterRetentionVolume,
+    );
+    const estimatedResidenceTime = (maxRetentionVolume * 1440) / data.totalFlow;
 
-      // 7. Validar cumplimiento API-12L
-      console.log('[Service] 7. Validando cumplimiento API-12L...');
-      let complianceResult: { compliant: boolean; warnings: string[] };
-      try {
-        complianceResult = this.validateAPI12LCompliance({
-          oilFlow,
-          waterFlow,
-          oilRetentionVolume,
-          waterRetentionVolume,
-          estimatedResidenceTime,
-          requiredHeat,
-          apiGravity: data.apiGravity,
-        });
-        console.log('[Service] ✅ Validación API-12L completada:', {
-          compliant: complianceResult.compliant,
-          warnings: complianceResult.warnings.length
-        });
-      } catch (error) {
-        console.error('[Service] ❌ Error al validar cumplimiento API-12L:', error);
-        throw error;
-      }
+    // 7. Validar cumplimiento API-12L
+    const complianceResult = this.validateAPI12LCompliance({
+      oilFlow,
+      waterFlow,
+      oilRetentionVolume,
+      waterRetentionVolume,
+      estimatedResidenceTime,
+      requiredHeat,
+      apiGravity: data.apiGravity,
+    });
 
-      console.log('[Service] 8. Preparando respuesta...');
-      console.log('[Service] Valores para respuesta:', {
-        oilFlow,
-        waterFlow,
+    // 8. Preparar respuesta
+    const result: TreatmentCalculationsDto = {
+      calculatedOilFlow: oilFlow,
+      calculatedWaterFlow: waterFlow,
+      oilRetentionVolume,
+      waterRetentionVolume,
+      requiredHeatCapacity: requiredHeat,
+      heatLoss: bestTreater?.heatLoss || heatLoss,
+      totalHeat: minTotalHeat,
+      recommendedDiameter: bestTreater?.diameter || 0,
+      recommendedLength: bestTreater?.length || 0,
+      recommendedPressure: bestTreater?.designPressure || 0,
+      recommendedTreaters: (candidateTreaters || []).map(
+        (t) =>
+          `Tratador ${t.type} ${t.diameter}ft - LSS ${t.length} - ${t.minHeatCapacity} BTU/hr`,
+      ),
+      requiredRetentionVolume: maxRetentionVolume,
+      estimatedResidenceTime,
+      api12lCompliance: complianceResult.compliant,
+      complianceWarnings: complianceResult.warnings,
+      separationEfficiency: this.calculateSeparationEfficiency(
+        estimatedResidenceTime,
         oilRetentionVolume,
         waterRetentionVolume,
-        requiredHeat,
-        heatLoss: bestTreater?.heatLoss || heatLoss,
-        minTotalHeat,
-        bestTreater: bestTreater ? {
-          type: bestTreater.type,
-          diameter: bestTreater.diameter,
-          length: bestTreater.length,
-          designPressure: bestTreater.designPressure
-        } : null,
-        candidateTreatersCount: candidateTreaters?.length || 0,
-        maxRetentionVolume,
-        estimatedResidenceTime,
-        complianceResult: {
-          compliant: complianceResult.compliant,
-          warningsCount: complianceResult.warnings.length
-        }
-      });
-      
-      let result: TreatmentCalculationsDto;
-      try {
-        result = {
-          calculatedOilFlow: oilFlow,
-          calculatedWaterFlow: waterFlow,
-          oilRetentionVolume,
-          waterRetentionVolume,
-          requiredHeatCapacity: requiredHeat,
-          heatLoss: bestTreater?.heatLoss || heatLoss,
-          totalHeat: minTotalHeat,
-          recommendedDiameter: bestTreater?.diameter || 0,
-          recommendedLength: bestTreater?.length || 0,
-          recommendedPressure: bestTreater?.designPressure || 0,
-          recommendedTreaters: (candidateTreaters || []).map(
-            (t) =>
-              `Tratador ${t.type} ${t.diameter}ft - LSS ${t.length} - ${t.minHeatCapacity} BTU/hr`,
-          ),
-          requiredRetentionVolume: maxRetentionVolume,
-          estimatedResidenceTime,
-          api12lCompliance: complianceResult.compliant,
-          complianceWarnings: complianceResult.warnings,
-          separationEfficiency: this.calculateSeparationEfficiency(
-            estimatedResidenceTime,
-            oilRetentionVolume,
-            waterRetentionVolume,
-          ),
-        };
-        console.log('[Service] ✅ Resultado construido exitosamente');
-      } catch (error) {
-        console.error('[Service] ❌ Error al construir resultado:', error);
-        throw error;
-      }
+      ),
+    };
 
-      console.log('[Service] ✅ Resultado preparado:', JSON.stringify(result, null, 2));
-      console.log('[Service] === CÁLCULO COMPLETADO EXITOSAMENTE ===');
-
-      return result;
-    } catch (error) {
-      console.error('[Service] ❌ ERROR EN CÁLCULO DE PARÁMETROS:', error);
-      console.error('[Service] Tipo de error:', error?.constructor?.name);
-      console.error('[Service] Mensaje del error:', error?.message);
-      console.error('[Service] Stack trace completo:', error?.stack);
-      console.error('[Service] Nombre del error:', error?.name);
-      if (error?.code) {
-        console.error('[Service] Código del error:', error.code);
-      }
-      throw error;
-    }
+    return result;
   }
 
   /**
@@ -776,103 +598,46 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     oilRetentionVolume: number,
     waterRetentionVolume: number,
   ): Promise<TreatmentOption[]> {
-    console.log('[Service] [findSuitableTreaters] === INICIANDO BÚSQUEDA DE TRATADORES ===');
-    console.log('[Service] [findSuitableTreaters] Parámetros de búsqueda:', {
-      heatRequired,
-      oilRetentionVolume,
-      waterRetentionVolume
-    });
-    
     const maxRetentionVolume = Math.max(
       oilRetentionVolume,
       waterRetentionVolume,
     );
-    console.log('[Service] [findSuitableTreaters] maxRetentionVolume calculado:', maxRetentionVolume);
 
-    try {
-      console.log('[Service] [findSuitableTreaters] Verificando repositorio...');
-      if (!this.treatmentOptionRepository) {
-        console.error('[Service] [findSuitableTreaters] ❌ ERROR: treatmentOptionRepository no está inicializado');
-        throw new Error('treatmentOptionRepository no está disponible');
-      }
-      console.log('[Service] [findSuitableTreaters] ✅ Repositorio verificado');
-
-      // ✅ Corregido: redondear heatRequired a entero porque minHeatCapacity es int en la BD
-      // Usamos Math.ceil() para redondear hacia arriba (mejor tener margen de seguridad)
-      const heatRequiredInt = Math.ceil(heatRequired);
-      console.log('[Service] [findSuitableTreaters] Construyendo query...');
-      console.log('[Service] [findSuitableTreaters] Condiciones:', {
-        minHeatCapacity: `>= ${heatRequiredInt} (redondeado de ${heatRequired})`,
-        deleted: false
-      });
-      
-      const queryBuilder = this.treatmentOptionRepository
-        .createQueryBuilder('option')
-        .where('option.minHeatCapacity >= :heat', { heat: heatRequiredInt })
-        .andWhere('option.deleted = false')
-        .orderBy('option.minHeatCapacity', 'ASC')
-        .addOrderBy('option.diameter', 'ASC');
-      
-      console.log('[Service] [findSuitableTreaters] Query construida, ejecutando...');
-      
-      const candidates = await queryBuilder.getMany();
-
-      console.log('[Service] [findSuitableTreaters] ✅ Query ejecutada exitosamente');
-      console.log('[Service] [findSuitableTreaters] Candidatos iniciales encontrados:', candidates.length);
-      
-      if (candidates.length === 0) {
-        console.log('[Service] [findSuitableTreaters] ⚠️ No se encontraron candidatos iniciales');
-        return [];
-      }
-
-      // Filtrar por volumen interno
-      console.log('[Service] [findSuitableTreaters] Filtrando candidatos por volumen interno...');
-      const filtered = candidates.filter((option, index) => {
-        try {
-          const internalVolume = this.calculateInternalVolume(
-            option.diameter,
-            option.length,
-          );
-          const meetsVolume = internalVolume >= maxRetentionVolume;
-          console.log(`[Service] [findSuitableTreaters] Candidato ${index + 1}/${candidates.length}:`, {
-            type: option.type,
-            diameter: option.diameter,
-            length: option.length,
-            internalVolume,
-            maxRetentionVolume,
-            meetsVolume
-          });
-          return meetsVolume;
-        } catch (error) {
-          console.error(`[Service] [findSuitableTreaters] ❌ Error al calcular volumen para candidato ${index + 1}:`, error);
-          return false;
-        }
-      });
-
-      console.log('[Service] [findSuitableTreaters] ✅ Filtrado completado');
-      console.log('[Service] [findSuitableTreaters] Candidatos finales:', filtered.length);
-      console.log('[Service] [findSuitableTreaters] === BÚSQUEDA COMPLETADA ===');
-      
-      return filtered;
-    } catch (error) {
-      console.error('[Service] [findSuitableTreaters] ❌ ERROR EN BÚSQUEDA:', error);
-      console.error('[Service] [findSuitableTreaters] Tipo de error:', error?.constructor?.name);
-      console.error('[Service] [findSuitableTreaters] Mensaje:', error?.message);
-      console.error('[Service] [findSuitableTreaters] Stack:', error?.stack);
-      
-      // Si es un error de TypeORM, agregar más detalles
-      if (error?.name === 'QueryFailedError' || error?.code) {
-        console.error('[Service] [findSuitableTreaters] Error de base de datos:', {
-          code: error.code,
-          detail: error.detail,
-          hint: error.hint,
-          query: error.query,
-          parameters: error.parameters
-        });
-      }
-      
-      throw error;
+    if (!this.treatmentOptionRepository) {
+      throw new Error('treatmentOptionRepository no está disponible');
     }
+
+    // Redondear heatRequired a entero porque minHeatCapacity es int en la BD
+    // Usamos Math.ceil() para redondear hacia arriba (mejor tener margen de seguridad)
+    const heatRequiredInt = Math.ceil(heatRequired);
+
+    const queryBuilder = this.treatmentOptionRepository
+      .createQueryBuilder('option')
+      .where('option.minHeatCapacity >= :heat', { heat: heatRequiredInt })
+      .andWhere('option.deleted = false')
+      .orderBy('option.minHeatCapacity', 'ASC')
+      .addOrderBy('option.diameter', 'ASC');
+
+    const candidates = await queryBuilder.getMany();
+
+    if (candidates.length === 0) {
+      return [];
+    }
+
+    // Filtrar por volumen interno
+    const filtered = candidates.filter((option) => {
+      try {
+        const internalVolume = this.calculateInternalVolume(
+          option.diameter,
+          option.length,
+        );
+        return internalVolume >= maxRetentionVolume;
+      } catch {
+        return false;
+      }
+    });
+
+    return filtered;
   }
 
   /**
