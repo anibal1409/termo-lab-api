@@ -3016,6 +3016,413 @@
           "devices"
         ]
       }
+    },
+    "/trials": {
+      "get": {
+        "operationId": "TrialsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Trial"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar ensayos",
+        "tags": [
+          "Trials"
+        ]
+      },
+      "post": {
+        "operationId": "TrialsController_create",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trial"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear ensayo",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}": {
+      "get": {
+        "operationId": "TrialsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trial"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener ensayo por ID",
+        "tags": [
+          "Trials"
+        ]
+      },
+      "patch": {
+        "operationId": "TrialsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trial"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar ensayo",
+        "tags": [
+          "Trials"
+        ]
+      },
+      "delete": {
+        "operationId": "TrialsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar ensayo",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/start": {
+      "post": {
+        "operationId": "TrialsController_start",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trial"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Iniciar ensayo",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/stop": {
+      "post": {
+        "operationId": "TrialsController_stop",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Trial"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Detener ensayo",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/samples": {
+      "post": {
+        "operationId": "TrialsController_addSample",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrialSample"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Registrar muestra manual",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/flight-recorder": {
+      "get": {
+        "operationId": "TrialsController_flightRecorder",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reproducir ensayo (lecturas y comandos)",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/export": {
+      "get": {
+        "operationId": "TrialsController_exportCsv",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Exportar ensayo a CSV",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/twin/simulate": {
+      "post": {
+        "description": "Ejecuta el modelo transitorio con los datos del ensayo.",
+        "operationId": "TrialsController_simulate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Simular gemelo térmico",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/twin/calibrate": {
+      "post": {
+        "description": "Ajusta por mínimos cuadrados y guarda en el ensayo.",
+        "operationId": "TrialsController_calibrateTwin",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Calibrar η y UA con datos del ensayo",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/twin/calibration": {
+      "get": {
+        "operationId": "TrialsController_calibrationStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Estado de calibración del ensayo",
+        "tags": [
+          "Trials"
+        ]
+      }
     }
   },
   "info": {
@@ -5858,6 +6265,169 @@
             "type": "boolean"
           }
         }
+      },
+      "Trial": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad, generado automáticamente.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true,
+            "default": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false,
+            "default": false
+          },
+          "name": {
+            "type": "string",
+            "example": "Ensayo crudo Morichal 18°API"
+          },
+          "evaluationId": {
+            "type": "number",
+            "description": "Evaluación de diseño de referencia"
+          },
+          "pilotDiameter": {
+            "type": "number",
+            "description": "Diámetro del piloto (pies)",
+            "example": 0.5
+          },
+          "pilotLength": {
+            "type": "number",
+            "description": "Longitud del piloto (pies)",
+            "example": 2
+          },
+          "heaterPower": {
+            "type": "number",
+            "description": "Potencia del calentador (BTU/h)",
+            "example": 5000
+          },
+          "bathTempChannelId": {
+            "type": "number",
+            "description": "Canal de temperatura del baño"
+          },
+          "ambientTempChannelId": {
+            "type": "number",
+            "description": "Canal de temperatura ambiente"
+          },
+          "heaterChannelId": {
+            "type": "number",
+            "description": "Canal de salida del calentador"
+          },
+          "levelChannelIds": {
+            "description": "IDs de canales de nivel (HC-SR04)",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pidLoopId": {
+            "type": "number",
+            "description": "Lazo PID creado para este ensayo"
+          },
+          "ruleIds": {
+            "description": "IDs de reglas de seguridad del ensayo",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "running",
+              "completed",
+              "aborted"
+            ]
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "calibratedEta": {
+            "type": "number",
+            "description": "Eficiencia del calentador calibrada"
+          },
+          "calibratedUA": {
+            "type": "number",
+            "description": "Coef. de pérdida de calor calibrado (BTU/h·°F)"
+          },
+          "calibrationRmse": {
+            "type": "number",
+            "description": "RMSE de la calibración (°F)"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "pilotDiameter",
+          "pilotLength",
+          "heaterPower",
+          "state"
+        ]
+      },
+      "TrialSample": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "trialId": {
+            "type": "number"
+          },
+          "label": {
+            "type": "string",
+            "example": "BSW salida"
+          },
+          "value": {
+            "type": "number",
+            "example": 1.8
+          },
+          "unit": {
+            "type": "string",
+            "example": "%"
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "trialId",
+          "label",
+          "value",
+          "at"
+        ]
       }
     }
   }
