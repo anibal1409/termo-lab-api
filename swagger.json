@@ -1976,6 +1976,64 @@
         ]
       }
     },
+    "/thermal-calculations/diagnose": {
+      "post": {
+        "description": "Evalúa cada criterio API 12L con valor, límite y margen. Si no cumple, sugiere el cambio mínimo en variables de diseño.",
+        "operationId": "ThermalCalculationsController_diagnose",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Diagnóstico con criterios y sugerencias"
+          }
+        },
+        "summary": "Detective de fallas",
+        "tags": [
+          "Thermal Calculations"
+        ]
+      }
+    },
+    "/thermal-calculations/sensitivity": {
+      "post": {
+        "description": "Mueve cada variable de diseño ±δ% y mide el cambio en el margen de cada criterio.",
+        "operationId": "ThermalCalculationsController_sensitivity",
+        "parameters": [
+          {
+            "name": "delta",
+            "required": false,
+            "in": "query",
+            "description": "Porcentaje de variación (default 10)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Barras del tornado ordenadas por impacto"
+          }
+        },
+        "summary": "Análisis de sensibilidad (tornado)",
+        "tags": [
+          "Thermal Calculations"
+        ]
+      }
+    },
+    "/thermal-calculations/monte-carlo": {
+      "post": {
+        "description": "Ejecuta N corridas con propiedades del crudo muestreadas de distribuciones. Devuelve probabilidad de cumplir por criterio y percentiles.",
+        "operationId": "ThermalCalculationsController_monteCarlo",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Resultado de la simulación Monte Carlo"
+          }
+        },
+        "summary": "Monte Carlo de cumplimiento",
+        "tags": [
+          "Thermal Calculations"
+        ]
+      }
+    },
     "/reports/evaluation-report": {
       "post": {
         "description": "Genera un reporte completo según el formato del Paso 9 del documento, incluyendo tabla de resultados, resumen ejecutivo y datos para gráficas",
