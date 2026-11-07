@@ -1,18 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { TreatmentOptionsController } from './treatment-options.controller';
-import { TreatmentOptionsService } from './treatment-options.service';
+import { TreatmentOptionController } from './treatment-options.controller';
+import { TreatmentOptionService } from './treatment-options.service';
 
-describe('TreatmentOptionsController', () => {
-  let controller: TreatmentOptionsController;
+describe('TreatmentOptionController', () => {
+  let controller: TreatmentOptionController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [TreatmentOptionsController],
-      providers: [TreatmentOptionsService],
-    }).compile();
+      controllers: [TreatmentOptionController],
+      providers: [TreatmentOptionService],
+    })
+      .useMocker(() => ({}))
+      .compile();
 
-    controller = module.get<TreatmentOptionsController>(
-      TreatmentOptionsController,
+    controller = module.get<TreatmentOptionController>(
+      TreatmentOptionController,
     );
   });
 

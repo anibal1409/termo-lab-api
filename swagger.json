@@ -528,7 +528,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Tratamientos paginados",
+            "description": "Tratamientos paginados del usuario",
             "content": {
               "application/json": {
                 "schema": {
@@ -538,7 +538,7 @@
             }
           }
         },
-        "summary": "Obtener tratamientos paginados",
+        "summary": "Obtener tratamientos paginados del usuario actual",
         "tags": [
           "Treatments"
         ]
@@ -587,7 +587,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Lista de tratamientos activos",
+            "description": "Lista de tratamientos activos del usuario",
             "content": {
               "application/json": {
                 "schema": {
@@ -600,7 +600,7 @@
             }
           }
         },
-        "summary": "Obtener todos los tratamientos activos",
+        "summary": "Obtener todos los tratamientos activos del usuario actual",
         "tags": [
           "Treatments"
         ]
@@ -632,10 +632,10 @@
             }
           },
           "404": {
-            "description": "Tratamiento no encontrado"
+            "description": "Tratamiento no encontrado o no pertenece al usuario actual"
           }
         },
-        "summary": "Obtener un tratamiento por ID",
+        "summary": "Obtener un tratamiento por ID del usuario actual",
         "tags": [
           "Treatments"
         ]
@@ -679,10 +679,10 @@
             "description": "Datos de entrada inválidos"
           },
           "404": {
-            "description": "Tratamiento no encontrado"
+            "description": "Tratamiento no encontrado o no pertenece al usuario actual"
           }
         },
-        "summary": "Actualizar un tratamiento",
+        "summary": "Actualizar un tratamiento del usuario actual",
         "tags": [
           "Treatments"
         ]
@@ -717,10 +717,10 @@
             }
           },
           "404": {
-            "description": "Tratamiento no encontrado"
+            "description": "Tratamiento no encontrado o no pertenece al usuario actual"
           }
         },
-        "summary": "Eliminar un tratamiento (soft delete)",
+        "summary": "Eliminar un tratamiento del usuario actual (soft delete)",
         "tags": [
           "Treatments"
         ]
@@ -1458,7 +1458,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Lista de evaluaciones paginadas",
+            "description": "Lista de evaluaciones paginadas del usuario",
             "content": {
               "application/json": {
                 "schema": {
@@ -1473,7 +1473,7 @@
             "bearer": []
           }
         ],
-        "summary": "Obtener evaluaciones paginadas",
+        "summary": "Obtener evaluaciones paginadas del usuario actual",
         "tags": [
           "Evaluations"
         ]
@@ -1485,7 +1485,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Lista de evaluaciones obtenida",
+            "description": "Lista de evaluaciones del usuario obtenida",
             "content": {
               "application/json": {
                 "schema": {
@@ -1506,7 +1506,7 @@
             "bearer": []
           }
         ],
-        "summary": "Obtener todas las evaluaciones",
+        "summary": "Obtener todas las evaluaciones del usuario actual",
         "tags": [
           "Evaluations"
         ]
@@ -1540,7 +1540,7 @@
             "description": "No autorizado"
           },
           "404": {
-            "description": "Evaluación no encontrada"
+            "description": "Evaluación no encontrada o no pertenece al usuario actual"
           }
         },
         "security": [
@@ -1548,7 +1548,7 @@
             "bearer": []
           }
         ],
-        "summary": "Obtener evaluación por ID",
+        "summary": "Obtener evaluación por ID del usuario actual",
         "tags": [
           "Evaluations"
         ]
@@ -1593,7 +1593,7 @@
             "description": "No autorizado"
           },
           "404": {
-            "description": "Evaluación no encontrada"
+            "description": "Evaluación no encontrada o no pertenece al usuario actual"
           }
         },
         "security": [
@@ -1601,7 +1601,7 @@
             "bearer": []
           }
         ],
-        "summary": "Actualizar evaluación existente",
+        "summary": "Actualizar evaluación existente del usuario actual",
         "tags": [
           "Evaluations"
         ]
@@ -1626,7 +1626,7 @@
             "description": "No autorizado"
           },
           "404": {
-            "description": "Evaluación no encontrada"
+            "description": "Evaluación no encontrada o no pertenece al usuario actual"
           }
         },
         "security": [
@@ -1634,7 +1634,7 @@
             "bearer": []
           }
         ],
-        "summary": "Eliminar evaluación",
+        "summary": "Eliminar evaluación del usuario actual",
         "tags": [
           "Evaluations"
         ]
@@ -1671,7 +1671,7 @@
             "description": "No autorizado"
           },
           "404": {
-            "description": "Evaluación no encontrada"
+            "description": "Evaluación no encontrada o no pertenece al usuario actual"
           }
         },
         "security": [
@@ -1679,7 +1679,7 @@
             "bearer": []
           }
         ],
-        "summary": "Calcular resultado de evaluación",
+        "summary": "Calcular resultado de evaluación del usuario actual",
         "tags": [
           "Evaluations"
         ]
@@ -2188,6 +2188,747 @@
         "summary": "Generar reporte de cumplimiento API-12L",
         "tags": [
           "Evaluation Reports"
+        ]
+      }
+    },
+    "/devices": {
+      "get": {
+        "operationId": "DevicesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Device"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Dispositivos con sus canales y estado de conexión",
+        "tags": [
+          "devices"
+        ]
+      },
+      "post": {
+        "operationId": "DevicesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDeviceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Registra un Arduino",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/ports": {
+      "get": {
+        "operationId": "DevicesController_ports",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Puertos serie detectados en la máquina de la API",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/live": {
+      "get": {
+        "operationId": "DevicesController_live",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Eventos en vivo (SSE): lecturas, escrituras, watchdog, conexión",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/{id}": {
+      "patch": {
+        "operationId": "DevicesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDeviceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Modifica un Arduino (lo desconecta)",
+        "tags": [
+          "devices"
+        ]
+      },
+      "delete": {
+        "operationId": "DevicesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Elimina un Arduino y su configuración",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/{id}/connect": {
+      "post": {
+        "operationId": "DevicesController_connect",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Abre el puerto y configura los pines",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/{id}/disconnect": {
+      "post": {
+        "operationId": "DevicesController_disconnect",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Apaga las salidas y cierra el puerto",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/{id}/command": {
+      "post": {
+        "operationId": "DevicesController_command",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RawCommandDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Envía un comando crudo (diagnóstico)",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/{id}/logs": {
+      "get": {
+        "operationId": "DevicesController_logs",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceCommandLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Últimos 200 comandos de escritura",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/{id}/channels": {
+      "post": {
+        "operationId": "DevicesController_createChannel",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceChannel"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Añade un canal (relé, sensor, servo...)",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/channels/{channelId}": {
+      "patch": {
+        "operationId": "DevicesController_updateChannel",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceChannel"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "devices"
+        ]
+      },
+      "delete": {
+        "operationId": "DevicesController_removeChannel",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/channels/{channelId}/read": {
+      "get": {
+        "operationId": "DevicesController_read",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Lee un canal de entrada ahora",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/channels/{channelId}/write": {
+      "post": {
+        "operationId": "DevicesController_write",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Escribe una salida (digital 0/1, pwm 0-255, servo 0-180)",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/channels/{channelId}/readings": {
+      "get": {
+        "operationId": "DevicesController_readings",
+        "parameters": [
+          {
+            "name": "channelId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-11-06T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-11-07T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1000,
+              "example": 1000,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChannelReading"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Historial de lecturas (por defecto, última hora)",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/rules": {
+      "get": {
+        "operationId": "DevicesController_listRules",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceRule"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "devices"
+        ]
+      },
+      "post": {
+        "operationId": "DevicesController_createRule",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceRule"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea una regla: si entrada > X entonces salida = Y",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/rules/{ruleId}": {
+      "patch": {
+        "operationId": "DevicesController_updateRule",
+        "parameters": [
+          {
+            "name": "ruleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRuleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceRule"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "devices"
+        ]
+      },
+      "delete": {
+        "operationId": "DevicesController_removeRule",
+        "parameters": [
+          {
+            "name": "ruleId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/pids": {
+      "get": {
+        "operationId": "DevicesController_listPids",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PidLoop"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "devices"
+        ]
+      },
+      "post": {
+        "operationId": "DevicesController_createPid",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePidDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PidLoop"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Crea un lazo PID (se crea desactivado si no se indica)",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/pids/status": {
+      "get": {
+        "operationId": "DevicesController_pidStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Salida actual de cada PID y si una regla lo anula",
+        "tags": [
+          "devices"
+        ]
+      }
+    },
+    "/devices/pids/{pidId}": {
+      "patch": {
+        "operationId": "DevicesController_updatePid",
+        "parameters": [
+          {
+            "name": "pidId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePidDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PidLoop"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Cambia consigna, ganancias o activa/desactiva",
+        "tags": [
+          "devices"
+        ]
+      },
+      "delete": {
+        "operationId": "DevicesController_removePid",
+        "parameters": [
+          {
+            "name": "pidId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "devices"
         ]
       }
     }
@@ -4224,6 +4965,802 @@
           "optimizationRecommendations",
           "simulationData"
         ]
+      },
+      "DeviceChannel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad, generado automáticamente.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true,
+            "default": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false,
+            "default": false
+          },
+          "deviceId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "example": "Temperatura del baño"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "digital_out",
+              "pwm",
+              "servo",
+              "digital_in",
+              "analog_in",
+              "max6675",
+              "ds18b20",
+              "max31865"
+            ],
+            "example": "max6675"
+          },
+          "pins": {
+            "description": "Pines. max6675: [cs,sck,so]; ds18b20: [pin,indice]; max31865: [cs,di,do,clk,hilos]; resto: [pin]",
+            "example": [
+              "10",
+              "13",
+              "12"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pullup": {
+            "type": "boolean",
+            "description": "Pull-up interno (digital_in)",
+            "default": false
+          },
+          "unit": {
+            "type": "string",
+            "example": "°C"
+          },
+          "factor": {
+            "type": "number",
+            "description": "valor = crudo * factor + offset",
+            "default": 1
+          },
+          "offset": {
+            "type": "number",
+            "default": 0
+          },
+          "pollMs": {
+            "type": "number",
+            "description": "Cada cuántos ms leer (entradas). 0 = no leer automáticamente",
+            "default": 1000
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "deviceId",
+          "name",
+          "type",
+          "pins",
+          "pullup",
+          "factor",
+          "offset",
+          "pollMs"
+        ]
+      },
+      "Device": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad, generado automáticamente.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true,
+            "default": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false,
+            "default": false
+          },
+          "name": {
+            "type": "string",
+            "example": "Tratador piloto"
+          },
+          "path": {
+            "type": "string",
+            "example": "/dev/ttyUSB0"
+          },
+          "baudRate": {
+            "type": "number",
+            "example": 115200
+          },
+          "autoConnect": {
+            "type": "boolean",
+            "description": "Conectar al arrancar la API",
+            "example": true
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeviceChannel"
+            }
+          },
+          "connected": {
+            "type": "boolean",
+            "description": "Puerto abierto ahora mismo"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "path",
+          "baudRate",
+          "autoConnect",
+          "channels"
+        ]
+      },
+      "CreateDeviceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tratador piloto"
+          },
+          "path": {
+            "type": "string",
+            "example": "/dev/ttyUSB0"
+          },
+          "baudRate": {
+            "type": "number",
+            "example": 115200
+          },
+          "autoConnect": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "name",
+          "path"
+        ]
+      },
+      "UpdateDeviceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Tratador piloto"
+          },
+          "path": {
+            "type": "string",
+            "example": "/dev/ttyUSB0"
+          },
+          "baudRate": {
+            "type": "number",
+            "example": 115200
+          },
+          "autoConnect": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "RawCommandDto": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "example": "WRITE 13 1"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "DeviceCommandLog": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "deviceId": {
+            "type": "number"
+          },
+          "channelId": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number",
+            "description": "null si lo ejecutó una regla"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "rule"
+            ]
+          },
+          "command": {
+            "type": "string",
+            "example": "WRITE 7 1"
+          },
+          "response": {
+            "type": "string",
+            "example": "OK"
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "deviceId",
+          "source",
+          "command",
+          "response",
+          "at"
+        ]
+      },
+      "CreateChannelDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Temperatura del baño"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "digital_out",
+              "pwm",
+              "servo",
+              "digital_in",
+              "analog_in",
+              "max6675",
+              "ds18b20",
+              "max31865"
+            ]
+          },
+          "pins": {
+            "example": [
+              "10",
+              "13",
+              "12"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pullup": {
+            "type": "boolean"
+          },
+          "unit": {
+            "type": "string",
+            "example": "°C"
+          },
+          "factor": {
+            "type": "number",
+            "example": 1
+          },
+          "offset": {
+            "type": "number",
+            "example": 0
+          },
+          "pollMs": {
+            "type": "number",
+            "example": 1000,
+            "description": "0 = no leer"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "pins"
+        ]
+      },
+      "UpdateChannelDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Temperatura del baño"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "digital_out",
+              "pwm",
+              "servo",
+              "digital_in",
+              "analog_in",
+              "max6675",
+              "ds18b20",
+              "max31865"
+            ]
+          },
+          "pins": {
+            "example": [
+              "10",
+              "13",
+              "12"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pullup": {
+            "type": "boolean"
+          },
+          "unit": {
+            "type": "string",
+            "example": "°C"
+          },
+          "factor": {
+            "type": "number",
+            "example": 1
+          },
+          "offset": {
+            "type": "number",
+            "example": 0
+          },
+          "pollMs": {
+            "type": "number",
+            "example": 1000,
+            "description": "0 = no leer"
+          }
+        }
+      },
+      "WriteChannelDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "number",
+            "example": 1,
+            "description": "digital 0/1, pwm 0-255, servo 0-180"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      },
+      "ChannelReading": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "channelId": {
+            "type": "number"
+          },
+          "value": {
+            "type": "number",
+            "example": 63.5
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "channelId",
+          "value",
+          "at"
+        ]
+      },
+      "DeviceRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad, generado automáticamente.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true,
+            "default": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false,
+            "default": false
+          },
+          "name": {
+            "type": "string",
+            "example": "Corte por sobretemperatura"
+          },
+          "sourceChannelId": {
+            "type": "number"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              ">",
+              "<"
+            ],
+            "example": ">"
+          },
+          "threshold": {
+            "type": "number",
+            "example": 80
+          },
+          "hysteresis": {
+            "type": "number",
+            "description": "Margen para desactivar",
+            "example": 2
+          },
+          "targetChannelId": {
+            "type": "number"
+          },
+          "onValue": {
+            "type": "number",
+            "description": "Valor al activarse",
+            "example": 0
+          },
+          "offValue": {
+            "type": "number",
+            "description": "Valor al desactivarse (vacío = no hacer nada)",
+            "example": 1
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "sourceChannelId",
+          "operator",
+          "threshold",
+          "hysteresis",
+          "targetChannelId",
+          "onValue",
+          "enabled"
+        ]
+      },
+      "CreateRuleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Corte por sobretemperatura"
+          },
+          "sourceChannelId": {
+            "type": "number"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              ">",
+              "<"
+            ]
+          },
+          "threshold": {
+            "type": "number",
+            "example": 80
+          },
+          "hysteresis": {
+            "type": "number",
+            "example": 2
+          },
+          "targetChannelId": {
+            "type": "number"
+          },
+          "onValue": {
+            "type": "number",
+            "example": 0
+          },
+          "offValue": {
+            "type": "number",
+            "example": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "sourceChannelId",
+          "operator",
+          "threshold",
+          "targetChannelId",
+          "onValue"
+        ]
+      },
+      "UpdateRuleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Corte por sobretemperatura"
+          },
+          "sourceChannelId": {
+            "type": "number"
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              ">",
+              "<"
+            ]
+          },
+          "threshold": {
+            "type": "number",
+            "example": 80
+          },
+          "hysteresis": {
+            "type": "number",
+            "example": 2
+          },
+          "targetChannelId": {
+            "type": "number"
+          },
+          "onValue": {
+            "type": "number",
+            "example": 0
+          },
+          "offValue": {
+            "type": "number",
+            "example": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PidLoop": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Identificador único de la entidad, generado automáticamente.",
+            "example": 1
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de creación del registro.",
+            "example": "2023-10-27T10:00:00Z"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha y hora de la última actualización del registro.",
+            "example": "2023-10-27T10:30:00Z"
+          },
+          "status": {
+            "type": "boolean",
+            "description": "Estado del registro (activo/inactivo).",
+            "example": true,
+            "default": true
+          },
+          "deleted": {
+            "type": "boolean",
+            "description": "Indicador de borrado lógico.",
+            "example": false,
+            "default": false
+          },
+          "name": {
+            "type": "string",
+            "example": "Control temperatura baño"
+          },
+          "inputChannelId": {
+            "type": "number"
+          },
+          "outputChannelId": {
+            "type": "number",
+            "description": "pwm, servo o digital_out (por ventana de tiempo)"
+          },
+          "setpoint": {
+            "type": "number",
+            "example": 60
+          },
+          "kp": {
+            "type": "number",
+            "example": 10
+          },
+          "ki": {
+            "type": "number",
+            "example": 0.1
+          },
+          "kd": {
+            "type": "number",
+            "example": 0
+          },
+          "outMin": {
+            "type": "number",
+            "example": 0
+          },
+          "outMax": {
+            "type": "number",
+            "example": 255
+          },
+          "windowMs": {
+            "type": "number",
+            "description": "Ventana (ms) para salidas digitales on/off",
+            "default": 10000
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "name",
+          "inputChannelId",
+          "outputChannelId",
+          "setpoint",
+          "kp",
+          "ki",
+          "kd",
+          "outMin",
+          "outMax",
+          "windowMs",
+          "enabled"
+        ]
+      },
+      "CreatePidDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Control temperatura baño"
+          },
+          "inputChannelId": {
+            "type": "number"
+          },
+          "outputChannelId": {
+            "type": "number"
+          },
+          "setpoint": {
+            "type": "number",
+            "example": 60
+          },
+          "kp": {
+            "type": "number",
+            "example": 10
+          },
+          "ki": {
+            "type": "number",
+            "example": 0.1
+          },
+          "kd": {
+            "type": "number",
+            "example": 0
+          },
+          "outMin": {
+            "type": "number",
+            "example": 0
+          },
+          "outMax": {
+            "type": "number",
+            "example": 255
+          },
+          "windowMs": {
+            "type": "number",
+            "example": 10000
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "inputChannelId",
+          "outputChannelId",
+          "setpoint"
+        ]
+      },
+      "UpdatePidDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Control temperatura baño"
+          },
+          "inputChannelId": {
+            "type": "number"
+          },
+          "outputChannelId": {
+            "type": "number"
+          },
+          "setpoint": {
+            "type": "number",
+            "example": 60
+          },
+          "kp": {
+            "type": "number",
+            "example": 10
+          },
+          "ki": {
+            "type": "number",
+            "example": 0.1
+          },
+          "kd": {
+            "type": "number",
+            "example": 0
+          },
+          "outMin": {
+            "type": "number",
+            "example": 0
+          },
+          "outMax": {
+            "type": "number",
+            "example": 255
+          },
+          "windowMs": {
+            "type": "number",
+            "example": 10000
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }
