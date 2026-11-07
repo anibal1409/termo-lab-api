@@ -214,13 +214,12 @@ export class ReportsController {
     const results =
       this.thermalCalculatorService.calculateThermalResults(input);
 
-    // Calcular puntuación de cumplimiento
+    // Score solo por flags estructurales (warnings ya reflejan el resto)
     let score = 100;
     if (!results.dimensionalCompliance) score -= 25;
     if (!results.pressureCompliance) score -= 25;
     if (!results.heatCapacityCompliance) score -= 25;
-    if (results.complianceWarnings.length > 0)
-      score -= results.complianceWarnings.length * 5;
+    if (!results.api12lCompliance) score -= 25;
 
     return {
       compliant: results.api12lCompliance,

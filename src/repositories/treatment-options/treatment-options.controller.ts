@@ -7,9 +7,11 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
+import { AdminGuard } from '../../auth/guards';
 import { QueryBaseDto } from '../../common/pagination/dto';
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import {
@@ -28,6 +30,8 @@ export class TreatmentOptionController {
   ) {}
 
   @Post()
+  @UseGuards(AdminGuard)
+  @ApiForbiddenResponse({ description: 'Requiere rol administrador' })
   @ApiOperation({ summary: 'Crear una nueva opción de tratamiento' })
   @ApiResponse({
     status: 201,
@@ -43,11 +47,11 @@ export class TreatmentOptionController {
 
   @Get()
   @ApiOperation({
-    summary: 'Obtener todas las opciones de tratamiento paginadas',
+    summary: 'Obtener todas las opciones de tratamiento',
   })
   @ApiResponse({
     status: 200,
-    description: 'Lista paginada de opciones',
+    description: 'Lista de opciones',
     type: [TreatmentOptionResponseDto],
   })
   async findAll(): Promise<TreatmentOptionResponseDto[]> {
@@ -67,44 +71,6 @@ export class TreatmentOptionController {
     @Query() query: QueryBaseDto,
   ): Promise<PaginationDto<TreatmentOptionListDto>> {
     return this.treatmentOptionService.findPaginated(query);
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Obtener una opción de tratamiento por ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Opción encontrada',
-    type: TreatmentOptionResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Opción no encontrada' })
-  async findOne(@Param('id') id: number): Promise<TreatmentOptionResponseDto> {
-    return this.treatmentOptionService.findOne(id);
-  }
-
-  @Put(':id')
-  @ApiOperation({ summary: 'Actualizar una opción de tratamiento existente' })
-  @ApiResponse({
-    status: 200,
-    description: 'Opción actualizada',
-    type: TreatmentOptionResponseDto,
-  })
-  @ApiResponse({ status: 404, description: 'Opción no encontrada' })
-  async update(
-    @Param('id') id: number,
-    @Body() updateTreatmentOptionDto: UpdateTreatmentOptionDto,
-  ): Promise<TreatmentOptionResponseDto> {
-    return this.treatmentOptionService.update(id, updateTreatmentOptionDto);
-  }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar lógicamente una opción de tratamiento' })
-  @ApiResponse({
-    status: 200,
-    description: 'Opción marcada como eliminada',
-  })
-  @ApiResponse({ status: 404, description: 'Opción no encontrada' })
-  async remove(@Param('id') id: number): Promise<{ message: string }> {
-    return this.treatmentOptionService.remove(id);
   }
 
   @Get('type/:type')
@@ -139,5 +105,47 @@ export class TreatmentOptionController {
       volumeRequired,
     );
     return option ? new TreatmentOptionResponseDto(option) : null;
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Obtener una opción de tratamiento por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Opción encontrada',
+    type: TreatmentOptionResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Opción no encontrada' })
+  async findOne(@Param('id') id: number): Promise<TreatmentOptionResponseDto> {
+    return this.treatmentOptionService.findOne(id);
+  }
+
+  @Put(':id')
+  @UseGuards(AdminGuard)
+  @ApiForbiddenResponse({ description: 'Requiere rol administrador' })
+  @ApiOperation({ summary: 'Actualizar una opción de tratamiento existente' })
+  @ApiResponse({
+    status: 200,
+    description: 'Opción actualizada',
+    type: TreatmentOptionResponseDto,
+  })
+  @ApiResponse({ status: 404, description: 'Opción no encontrada' })
+  async update(
+    @Param('id') id: number,
+    @Body() updateTreatmentOptionDto: UpdateTreatmentOptionDto,
+  ): Promise<TreatmentOptionResponseDto> {
+    return this.treatmentOptionService.update(id, updateTreatmentOptionDto);
+  }
+
+  @Delete(':id')
+  @UseGuards(AdminGuard)
+  @ApiForbiddenResponse({ description: 'Requiere rol administrador' })
+  @ApiOperation({ summary: 'Eliminar lógicamente una opción de tratamiento' })
+  @ApiResponse({
+    status: 200,
+    description: 'Opción marcada como eliminada',
+  })
+  @ApiResponse({ status: 404, description: 'Opción no encontrada' })
+  async remove(@Param('id') id: number): Promise<{ message: string }> {
+    return this.treatmentOptionService.remove(id);
   }
 }

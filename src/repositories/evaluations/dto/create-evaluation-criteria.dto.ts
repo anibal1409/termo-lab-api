@@ -1,5 +1,6 @@
 import {
   IsBoolean,
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -49,22 +50,23 @@ export class CreateEvaluationCriteriaDto {
   @IsNumber()
   actualValue: number;
 
-  @ApiProperty({
-    description: 'Indica si el valor actual cumple con el requerimiento',
+  @ApiPropertyOptional({
+    description: 'Calculado en servidor si se omite',
     example: true,
   })
   @IsBoolean()
-  approved: boolean;
+  @IsOptional()
+  approved?: boolean;
 
-  @ApiProperty({
-    description:
-      'Porcentaje de cumplimiento respecto al valor requerido (100% = cumplimiento exacto)',
+  @ApiPropertyOptional({
+    description: 'Calculado en servidor si se omite',
     example: 104.17,
   })
   @IsNumber()
   @Min(0)
   @Max(200)
-  complianceMargin: number;
+  @IsOptional()
+  complianceMargin?: number;
 
   @ApiPropertyOptional({
     description:
@@ -96,6 +98,15 @@ export class CreateEvaluationCriteriaDto {
   @Min(0)
   @IsOptional()
   maxValue?: number;
+
+  @ApiPropertyOptional({
+    description: 'Operador de comparación del criterio',
+    enum: ['min', 'max', 'range'],
+    example: 'min',
+  })
+  @IsIn(['min', 'max', 'range'])
+  @IsOptional()
+  comparisonOperator?: 'min' | 'max' | 'range';
 
   @ApiPropertyOptional({
     description: 'Unidad de medida del valor',

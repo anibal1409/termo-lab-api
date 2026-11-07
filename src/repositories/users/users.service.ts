@@ -1,6 +1,7 @@
+import { randomBytes } from 'crypto';
 import { FindManyOptions, Not, Raw, Repository } from 'typeorm';
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
@@ -10,6 +11,16 @@ import { normalizeText } from '../../common/utlis/string.utils';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities/user.entity';
 
+const ALLOWED_SORT = new Set([
+  'id',
+  'name',
+  'email',
+  'role',
+  'createdAt',
+  'updatedAt',
+  'lastLogin',
+]);
+
 @Injectable()
 export class UsersService implements CrudRepository<User> {
   constructor(
@@ -18,9 +29,13 @@ export class UsersService implements CrudRepository<User> {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    const newUser = this.usersRepository.create(createUserDto);
+    const temporaryPassword = randomBytes(8).toString('hex');
+    const newUser = this.usersRepository.create({
+      ...createUserDto,
+      password: temporaryPassword,
+    });
     const createdUser = await this.usersRepository.save(newUser);
-    return new UserResponseDto(createdUser);
+    return new UserResponseDto(createdUser, temporaryPassword);
   }
 
   async findAll(excludeUserId?: number): Promise<UserResponseDto[]> {
@@ -47,6 +62,10 @@ export class UsersService implements CrudRepository<User> {
       sort = 'createdAt',
       order = 'DESC',
     } = query;
+
+    if (!ALLOWED_SORT.has(sort)) {
+      throw new BadRequestException(`Campo de ordenamiento inválido: ${sort}`);
+    }
 
     const where: any = { deleted: false };
 
@@ -120,7 +139,6 @@ export class UsersService implements CrudRepository<User> {
     return { message: `Usuario con ID ${id} marcado como eliminado` };
   }
 
-  // Método adicional para autenticación
   async findByEmail(email: string): Promise<User | undefined> {
     return this.usersRepository.findOne({
       where: { email, deleted: false },

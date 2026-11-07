@@ -8,10 +8,16 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-/**
- * Filtro global de excepciones para capturar y formatear todos los errores
- * Asegura que los errores se envíen con información detallada al frontend
- */
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'accessToken',
+  'token',
+  'authorization',
+  'cookie',
+  'cookieSecret',
+  'jwt',
+]);
+
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
@@ -20,24 +26,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-
-    console.error('[HttpExceptionFilter] === EXCEPCIÓN CAPTURADA ===');
-    console.error('[HttpExceptionFilter] URL:', request.url);
-    console.error('[HttpExceptionFilter] Método:', request.method);
-    console.error('[HttpExceptionFilter] Body:', JSON.stringify(request.body, null, 2));
-    console.error('[HttpExceptionFilter] Tipo de excepción:', exception?.constructor?.name);
-    console.error('[HttpExceptionFilter] Excepción completa:', exception);
+    const isDevelopment = process.env.NODE_ENV === 'development';
 
     let status: number;
     let message: string;
     let error: string;
     let details: any = null;
-    let stack: string | undefined = undefined;
+    let stack: string | undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
-      
+
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
         error = exception.message || 'Http Exception';
@@ -52,51 +52,61 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = exception.message || 'Internal server error';
+      message = isDevelopment
+        ? exception.message || 'Internal server error'
+        : 'Internal server error';
       error = exception.name || 'Error';
       stack = exception.stack;
-      
-      // Log detallado del error
-      console.error('[HttpExceptionFilter] Error name:', exception.name);
-      console.error('[HttpExceptionFilter] Error message:', exception.message);
-      console.error('[HttpExceptionFilter] Stack trace:', exception.stack);
-      
-      // Si es un error de TypeORM o base de datos
-      if (exception.name === 'QueryFailedError' || exception.message.includes('database')) {
-        message = `Error de base de datos: ${exception.message}`;
+
+      if (
+        exception.name === 'QueryFailedError' ||
+        exception.message.includes('database')
+      ) {
+        message = isDevelopment
+          ? `Error de base de datos: ${exception.message}`
+          : 'Error de base de datos';
         error = 'Database Error';
       }
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = 'Internal server error';
       error = 'Unknown Error';
-      console.error('[HttpExceptionFilter] Excepción desconocida:', JSON.stringify(exception));
     }
 
-    // En desarrollo, incluir el stack trace en la respuesta
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
     const errorResponse = {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
-      error: error,
-      message: message,
+      error,
+      message,
       ...(details && { details }),
       ...(isDevelopment && stack && { stack }),
     };
 
-    console.error('[HttpExceptionFilter] Respuesta de error a enviar:', JSON.stringify(errorResponse, null, 2));
-    console.error('[HttpExceptionFilter] === FIN DE EXCEPCIÓN ===');
-
-    // Log al logger de NestJS
     this.logger.error(
-      `${request.method} ${request.url} - ${status} - ${message}`,
-      stack || exception?.toString(),
+      `${request.method} ${request.url} - ${status} - ${
+        Array.isArray(message) ? message.join(', ') : message
+      }`,
+      isDevelopment
+        ? JSON.stringify({
+            body: this.redact(request.body),
+            stack: stack || undefined,
+          })
+        : undefined,
     );
 
     response.status(status).json(errorResponse);
   }
-}
 
+  private redact(body: unknown): unknown {
+    if (!body || typeof body !== 'object') return body;
+    const clone: Record<string, unknown> = { ...(body as object) };
+    for (const key of Object.keys(clone)) {
+      if (SENSITIVE_KEYS.has(key.toLowerCase())) {
+        clone[key] = '[REDACTED]';
+      }
+    }
+    return clone;
+  }
+}

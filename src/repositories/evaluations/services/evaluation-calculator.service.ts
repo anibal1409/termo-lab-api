@@ -1,19 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * @description Interfaz para criterios de evaluación mínimos requeridos para cálculo
- */
 interface CalculationCriteria {
   approved: boolean;
   complianceMargin: number;
-  isCritical?: boolean; // Hacer opcional
-  weight?: number; // Hacer opcional
+  isCritical?: boolean;
+  weight?: number;
 }
 
-/**
- * @description Resultado del cálculo de evaluación
- */
+export type ComparisonOperator = 'min' | 'max' | 'range';
+
 export class EvaluationCalculationResult {
   @ApiProperty({
     example: true,
@@ -41,25 +37,17 @@ export class EvaluationCalculationResult {
   averageCompliance: number;
 }
 
-/**
- * @description Servicio para calcular resultados de evaluaciones
- * @class EvaluationCalculatorService
- */
 @Injectable()
 export class EvaluationCalculatorService {
-  /**
-   * Calcula el resultado general de una evaluación basado en sus criterios
-   * @param criteria Lista de criterios de evaluación
-   * @returns Resultado del cálculo
-   */
   calculateEvaluationResult(
     criteria: CalculationCriteria[],
   ): EvaluationCalculationResult {
     if (!criteria || criteria.length === 0) {
-      throw new Error('No criteria provided for calculation');
+      throw new BadRequestException(
+        'No criteria provided for calculation',
+      );
     }
 
-    // Asegurar valores por defecto
     const processedCriteria = criteria.map((c) => ({
       approved: c.approved,
       complianceMargin: c.complianceMargin,
@@ -70,14 +58,12 @@ export class EvaluationCalculatorService {
     const criticalCriteria = processedCriteria.filter((c) => c.isCritical);
     const criticalFailures = criticalCriteria.filter((c) => !c.approved).length;
 
-    // Calcular promedio de cumplimiento
     const totalCompliance = criteria.reduce(
       (sum, c) => sum + c.complianceMargin,
       0,
     );
     const averageCompliance = totalCompliance / criteria.length;
 
-    // Calcular puntaje ponderado si hay pesos definidos
     const hasWeights = criteria.some((c) => c.weight && c.weight > 0);
     let score: number | undefined;
 
@@ -97,32 +83,48 @@ export class EvaluationCalculatorService {
     };
   }
 
-  /**
-   * Calcula el margen de cumplimiento para un criterio
-   * @param actualValue Valor medido/obtenido
-   * @param requiredValue Valor requerido
-   * @returns Porcentaje de cumplimiento (puede ser mayor a 100% si supera el requerimiento)
-   */
+  resolveComparisonOperator(criteria: {
+    comparisonOperator?: ComparisonOperator;
+    requiredValue?: number;
+    maxValue?: number;
+  }): ComparisonOperator {
+    if (criteria.comparisonOperator) {
+      return criteria.comparisonOperator;
+    }
+    if (
+      criteria.maxValue != null &&
+      criteria.requiredValue != null &&
+      criteria.maxValue !== criteria.requiredValue
+    ) {
+      return 'range';
+    }
+    if (
+      criteria.maxValue != null &&
+      (criteria.requiredValue == null ||
+        criteria.maxValue === criteria.requiredValue)
+    ) {
+      return 'max';
+    }
+    return 'min';
+  }
+
   calculateComplianceMargin(
     actualValue: number,
     requiredValue: number,
+    comparisonOperator: ComparisonOperator = 'min',
   ): number {
-    if (requiredValue === 0) return 100; // Evitar división por cero
+    if (requiredValue === 0) return 100;
+    if (comparisonOperator === 'max') {
+      if (actualValue === 0) return 100;
+      return (requiredValue / actualValue) * 100;
+    }
     return (actualValue / requiredValue) * 100;
   }
 
-  /**
-   * Determina si un criterio individual está aprobado
-   * @param actualValue Valor medido
-   * @param requiredValue Valor requerido
-   * @param comparisonOperator Operador de comparación ('min', 'max', 'range')
-   * @param maxValue Valor máximo (solo para comparación de rango)
-   * @returns Verdadero si cumple con los requisitos
-   */
   isCriteriaApproved(
     actualValue: number,
     requiredValue: number,
-    comparisonOperator: 'min' | 'max' | 'range' = 'min',
+    comparisonOperator: ComparisonOperator = 'min',
     maxValue?: number,
   ): boolean {
     switch (comparisonOperator) {
@@ -132,11 +134,15 @@ export class EvaluationCalculatorService {
         return actualValue <= requiredValue;
       case 'range':
         if (maxValue === undefined) {
-          throw new Error('maxValue is required for range comparison');
+          throw new BadRequestException(
+            'maxValue is required for range comparison',
+          );
         }
         return actualValue >= requiredValue && actualValue <= maxValue;
       default:
-        throw new Error(`Invalid comparison operator: ${comparisonOperator}`);
+        throw new BadRequestException(
+          `Invalid comparison operator: ${comparisonOperator}`,
+        );
     }
   }
 }

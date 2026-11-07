@@ -1,7 +1,6 @@
 import { FindManyOptions, Raw, Repository } from 'typeorm';
 
-import { Injectable } from '@nestjs/common/decorators';
-import { NotFoundException } from '@nestjs/common/exceptions';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
@@ -21,6 +20,16 @@ import { TreatmentOption } from './entities/treatment-option.entity';
  * Implementa operaciones CRUD para configuraciones estándar de tratadores térmicos.
  * Sigue el mismo patrón que TestService pero adaptado a TreatmentOption.
  */
+const ALLOWED_SORT = new Set([
+  'id',
+  'type',
+  'diameter',
+  'length',
+  'minHeatCapacity',
+  'createdAt',
+  'updatedAt',
+]);
+
 @Injectable()
 export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
   constructor(
@@ -72,6 +81,10 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
       sort = 'createdAt',
       order = 'DESC',
     } = query;
+
+    if (!ALLOWED_SORT.has(sort)) {
+      throw new BadRequestException(`Campo de ordenamiento inválido: ${sort}`);
+    }
 
     const findOptions: FindManyOptions<TreatmentOption> = {
       where: { deleted: false },

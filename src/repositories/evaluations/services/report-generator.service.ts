@@ -36,6 +36,7 @@ export interface EvaluationReportData {
     recommendedDiameter: number;
     recommendedLength: number;
     recommendedPressure: number;
+    separationEfficiency: number;
   };
 
   // Cumplimiento API-12L
@@ -102,6 +103,7 @@ export class ReportGeneratorService {
         recommendedDiameter: results.recommendedDiameter,
         recommendedLength: results.recommendedLength,
         recommendedPressure: results.recommendedDesignPressure,
+        separationEfficiency: results.separationEfficiency,
       },
       compliance: {
         api12lCompliant: results.api12lCompliance,
@@ -204,13 +206,13 @@ export class ReportGeneratorService {
       },
       {
         parameter: 'Volumen de retención del petróleo (Vp)',
-        value: calculatedResults.oilRetentionVolume.toFixed(2),
+        value: (calculatedResults.oilRetentionVolume / 5.6146).toFixed(2),
         unit: 'Bbl',
         category: 'Calculado',
       },
       {
         parameter: 'Volumen de retención del agua (Vw)',
-        value: calculatedResults.waterRetentionVolume.toFixed(2),
+        value: (calculatedResults.waterRetentionVolume / 5.6146).toFixed(2),
         unit: 'Bbl',
         category: 'Calculado',
       },
@@ -265,7 +267,7 @@ export class ReportGeneratorService {
       `El tratador procesará ${inputData.totalFlow} BPD con ${inputData.waterFraction}% de agua`,
       `Requiere ${calculatedResults.totalHeatRequired.toFixed(0)} BTU/h de calor total`,
       `Dimensiones recomendadas: ${calculatedResults.recommendedDiameter} ft × ${calculatedResults.recommendedLength} ft`,
-      `Eficiencia de separación: ${((calculatedResults.oilFlowRate / inputData.totalFlow) * 100).toFixed(1)}%`,
+      `Eficiencia de separación: ${calculatedResults.separationEfficiency.toFixed(1)}%`,
     ];
 
     const recommendations =

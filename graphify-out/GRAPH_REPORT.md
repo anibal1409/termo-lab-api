@@ -1,79 +1,79 @@
 # Graph Report - termo-lab-api  (2026-11-06)
 
 ## Corpus Check
-- 174 files · ~67,979 words
+- 177 files · ~70,354 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 4 file(s) not represented in the graph (top: (none) 2, .ino 1, .code-workspace 1)
+- Unclassified: 4 file(s) not represented in the graph (top: (none) 2, .example 1, .ino 1)
 
 ## Summary
-- 1411 nodes · 3185 edges · 95 communities (80 shown, 15 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 96 edges (avg confidence: 0.8)
+- 1443 nodes · 3240 edges · 88 communities (75 shown, 13 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 99 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `162a01e4`
+- Built from commit: `515b1499`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - auth.service.ts
-- TreatmentOptionController
-- .update
+- TreatmentOptionResponseDto
+- UserResponseDto
 - ThermalCalculatorService
-- devices.dto.ts
-- DevicesController
+- devices.service.ts
+- DevicesService
 - package.json
 - TreatmentResponseDto
 - dependencies
 - TreatmentsService
 - users.service.ts
-- QueryBaseDto
+- PaginationDto
 - scripts
-- evaluations.module.ts
+- treatments.module.ts
 - treatments.service.ts
 - additionalProperties
-- ReportsController
+- ThermalTreatmentInput
 - devDependencies
-- AppService
+- app.module.ts
 - @nestjs/swagger
 - evaluations.service.ts
 - User
 - typeorm
 - compilerOptions
-- Scripts Disponibles
+- README.md
 - BaseResponseDto
 - treatment-options.service.ts
 - test.service.ts
 - evaluation-response.dto.ts
 - TestController
 - main.ts
-- DevicesService
+- AuthService
 - CreateExternalTreatmentDto
 - CreateEvaluationDto
 - .calculateThermalResults
-- README.md
+- .login
 - CreateEvaluationCriteriaDto
 - 4. Fórmulas de Flujos y Caudales
-- bcrypt
-- control.ts
+- auth.controller.ts
+- auth/dto/index.ts
 - DaysOfWeek
 - CreateTemplateCriteriaDto
-- TestService
+- TestResponseDto
 - CreateTreatmentDto
 - 5. Fórmulas de Áreas y Volúmenes
 - jest
-- DeviceChannel
+- RegisterDto
 - CreateTestDto
-- @nestjs/testing
-- Treatment
+- guards/index.ts
+- LoginDto
 - Fórmulas Implementadas en el Sistema Termo-Lab
 - 7. Fórmulas de Decantación
-- app.module.ts
+- jwt-auth.guard.ts
 - 10. Fórmulas de Evaluación
 - 9. Fórmulas de Boquillas
 - nest-cli.json
 - SeedTreatmentOptions1751181394026
-- EvaluationTemplate
+- EvaluationTemplateCriteria
 - TreatmentOptionService
 - 1. Fórmulas de Propiedades del Crudo
 - 3. Fórmulas de Propiedades del Gas
@@ -89,34 +89,27 @@
 - AddThermalCalculationFields1759797734044
 - AddThermalCalculationsToEvaluations1763061460756
 - AddTemplateIdToEvaluations1763061460757
-- IdCreateEntity
+- id.create.ts
 - @nestjs/common
 - EvaluationType
-- UserRole
+- user-response.dto.ts
 - start-backend-debug.sh
-- TreatmentOptionResponseDto
-- SerialConnection
-- 1751337651990-CreateSampleEvaluations.ts
-- ChannelType
-- evaluation-calculator.service.ts
+- src_auth_decorators_index_public
+- evaluations.module.ts
 - AddDevices1794006813002
-- devices.service.ts
-- TestResponseDto
-- UserResponseDto
-- UsersService
+- QueryBaseDto
 - Test
 - CreateTreatmentOptionDto
-- CreateUserDto
 - QueryEvaluationDto
 - 1751337651500-CreateSampleTreatments.ts
 - data-source.ts
 
 ## God Nodes (most connected - your core abstractions)
 1. `@nestjs/swagger` - 63 edges
-2. `ThermalCalculatorService` - 56 edges
+2. `ThermalCalculatorService` - 59 edges
 3. `User` - 56 edges
 4. `DevicesService` - 54 edges
-5. `@nestjs/common` - 41 edges
+5. `@nestjs/common` - 42 edges
 6. `TreatmentsService` - 36 edges
 7. `Evaluation` - 32 edges
 8. `typeorm` - 31 edges
@@ -124,10 +117,10 @@
 10. `EvaluationsService` - 30 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `TreatmentsController` --references--> `Public()`  [EXTRACTED]
-  src/repositories/treatments/treatments.controller.ts → src/auth/decorators/public.decorator.ts
 - `QueryEvaluationDto` --inherits--> `QueryBaseDto`  [EXTRACTED]
   src/repositories/evaluations/dto/query-evaluation.dto.ts → src/common/pagination/dto/query-base.dto.ts
+- `QueryTreatmentDto` --inherits--> `QueryBaseDto`  [EXTRACTED]
+  src/repositories/treatments/dto/query-treatment.dto.ts → src/common/pagination/dto/query-base.dto.ts
 - `TestService` --implements--> `CrudRepository`  [EXTRACTED]
   src/repositories/test/test.service.ts → src/common/use-case/crud-repository.ts
 - `TreatmentOptionService` --implements--> `CrudRepository`  [EXTRACTED]
@@ -138,34 +131,34 @@
 ## Import Cycles
 - None detected.
 
-## Communities (95 total, 15 thin omitted)
+## Communities (88 total, 13 thin omitted)
 
 ### Community 0 - "auth.service.ts"
+Cohesion: 0.17
+Nodes (9): ref_express, @nestjs/config, @nestjs/jwt, passport-jwt, JwtPayload, src_auth_strategies_index_jwtstrategy, JwtStrategy, Injectable (+1 more)
+
+### Community 1 - "TreatmentOptionResponseDto"
+Cohesion: 0.16
+Nodes (16): Put, TreatmentOptionResponseDto, ApiProperty, TreatmentOptionController, ApiForbiddenResponse, ApiOperation, ApiResponse, ApiTags (+8 more)
+
+### Community 2 - "UserResponseDto"
+Cohesion: 0.06
+Nodes (34): CreateUserDto, ApiProperty, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsString, MinLength (+26 more)
+
+### Community 4 - "devices.service.ts"
 Cohesion: 0.05
-Nodes (46): ApiCookieAuth, ref_express, @nestjs/config, @nestjs/jwt, @nestjs/passport, Req, Res, AuthController (+38 more)
+Nodes (88): ArrayMaxSize, Index, IsInt, Matches, rxjs, serialport, calibrate(), ChannelLike (+80 more)
 
-### Community 1 - "TreatmentOptionController"
-Cohesion: 0.20
-Nodes (9): TreatmentOptionController, ApiOperation, ApiResponse, ApiTags, Controller, Delete, Get, Param (+1 more)
-
-### Community 2 - ".update"
-Cohesion: 0.18
-Nodes (13): ApiBody, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags, Body, Controller (+5 more)
-
-### Community 4 - "devices.dto.ts"
-Cohesion: 0.20
-Nodes (23): ArrayMaxSize, IsInt, Matches, CreateChannelDto, CreateDeviceDto, CreatePidDto, CreateRuleDto, RawCommandDto (+15 more)
-
-### Community 5 - "DevicesController"
-Cohesion: 0.14
-Nodes (15): DevicesController, Id(), ApiOkResponse, ApiOperation, ApiQuery, ApiTags, Body, Controller (+7 more)
+### Community 5 - "DevicesService"
+Cohesion: 0.06
+Nodes (20): isOutput(), writeCommand(), DevicesController, Id(), ApiOkResponse, ApiOperation, ApiQuery, ApiTags (+12 more)
 
 ### Community 6 - "package.json"
 Cohesion: 0.05
-Nodes (40): author, description, license, name, private, version, eslint, eslint-config-prettier (+32 more)
+Nodes (39): author, description, license, name, private, version, eslint, eslint-config-prettier (+31 more)
 
 ### Community 7 - "TreatmentResponseDto"
-Cohesion: 0.19
+Cohesion: 0.20
 Nodes (15): TreatmentResponseDto, ApiProperty, TreatmentsController, ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiQuery (+7 more)
 
 ### Community 8 - "dependencies"
@@ -177,40 +170,40 @@ Cohesion: 0.12
 Nodes (8): CalculateTreatmentDto, ApiProperty, IsNotEmpty, IsNumber, Max, Min, TreatmentsService, Injectable
 
 ### Community 10 - "users.service.ts"
-Cohesion: 0.27
-Nodes (5): src_repositories_users_dto_index_createuserdto, src_repositories_users_dto_index_updateuserdto, src_repositories_users_dto_index_userresponsedto, UpdateUserDto, src_repositories_users_entities_index_user
+Cohesion: 0.15
+Nodes (12): ref_crypto, src_auth_decorators_index_currentuser, src_auth_guards_index_adminguard, src_common_pagination_dto_index_paginationdto, src_common_pagination_dto_index_querybasedto, pagination(), src_common_use_case_index_crudrepository, normalizeText() (+4 more)
 
-### Community 11 - "QueryBaseDto"
-Cohesion: 0.12
-Nodes (17): PaginationDto, QueryBaseDto, ApiPropertyOptional, IsIn, IsNumber, IsOptional, IsString, Type (+9 more)
+### Community 11 - "PaginationDto"
+Cohesion: 0.20
+Nodes (9): PaginationDataDto, PaginationDto, ApiProperty, QueryTreatmentDto, ApiPropertyOptional, IsNumber, IsOptional, IsString (+1 more)
 
 ### Community 12 - "scripts"
 Cohesion: 0.08
 Nodes (26): scripts, build, build:client, clean:generated, clean:generated-windows, deploy:client, deploy:client-windows, format (+18 more)
 
-### Community 13 - "evaluations.module.ts"
-Cohesion: 0.12
-Nodes (17): @nestjs/typeorm, DevicesModule, Module, EvaluationsModule, Module, src_repositories_evaluations_services_index_evaluationcalculatorservice, src_repositories_evaluations_services_index_evaluationsservice, src_repositories_evaluations_services_index_reportgeneratorservice (+9 more)
+### Community 13 - "treatments.module.ts"
+Cohesion: 0.20
+Nodes (10): @nestjs/typeorm, RepositoriesModule, Module, src_repositories_treatment_options_entities_index_treatmentoption, TreatmentOptionsModule, Module, TreatmentsModule, Module (+2 more)
 
 ### Community 14 - "treatments.service.ts"
-Cohesion: 0.18
-Nodes (10): src_auth_decorators_index_public, src_repositories_treatments_dto_index_calculatetreatmentdto, src_repositories_treatments_dto_index_querytreatmentdto, src_repositories_treatments_dto_index_treatmentcalculationsdto, TreatmentCalculationsDto, ApiProperty, UpdateTreatmentDto, CalculateTreatmentValidationPipe (+2 more)
+Cohesion: 0.17
+Nodes (9): src_repositories_treatments_dto_index_calculatetreatmentdto, src_repositories_treatments_dto_index_querytreatmentdto, src_repositories_treatments_dto_index_treatmentcalculationsdto, TreatmentCalculationsDto, ApiProperty, UpdateTreatmentDto, CalculateTreatmentValidationPipe, Injectable (+1 more)
 
 ### Community 15 - "additionalProperties"
 Cohesion: 0.08
 Nodes (23): apiModulePrefix, basePath, configurationPrefix, enumPropertyNaming, fileNaming, generatePublicApi, modelPropertyNaming, npmName (+15 more)
 
-### Community 16 - "ReportsController"
-Cohesion: 0.32
-Nodes (8): ReportsController, ApiBody, ApiOperation, ApiResponse, ApiTags, Body, Controller, Post
+### Community 16 - "ThermalTreatmentInput"
+Cohesion: 0.23
+Nodes (11): ReportsController, ApiBody, ApiOperation, ApiResponse, ApiTags, Body, Controller, Post (+3 more)
 
 ### Community 17 - "devDependencies"
 Cohesion: 0.09
 Nodes (23): devDependencies, eslint, eslint-config-prettier, eslint-plugin-prettier, jest, @nestjs/cli, @nestjs/schematics, @nestjs/testing (+15 more)
 
-### Community 18 - "AppService"
-Cohesion: 0.18
-Nodes (7): AppController, Body, Controller, Get, Post, AppService, Injectable
+### Community 18 - "app.module.ts"
+Cohesion: 0.14
+Nodes (10): @nestjs/serve-static, AppController, Body, Controller, Get, Post, AppService, Injectable (+2 more)
 
 ### Community 19 - "@nestjs/swagger"
 Cohesion: 0.34
@@ -218,39 +211,39 @@ Nodes (3): class-transformer, class-validator, @nestjs/swagger
 
 ### Community 20 - "evaluations.service.ts"
 Cohesion: 0.18
-Nodes (11): src_auth_decorators_index_currentuser, src_auth_guards_index_jwtauthguard, src_common_pagination_dto_index_paginationdto, EvaluationTemplateResponseDto, ApiProperty, src_repositories_evaluations_dto_index_createevaluationcriteriadto, src_repositories_evaluations_dto_index_createevaluationdto, src_repositories_evaluations_dto_index_createexternaltreatmentdto (+3 more)
+Nodes (8): EvaluationTemplateResponseDto, ApiProperty, src_repositories_evaluations_dto_index_createevaluationcriteriadto, src_repositories_evaluations_dto_index_createevaluationdto, src_repositories_evaluations_dto_index_createexternaltreatmentdto, src_repositories_evaluations_dto_index_queryevaluationdto, src_repositories_evaluations_dto_index_updateevaluationdto, UpdateEvaluationDto
 
 ### Community 21 - "User"
-Cohesion: 0.06
-Nodes (44): ApiBearerAuth, BeforeInsert, CurrentUser, CreateSampleEvaluations1751337651990, EvaluationsController, ApiOperation, ApiResponse, ApiTags (+36 more)
+Cohesion: 0.05
+Nodes (51): ApiBearerAuth, BeforeInsert, CurrentUser, CreateSampleEvaluations1751337651990, EvaluationsController, ApiOperation, ApiResponse, ApiTags (+43 more)
 
 ### Community 22 - "typeorm"
-Cohesion: 0.27
-Nodes (9): ref_crypto, typeorm, IdEntity, ApiProperty, Column, CreateDateColumn, PrimaryGeneratedColumn, src_repositories_base_index_identity (+1 more)
+Cohesion: 0.19
+Nodes (14): typeorm, IdEntity, ApiProperty, Column, CreateDateColumn, PrimaryGeneratedColumn, src_repositories_base_index_identity, EvaluationTemplate (+6 more)
 
 ### Community 23 - "compilerOptions"
 Cohesion: 0.10
 Nodes (19): compilerOptions, allowSyntheticDefaultImports, baseUrl, declaration, emitDecoratorMetadata, experimentalDecorators, forceConsistentCasingInFileNames, incremental (+11 more)
 
-### Community 24 - "Scripts Disponibles"
-Cohesion: 0.12
-Nodes (15): Configuración, Construcción Completa del Cliente, Despliegue Completo (Linux/macOS), Despliegue Completo (Windows), Despliegue del Cliente (Linux/macOS), Despliegue del Cliente (Windows), Estructura de Archivos Generados, Flujo de Trabajo Recomendado (+7 more)
+### Community 24 - "README.md"
+Cohesion: 0.05
+Nodes (37): Configuración, Construcción Completa del Cliente, Despliegue Completo (Linux/macOS), Despliegue Completo (Windows), Despliegue del Cliente (Linux/macOS), Despliegue del Cliente (Windows), Estructura de Archivos Generados, Flujo de Trabajo Recomendado (+29 more)
 
 ### Community 25 - "BaseResponseDto"
 Cohesion: 0.12
 Nodes (13): IsDate, BaseResponseDto, ApiProperty, IsBoolean, IsNotEmpty, IsNumber, IsOptional, Type (+5 more)
 
 ### Community 26 - "treatment-options.service.ts"
-Cohesion: 0.20
-Nodes (8): src_common_pagination_dto_index_querybasedto, PaginationDataDto, ApiProperty, src_common_use_case_index_crudrepository, src_repositories_treatment_options_dto_index_createtreatmentoptiondto, src_repositories_treatment_options_dto_index_treatmentoptionlistdto, src_repositories_treatment_options_dto_index_treatmentoptionresponsedto, src_repositories_treatment_options_dto_index_updatetreatmentoptiondto
+Cohesion: 0.21
+Nodes (7): @nestjs/testing, src_repositories_treatment_options_dto_index_createtreatmentoptiondto, src_repositories_treatment_options_dto_index_treatmentoptionlistdto, src_repositories_treatment_options_dto_index_treatmentoptionresponsedto, src_repositories_treatment_options_dto_index_updatetreatmentoptiondto, UpdateTreatmentOptionDto, ALLOWED_SORT
 
 ### Community 27 - "test.service.ts"
-Cohesion: 0.30
+Cohesion: 0.31
 Nodes (6): src_repositories_test_dto_index_createtestdto, src_repositories_test_dto_index_testresponsedto, src_repositories_test_dto_index_updatetestdto, src_repositories_test_entities_index_test, TestModule, Module
 
 ### Community 28 - "evaluation-response.dto.ts"
-Cohesion: 0.17
-Nodes (9): EvaluationCriteriaResponseDto, ApiProperty, ApiPropertyOptional, EvaluationResponseDto, ApiProperty, ApiPropertyOptional, ExternalTreatmentResponseDto, ApiProperty (+1 more)
+Cohesion: 0.16
+Nodes (10): EvaluationCriteriaResponseDto, ApiProperty, ApiPropertyOptional, EvaluationResponseDto, ApiProperty, ApiPropertyOptional, ExternalTreatmentResponseDto, ApiProperty (+2 more)
 
 ### Community 29 - "TestController"
 Cohesion: 0.13
@@ -258,51 +251,55 @@ Nodes (15): TestController, ApiBadRequestResponse, ApiBody, ApiCreatedResponse, 
 
 ### Community 30 - "main.ts"
 Cohesion: 0.15
-Nodes (9): Catch, cookie-parser, csurf, @nestjs/core, IS_PUBLIC_KEY, JwtAuthGuard, Injectable, HttpExceptionFilter (+1 more)
+Nodes (9): Catch, cookie-parser, csurf, helmet, JwtAuthGuard, Injectable, HttpExceptionFilter, SENSITIVE_KEYS (+1 more)
 
-### Community 31 - "DevicesService"
-Cohesion: 0.14
-Nodes (4): isOutput(), DevicesService, pinNumber(), Injectable
+### Community 31 - "AuthService"
+Cohesion: 0.18
+Nodes (5): AuthService, Injectable, InjectRepository, LogoutResponseDto, ApiProperty
 
 ### Community 32 - "CreateExternalTreatmentDto"
 Cohesion: 0.20
 Nodes (10): CreateExternalTreatmentDto, ApiProperty, ApiPropertyOptional, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString (+2 more)
 
 ### Community 33 - "CreateEvaluationDto"
-Cohesion: 0.17
-Nodes (12): IsArray, CreateEvaluationDto, ApiProperty, ApiPropertyOptional, IsBoolean, IsDateString, IsEnum, IsNumber (+4 more)
+Cohesion: 0.15
+Nodes (13): ArrayMinSize, IsArray, CreateEvaluationDto, ApiProperty, ApiPropertyOptional, IsBoolean, IsDateString, IsEnum (+5 more)
 
 ### Community 34 - ".calculateThermalResults"
 Cohesion: 0.29
 Nodes (8): ThermalCalculationsController, ApiBody, ApiOperation, ApiResponse, ApiTags, Body, Controller, Post
 
-### Community 35 - "README.md"
-Cohesion: 0.18
-Nodes (10): Compile and run the project, Deployment, Description, License, Project setup, Resources, Run tests, Stay in touch (+2 more)
+### Community 35 - ".login"
+Cohesion: 0.27
+Nodes (10): ApiCookieAuth, Req, Res, ApiBody, ApiOperation, ApiResponse, Body, Post (+2 more)
 
 ### Community 36 - "CreateEvaluationCriteriaDto"
-Cohesion: 0.18
-Nodes (11): CreateEvaluationCriteriaDto, ApiProperty, ApiPropertyOptional, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString (+3 more)
+Cohesion: 0.17
+Nodes (12): CreateEvaluationCriteriaDto, ApiProperty, ApiPropertyOptional, IsBoolean, IsIn, IsNotEmpty, IsNumber, IsOptional (+4 more)
 
 ### Community 37 - "4. Fórmulas de Flujos y Caudales"
 Cohesion: 0.20
 Nodes (10): 4.1 Caudal de Agua (Ecuación 1.6), 4.2 Caudal de Crudo Seco (Ecuación 1.7), 4.3 Porcentaje de Agua Libre y Sedimento (Ecuación 1.26), 4.4 Porcentaje de Agua Emulsionada, 4.5 Caudal de Agua Libre Entrando (Ecuación 1.26 / Ec. 35), 4.6 Caudal de Agua Emulsionada Entrando (Ecuación 1.27 / Ec. 36), 4.7 Cantidad de Agua Total a Ser Manejada (Ecuación 1.28 / Ec. 37), 4.8 Fracción Volumétrica del Agua (Ecuación 1.29 / Ec. 38) (+2 more)
 
-### Community 39 - "control.ts"
-Cohesion: 0.11
-Nodes (21): serialport, @serialport/parser-readline, calibrate(), ChannelLike, COMMAND_REGEX, evalRule(), OUTPUT_TYPES, outputRange() (+13 more)
+### Community 38 - "auth.controller.ts"
+Cohesion: 0.18
+Nodes (9): AuthController, ApiTags, Controller, src_auth_dto_index_logindto, src_auth_dto_index_loginresponsedto, src_auth_dto_index_logoutresponsedto, src_auth_dto_index_registerdto, src_auth_dto_index_registerresponsedto (+1 more)
+
+### Community 39 - "auth/dto/index.ts"
+Cohesion: 0.35
+Nodes (7): AuthResponseDto, ApiProperty, LoginResponseDto, ApiProperty, UserDataDto, RegisterResponseDto, ApiProperty
 
 ### Community 40 - "DaysOfWeek"
-Cohesion: 0.18
+Cohesion: 0.20
 Nodes (8): DaysOfWeek, FRIDAY, MONDAY, SATURDAY, SUNDAY, THURSDAY, TUESDAY, WEDNESDAY
 
 ### Community 41 - "CreateTemplateCriteriaDto"
 Cohesion: 0.20
 Nodes (10): CreateTemplateCriteriaDto, ApiProperty, ApiPropertyOptional, IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString (+2 more)
 
-### Community 42 - "TestService"
-Cohesion: 0.24
-Nodes (3): Param, TestService, Injectable
+### Community 42 - "TestResponseDto"
+Cohesion: 0.16
+Nodes (9): TestResponseDto, ApiProperty, IsNotEmpty, IsString, UpdateTestDto, Body, Param, TestService (+1 more)
 
 ### Community 43 - "CreateTreatmentDto"
 Cohesion: 0.15
@@ -316,29 +313,33 @@ Nodes (9): 5.1 Área Total del Recipiente (Ecuación 1.10), 5.2 Área desde el F
 Cohesion: 0.22
 Nodes (9): jest, collectCoverageFrom, coverageDirectory, moduleFileExtensions, rootDir, testEnvironment, testRegex, transform (+1 more)
 
-### Community 46 - "DeviceChannel"
-Cohesion: 0.26
-Nodes (18): Index, InjectRepository, ChannelReading, Device, DeviceChannel, DeviceCommandLog, DeviceRule, double (+10 more)
+### Community 46 - "RegisterDto"
+Cohesion: 0.33
+Nodes (5): RegisterDto, IsEmail, IsNotEmpty, IsString, MinLength
 
 ### Community 47 - "CreateTestDto"
-Cohesion: 0.16
-Nodes (12): BaseEntityDto, ApiPropertyOptional, IsBoolean, IsNumber, IsOptional, src_repositories_base_index_baseentitydto, CreateTestDto, ApiProperty (+4 more)
+Cohesion: 0.18
+Nodes (11): BaseEntityDto, ApiPropertyOptional, IsBoolean, IsNumber, IsOptional, src_repositories_base_index_baseentitydto, CreateTestDto, ApiProperty (+3 more)
 
-### Community 49 - "Treatment"
-Cohesion: 0.22
-Nodes (7): Treatment, ApiProperty, Column, Entity, JoinColumn, ManyToOne, InjectRepository
+### Community 48 - "guards/index.ts"
+Cohesion: 0.33
+Nodes (3): AdminGuard, Injectable, src_repositories_users_entities_index_userrole
+
+### Community 49 - "LoginDto"
+Cohesion: 0.40
+Nodes (4): LoginDto, IsEmail, IsNotEmpty, IsString
 
 ### Community 50 - "Fórmulas Implementadas en el Sistema Termo-Lab"
-Cohesion: 0.29
+Cohesion: 0.33
 Nodes (6): Backend (termo-lab-api), Fórmulas Implementadas en el Sistema Termo-Lab, 📝 Notas Importantes, 🔍 Referencias, 📊 Resumen de Archivos, 📋 Índice
 
 ### Community 51 - "7. Fórmulas de Decantación"
 Cohesion: 0.29
 Nodes (7): 7.1 Velocidad de Decantación de la Fase Pesada (Ecuación 1.22), 7.2 Tiempo de Decantación de la Fase Pesada (Ecuación 1.23), 7.3 Tiempo de Decantación de la Fase Liviana (Ecuación 1.24 / Ec. 33), 7.4 Porcentaje de Deshidratación del Equipo (Ecuación 1.19 / Ec. 28), 7.5 Cantidad de Agua Saliendo con el Crudo (Ecuación 1.18 / Ec. 27), 7.6 Corte de Agua del Crudo Saliendo (Ecuación 1.13 / Ec. 23), 7. Fórmulas de Decantación
 
-### Community 52 - "app.module.ts"
-Cohesion: 0.18
-Nodes (10): ref_fs, @nestjs/serve-static, ref_path, supertest, AppModule, Module, AuthModule, Module (+2 more)
+### Community 52 - "jwt-auth.guard.ts"
+Cohesion: 0.17
+Nodes (8): ref_fs, @nestjs/core, @nestjs/passport, ref_path, supertest, AppModule, Module, IS_PUBLIC_KEY
 
 ### Community 53 - "10. Fórmulas de Evaluación"
 Cohesion: 0.33
@@ -352,12 +353,12 @@ Nodes (6): 9.1 Velocidad en Boquilla de Entrada, 9.2 Diámetro de Boquilla, 9.3 
 Cohesion: 0.33
 Nodes (5): collection, compilerOptions, deleteOutDir, $schema, sourceRoot
 
-### Community 57 - "EvaluationTemplate"
-Cohesion: 0.12
-Nodes (15): CreateEvaluationTemplates1751337696278, EvaluationTemplateCriteria, ApiProperty, ApiPropertyOptional, Column, Entity, ManyToOne, EvaluationTemplate (+7 more)
+### Community 57 - "EvaluationTemplateCriteria"
+Cohesion: 0.33
+Nodes (6): EvaluationTemplateCriteria, ApiProperty, ApiPropertyOptional, Column, Entity, ManyToOne
 
 ### Community 58 - "TreatmentOptionService"
-Cohesion: 0.21
+Cohesion: 0.18
 Nodes (8): TreatmentOption, ApiProperty, ApiPropertyOptional, Column, Entity, TreatmentOptionService, Injectable, InjectRepository
 
 ### Community 59 - "1. Fórmulas de Propiedades del Crudo"
@@ -396,53 +397,29 @@ Nodes (3): ./tsconfig.json, exclude, extends
 Cohesion: 0.50
 Nodes (3): ref_users_entities_user_entity, Express, Request
 
-### Community 73 - "IdCreateEntity"
-Cohesion: 0.50
+### Community 73 - "id.create.ts"
+Cohesion: 0.40
 Nodes (4): IdCreateEntity, ApiProperty, IsNotEmpty, IsNumber
 
 ### Community 74 - "@nestjs/common"
-Cohesion: 0.28
-Nodes (7): @nestjs/common, EvaluationReportData, ReportGeneratorService, Injectable, ThermalCalculationResults, ThermalTreatmentInput, ApiProperty
+Cohesion: 0.20
+Nodes (8): @nestjs/common, CalculationCriteria, ComparisonOperator, EvaluationCalculationResult, ApiProperty, EvaluationReportData, ThermalCalculationResults, ApiProperty
 
 ### Community 75 - "EvaluationType"
 Cohesion: 0.67
 Nodes (3): EvaluationType, EXTERNAL, INTERNAL
 
-### Community 76 - "UserRole"
-Cohesion: 0.18
-Nodes (7): AdminGuard, Injectable, SeedAdminAndOperatorUsers1751178224375, src_repositories_users_entities_index_userrole, UserRole, ADMIN, OPERATOR
+### Community 76 - "user-response.dto.ts"
+Cohesion: 0.14
+Nodes (7): bcrypt, SeedAdminAndOperatorUsers1751178224375, UpdateUserPasswords1759794383734, src_repositories_users_entities_index_user, UserRole, ADMIN, OPERATOR
 
-### Community 79 - "TreatmentOptionResponseDto"
-Cohesion: 0.25
-Nodes (6): Put, TreatmentOptionResponseDto, ApiProperty, UpdateTreatmentOptionDto, Body, Post
+### Community 81 - "evaluations.module.ts"
+Cohesion: 0.11
+Nodes (16): CreateEvaluationTemplates1751337696278, ExternalTreatment, ApiProperty, ApiPropertyOptional, Column, Entity, src_repositories_evaluations_entities_index_evaluationcriteria, src_repositories_evaluations_entities_index_evaluationtemplate (+8 more)
 
-### Community 81 - "1751337651990-CreateSampleEvaluations.ts"
-Cohesion: 0.20
-Nodes (9): ExternalTreatment, ApiProperty, ApiPropertyOptional, Column, Entity, src_repositories_evaluations_entities_index_evaluation, src_repositories_evaluations_entities_index_evaluationcriteria, src_repositories_evaluations_entities_index_externaltreatment (+1 more)
-
-### Community 82 - "ChannelType"
+### Community 86 - "QueryBaseDto"
 Cohesion: 0.22
-Nodes (9): ChannelType, ANALOG_IN, DIGITAL_IN, DIGITAL_OUT, DS18B20, MAX31865, MAX6675, PWM (+1 more)
-
-### Community 83 - "evaluation-calculator.service.ts"
-Cohesion: 0.40
-Nodes (3): CalculationCriteria, EvaluationCalculationResult, ApiProperty
-
-### Community 85 - "devices.service.ts"
-Cohesion: 0.17
-Nodes (17): rxjs, src_auth_guards_index_adminguard, PidState, UpdateChannelDto, UpdateDeviceDto, UpdatePidDto, UpdateRuleDto, LiveEvent (+9 more)
-
-### Community 86 - "TestResponseDto"
-Cohesion: 0.24
-Nodes (6): TestResponseDto, ApiProperty, IsNotEmpty, IsString, Body, Query
-
-### Community 87 - "UserResponseDto"
-Cohesion: 0.22
-Nodes (6): ApiProperty, ApiPropertyOptional, UserResponseDto, ApiBadRequestResponse, ApiCreatedResponse, Post
-
-### Community 88 - "UsersService"
-Cohesion: 0.27
-Nodes (3): Injectable, InjectRepository, UsersService
+Nodes (8): QueryBaseDto, ApiPropertyOptional, IsIn, IsNumber, IsOptional, IsString, Type, Query
 
 ### Community 89 - "Test"
 Cohesion: 0.22
@@ -452,33 +429,29 @@ Nodes (5): Test, ApiProperty, Column, Entity, InjectRepository
 Cohesion: 0.22
 Nodes (9): CreateTreatmentOptionDto, ApiProperty, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Max (+1 more)
 
-### Community 91 - "CreateUserDto"
-Cohesion: 0.25
-Nodes (8): MinLength, CreateUserDto, ApiProperty, IsDateString, IsEmail, IsEnum, IsNotEmpty, IsString
-
 ### Community 92 - "QueryEvaluationDto"
 Cohesion: 0.25
 Nodes (8): QueryEvaluationDto, ApiPropertyOptional, IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Type
 
 ## Knowledge Gaps
-- **284 isolated node(s):** `$schema`, `collection`, `sourceRoot`, `deleteOutDir`, `$schema` (+279 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 625 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **297 isolated node(s):** `$schema`, `collection`, `sourceRoot`, `deleteOutDir`, `$schema` (+292 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 639 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `@nestjs/common` connect `@nestjs/common` to `auth.service.ts`, `package.json`, `control.ts`, `users.service.ts`, `UserRole`, `evaluations.module.ts`, `treatments.service.ts`, `AppService`, `evaluation-calculator.service.ts`, `app.module.ts`, `devices.service.ts`, `evaluations.service.ts`, `treatment-options.service.ts`, `test.service.ts`, `main.ts`?**
-  _High betweenness centrality (0.173) - this node is a cross-community bridge._
-- **Why does `@nestjs/swagger` connect `@nestjs/swagger` to `auth.service.ts`, `devices.dto.ts`, `package.json`, `TreatmentsService`, `users.service.ts`, `treatments.service.ts`, `evaluations.service.ts`, `typeorm`, `BaseResponseDto`, `treatment-options.service.ts`, `test.service.ts`, `evaluation-response.dto.ts`, `main.ts`, `DeviceChannel`, `CreateTestDto`, `app.module.ts`, `@nestjs/common`, `evaluation-calculator.service.ts`, `devices.service.ts`?**
-  _High betweenness centrality (0.139) - this node is a cross-community bridge._
-- **Why does `DevicesService` connect `DevicesService` to `devices.dto.ts`, `DevicesController`, `control.ts`, `DeviceChannel`, `SerialConnection`, `devices.service.ts`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+- **Why does `@nestjs/common` connect `@nestjs/common` to `auth.service.ts`, `devices.service.ts`, `auth.controller.ts`, `package.json`, `users.service.ts`, `treatments.module.ts`, `treatments.service.ts`, `guards/index.ts`, `evaluations.module.ts`, `app.module.ts`, `jwt-auth.guard.ts`, `User`, `evaluations.service.ts`, `treatment-options.service.ts`, `test.service.ts`, `main.ts`?**
+  _High betweenness centrality (0.172) - this node is a cross-community bridge._
+- **Why does `@nestjs/swagger` connect `@nestjs/swagger` to `UserResponseDto`, `devices.service.ts`, `package.json`, `users.service.ts`, `PaginationDto`, `treatments.service.ts`, `evaluations.service.ts`, `typeorm`, `BaseResponseDto`, `treatment-options.service.ts`, `test.service.ts`, `evaluation-response.dto.ts`, `main.ts`, `AuthService`, `auth.controller.ts`, `auth/dto/index.ts`, `CreateTestDto`, `jwt-auth.guard.ts`, `id.create.ts`, `@nestjs/common`, `user-response.dto.ts`?**
+  _High betweenness centrality (0.140) - this node is a cross-community bridge._
+- **Why does `typeorm` connect `typeorm` to `auth.service.ts`, `devices.service.ts`, `CreateUnaccentExtension1752379896329`, `package.json`, `AddThermalCalculationFields1759797734044`, `AddThermalCalculationsToEvaluations1763061460756`, `AddTemplateIdToEvaluations1763061460757`, `users.service.ts`, `user-response.dto.ts`, `treatments.service.ts`, `evaluations.module.ts`, `AddDevices1794006813002`, `evaluations.service.ts`, `SeedTreatmentOptions1751181394026`, `treatment-options.service.ts`, `test.service.ts`, `1751337651500-CreateSampleTreatments.ts`, `data-source.ts`?**
+  _High betweenness centrality (0.076) - this node is a cross-community bridge._
 - **What connects `$schema`, `collection`, `sourceRoot` to the rest of the system?**
-  _284 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `auth.service.ts` be split into smaller, more focused modules?**
-  _Cohesion score 0.053613053613053616 - nodes in this community are weakly interconnected._
+  _297 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `UserResponseDto` be split into smaller, more focused modules?**
+  _Cohesion score 0.06265664160401002 - nodes in this community are weakly interconnected._
 - **Should `ThermalCalculatorService` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
-- **Should `DevicesController` be split into smaller, more focused modules?**
-  _Cohesion score 0.13636363636363635 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
+- **Should `devices.service.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.0507048180096781 - nodes in this community are weakly interconnected._

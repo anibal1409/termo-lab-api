@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
@@ -453,11 +453,12 @@ export class ThermalCalculatorService {
     results.volumetricFlowRate = input.totalFlow;
 
     // 8. Calcular densidades y peso molecular del gas (Ecuación 1.31)
+    results.gasMolecularWeight = this.calculateGasMolecularWeight(input.gasComposition);
     results.gasDensity = this.calculateGasDensity(
       input.operatingPressure,
       input.inletTemperature,
+      input.gasComposition,
     );
-    results.gasMolecularWeight = this.calculateGasMolecularWeight();
 
     // 9. Calcular área total del recipiente (Ecuación 1.10)
     results.totalVesselArea = this.calculateTotalVesselArea(input.diameter);
@@ -504,7 +505,7 @@ export class ThermalCalculatorService {
     );
 
     // 16. Calcular altura libre para el gas
-    results.freeHeightForGas = 0.5; // Factor K * 12
+    results.freeHeightForGas = 0.5; // altura libre fija (ft)
 
     // 17. Calcular área disponible para el gas (Ecuación 1.11)
     results.gasArea = this.calculateGasArea(
@@ -533,7 +534,7 @@ export class ThermalCalculatorService {
 
     // 27. Calcular caudales de entrada (Ecuaciones 35, 36) - MOVIDO ANTES para calcular deshidratación
     results.freeWaterFlowEntering = this.calculateFreeWaterFlowEntering(
-      results.freeWaterAndSedimentPercentage,
+      results.emulsifiedWaterPercentage, // PAT = agua emulsionada
       results.waterFlowRate,
       input.freeWaterRemovalPercentage || 85,
     );
@@ -740,12 +741,13 @@ export class ThermalCalculatorService {
       input.inletTemperature + 459.67,
     );
 
+    const composition = this.normalizeGasComposition(input.gasComposition);
     results.gasComposition = {
-      methane: 85,
-      ethane: 8,
-      propane: 4,
-      butane: 2,
-      pentane: 1,
+      methane: composition.methane * 100,
+      ethane: composition.ethane * 100,
+      propane: composition.propane * 100,
+      butane: composition.butane * 100,
+      pentane: composition.pentane * 100,
     };
 
     results.calculatedOilSpecificHeat = oilSpecificHeat;
@@ -836,17 +838,37 @@ export class ThermalCalculatorService {
 
   private validateInput(input: ThermalTreatmentInput): void {
     if (!input.diameter || input.diameter <= 0) {
-      throw new Error('Diámetro debe ser mayor a 0');
+      throw new BadRequestException('Diámetro debe ser mayor a 0');
     }
     if (!input.length || input.length <= 0) {
-      throw new Error('Longitud debe ser mayor a 0');
+      throw new BadRequestException('Longitud debe ser mayor a 0');
     }
     if (!input.totalFlow || input.totalFlow <= 0) {
-      throw new Error('Flujo total debe ser mayor a 0');
+      throw new BadRequestException('Flujo total debe ser mayor a 0');
     }
     if (!input.apiGravity || input.apiGravity <= 0) {
-      throw new Error('Gravedad API debe ser mayor a 0');
+      throw new BadRequestException('Gravedad API debe ser mayor a 0');
     }
+    if (input.waterFraction == null || input.waterFraction < 0 || input.waterFraction > 100) {
+      throw new BadRequestException('Fracción de agua debe estar entre 0 y 100');
+    }
+    const maxLevelInches = input.diameter * 12;
+    for (const [label, level] of [
+      ['lowLowWaterLevel', input.lowLowWaterLevel],
+      ['waterOilInterfaceLevel', input.waterOilInterfaceLevel],
+      ['highHighOilLevel', input.highHighOilLevel],
+    ] as const) {
+      if (level != null && (level < 0 || level > maxLevelInches)) {
+        throw new BadRequestException(
+          `${label} debe estar entre 0 y ${maxLevelInches} pulgadas`,
+        );
+      }
+    }
+  }
+
+  /** Evita NaN en acos: argumento acotado a [-1, 1]. */
+  private safeAcos(value: number): number {
+    return Math.acos(Math.min(1, Math.max(-1, value)));
   }
 
   // Ecuación 1.32: Gravedad específica del crudo
@@ -885,7 +907,7 @@ export class ThermalCalculatorService {
 
   // Ecuación 1.26: Porcentaje de agua libre y sedimento
   private calculateFreeWaterAndSedimentPercentage(
-    totalFlow: number,
+    _totalFlow: number,
     waterFraction: number,
     removalPercentage: number,
   ): number {
@@ -904,7 +926,7 @@ export class ThermalCalculatorService {
     totalArea: number,
   ): number {
     const ratio = (2 * lowWaterLevel) / (diameter * 12);
-    const angle = 2 * Math.acos(1 - ratio);
+    const angle = 2 * this.safeAcos(1 - ratio);
     return ((angle - Math.sin(angle)) * totalArea) / (2 * Math.PI);
   }
 
@@ -918,7 +940,7 @@ export class ThermalCalculatorService {
   ): number {
     // Ec. 26: [2 * ArcCos(1 - 2 * N / (D * 12)) - sin(2 * ArcCos(1 - 2 * N / (D * 12))*Nr)] - Nb / (2 * π)
     const ratio = (2 * interfaceLevel) / (diameter * 12);
-    const angle = 2 * Math.acos(1 - ratio);
+    const angle = 2 * this.safeAcos(1 - ratio);
     const interfaceArea =
       ((angle - Math.sin(angle)) * totalArea) / (2 * Math.PI);
     return interfaceArea - lowWaterArea;
@@ -934,7 +956,7 @@ export class ThermalCalculatorService {
   ): number {
     // Ec. 13: [2 * ArcCos(1 - 2 * A / (D * 12)) - sin(2 * ArcCos(1 - 2 * A / (D * 12)))]*B - C - E / (2 * π)
     const ratio = (2 * highOilLevel) / (diameter * 12);
-    const angle = 2 * Math.acos(1 - ratio);
+    const angle = 2 * this.safeAcos(1 - ratio);
     const highOilArea = ((angle - Math.sin(angle)) * totalArea) / (2 * Math.PI);
     return highOilArea - waterArea - lowWaterArea;
   }
@@ -962,7 +984,7 @@ export class ThermalCalculatorService {
     totalArea: number,
   ): number {
     const ratio = (2 * freeHeight * 12) / (diameter * 12);
-    const angle = 2 * Math.acos(1 - ratio);
+    const angle = 2 * this.safeAcos(1 - ratio);
     return ((angle - Math.sin(angle)) * totalArea) / (2 * Math.PI);
   }
 
@@ -1154,6 +1176,9 @@ export class ThermalCalculatorService {
     interfaceLevel: number,
     settlingVelocity: number,
   ): number {
+    if (!settlingVelocity || settlingVelocity <= 0) {
+      return Number.POSITIVE_INFINITY;
+    }
     return (highOilLevel - interfaceLevel) / 12 / settlingVelocity;
   }
 
@@ -1171,7 +1196,7 @@ export class ThermalCalculatorService {
     removalPercentage: number,
   ): number {
     // CALT = ((100 - PAT) × CAP / 100) × (100 - PAL) / 100
-    const PAT = freeWaterPercentage; // Porcentaje de agua emulsionada en la corriente de entrada
+    const PAT = freeWaterPercentage; // parámetro = % agua emulsionada (PAT)
     const CAP = waterFlow; // Caudal de agua producida
     const PAL = removalPercentage; // Porcentaje de agua libre retirada en el separador
 
@@ -1200,8 +1225,12 @@ export class ThermalCalculatorService {
   }
 
   // Ecuación 1.31: Densidad del gas con factor Z
-  private calculateGasDensity(pressure: number, temperature: number): number {
-    const molecularWeight = this.calculateGasMolecularWeight();
+  private calculateGasDensity(
+    pressure: number,
+    temperature: number,
+    gasComposition?: ThermalTreatmentInput['gasComposition'],
+  ): number {
+    const molecularWeight = this.calculateGasMolecularWeight(gasComposition);
     const absolutePressure = pressure + this.STANDARD_PRESSURE;
     const absoluteTemperature = temperature + 459.67;
     const zFactor = this.calculateZFactor(
@@ -1215,17 +1244,43 @@ export class ThermalCalculatorService {
     );
   }
 
-  // Ecuación 1.31: Peso molecular del gas basado en composición
-  private calculateGasMolecularWeight(): number {
-    // Composición típica de gas natural según Tabla 4-3
-    const gasComposition = {
-      methane: 0.85, // 85% CH4
-      ethane: 0.08, // 8% C2H6
-      propane: 0.04, // 4% C3H8
-      butane: 0.02, // 2% C4H10
-      pentane: 0.01, // 1% C5H12
+  private normalizeGasComposition(
+    inputComposition?: ThermalTreatmentInput['gasComposition'],
+  ): {
+    methane: number;
+    ethane: number;
+    propane: number;
+    butane: number;
+    pentane: number;
+  } {
+    const defaults = {
+      methane: 0.85,
+      ethane: 0.08,
+      propane: 0.04,
+      butane: 0.02,
+      pentane: 0.01,
+    };
+    if (!inputComposition) return defaults;
+
+    const toFraction = (value: number | undefined, fallback: number) => {
+      if (value == null) return fallback;
+      return value > 1 ? value / 100 : value;
     };
 
+    return {
+      methane: toFraction(inputComposition.methane, defaults.methane),
+      ethane: toFraction(inputComposition.ethane, defaults.ethane),
+      propane: toFraction(inputComposition.propane, defaults.propane),
+      butane: toFraction(inputComposition.butane, defaults.butane),
+      pentane: toFraction(inputComposition.pentane, defaults.pentane),
+    };
+  }
+
+  // Ecuación 1.31: Peso molecular del gas basado en composición
+  private calculateGasMolecularWeight(
+    inputComposition?: ThermalTreatmentInput['gasComposition'],
+  ): number {
+    const gasComposition = this.normalizeGasComposition(inputComposition);
     const molecularWeights = {
       methane: 16.043,
       ethane: 30.07,
@@ -1356,10 +1411,10 @@ export class ThermalCalculatorService {
       compliant = false;
     }
 
-    // Validar velocidad de gas (máximo 0.5 pie/s)
-    if (results.allowableGasVelocity > 0.5) {
+    // Validar área de gas: requerida vs disponible
+    if (results.requiredGasArea > results.gasArea) {
       warnings.push(
-        `Velocidad de gas excesiva: ${results.allowableGasVelocity.toFixed(3)} pie/s > 0.5 pie/s máximo`,
+        `Área de gas insuficiente: requerida ${results.requiredGasArea.toFixed(3)} pie² > disponible ${results.gasArea.toFixed(3)} pie²`,
       );
       compliant = false;
     }
@@ -1580,11 +1635,12 @@ export class ThermalCalculatorService {
       orientation === 'vertical' ? verticalDimensions : horizontalDimensions;
 
     // Encontrar la configuración más adecuada
+    // oilVolume/waterVolume están en pie³; calculateVolume también en pie³
     const suitableConfigs = dimensions.filter(
       (config) =>
         config.maxHeat >= totalHeat &&
         this.calculateVolume(config.diameter, config.length) >=
-          (oilVolume + waterVolume) / 5.6146,
+          oilVolume + waterVolume,
     );
 
     if (suitableConfigs.length === 0) {
@@ -1699,7 +1755,7 @@ export class ThermalCalculatorService {
       );
     }
 
-    if (results.allowableGasVelocity > 0.3) {
+    if (results.requiredGasArea > results.gasArea) {
       recommendations.push(
         'Considerar aumentar el área disponible para gas para reducir la velocidad',
       );
@@ -1754,11 +1810,11 @@ export class ThermalCalculatorService {
         total: results.volumetricFlowRate * factor,
       });
 
+      // Volúmenes de retención son geométricos; no escalan con el caudal
       retentionVolumes.push({
-        oil: results.oilRetentionVolume * factor,
-        water: results.waterRetentionVolume * factor,
-        total:
-          (results.oilRetentionVolume + results.waterRetentionVolume) * factor,
+        oil: results.oilRetentionVolume,
+        water: results.waterRetentionVolume,
+        total: results.oilRetentionVolume + results.waterRetentionVolume,
       });
 
       heatRequirements.push({

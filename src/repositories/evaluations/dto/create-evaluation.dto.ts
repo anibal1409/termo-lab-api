@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsDateString,
@@ -55,12 +56,14 @@ export class CreateEvaluationDto {
   @IsDateString()
   evaluationDate: string;
 
-  @ApiProperty({
-    description: 'Resultado general de la evaluación',
+  @ApiPropertyOptional({
+    description:
+      'Ignorado: la aprobación se calcula a partir de los criterios',
     example: true,
   })
   @IsBoolean()
-  approved: boolean;
+  @IsOptional()
+  approved?: boolean;
 
   @ApiPropertyOptional({
     description: 'Observaciones o comentarios sobre la evaluación',
@@ -76,6 +79,7 @@ export class CreateEvaluationDto {
     type: [CreateEvaluationCriteriaDto],
   })
   @IsArray()
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => CreateEvaluationCriteriaDto)
   criteria: CreateEvaluationCriteriaDto[];

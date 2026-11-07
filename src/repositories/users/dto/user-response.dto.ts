@@ -39,7 +39,14 @@ export class UserResponseDto extends BaseResponseDto {
   })
   lastLogin?: Date;
 
-  constructor(user: User) {
+  @ApiPropertyOptional({
+    description:
+      'Contraseña temporal generada (solo en creación; no se vuelve a devolver)',
+    example: 'a1b2c3d4e5f67890',
+  })
+  temporaryPassword?: string;
+
+  constructor(user: User, temporaryPassword?: string) {
     super(user);
     Object.assign(this, {
       name: user?.name || '',
@@ -47,6 +54,7 @@ export class UserResponseDto extends BaseResponseDto {
       role: user?.role || UserRole.OPERATOR,
       email: user?.email || '',
       lastLogin: user?.lastLogin ? new Date(user?.lastLogin) : null,
+      ...(temporaryPassword ? { temporaryPassword } : {}),
     });
   }
 }

@@ -21,7 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { CurrentUser, Public } from '../../auth/decorators';
+import { CurrentUser } from '../../auth/decorators';
 import { User } from '../users/entities/user.entity';
 
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
@@ -65,7 +65,6 @@ export class TreatmentsController {
     return this.treatmentsService.create(createTreatmentDto, user.id);
   }
 
-  @Public() // ✅ Endpoint público - No requiere autenticación para cálculos
   @Post('calculate')
   @ApiOperation({
     summary: 'Calcular parámetros de tratamiento',

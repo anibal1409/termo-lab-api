@@ -1,5 +1,6 @@
 import * as cookieParser from 'cookie-parser';
 import * as csurf from 'csurf';
+import helmet from 'helmet';
 
 import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
@@ -17,17 +18,16 @@ async function bootstrap() {
     }),
   });
 
-  // 1. Configuración de Cookies
+  app.use(helmet());
   app.use(cookieParser(process.env.COOKIE_SECRET));
 
-  // 2. Configuración CORS
+  const corsOrigin = process.env.CORS_ORIGIN?.split(' ').filter(Boolean);
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(' ') || '*',
+    origin: corsOrigin?.length ? corsOrigin : false,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
 
-  // 3. Protección CSRF (opcional)
   if (process.env.CSRF_ENABLED === 'true') {
     app.use(
       csurf({
@@ -39,14 +39,13 @@ async function bootstrap() {
     );
   }
 
-  // 4. Configuración Swagger
   const config = new DocumentBuilder()
     .setTitle('TermoLab API Documentation')
     .setDescription('API para diseño y evaluación de tratamientos térmicos')
     .setVersion('1.0')
     .addTag('api')
-    .addCookieAuth('access_token') // Añadir soporte para cookies
-    .addBearerAuth() // Añadir soporte para JWT en headers
+    .addCookieAuth('access_token')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -57,8 +56,12 @@ async function bootstrap() {
   });
 
   if (process.env.NODE_ENV === 'production') {
+    const swaggerUser = process.env.SWAGGER_USER || 'admin';
+    const swaggerPassword = process.env.SWAGGER_PASSWORD;
+    if (!swaggerPassword) {
+      throw new Error('SWAGGER_PASSWORD es obligatorio en producción');
+    }
     app.use(`/api-docs`, (req, res, next) => {
-      const auth = { login: 'admin', password: 'swagger-secret' };
       const [username, password] = Buffer.from(
         req.headers.authorization?.split(' ')[1] || '',
         'base64',
@@ -66,7 +69,7 @@ async function bootstrap() {
         .toString()
         .split(':');
 
-      if (username === auth.login && password === auth.password) {
+      if (username === swaggerUser && password === swaggerPassword) {
         return next();
       }
       res.set('WWW-Authenticate', 'Basic realm="Swagger"');
@@ -74,27 +77,21 @@ async function bootstrap() {
     });
   }
 
-  // 5. Configuración global
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
 
-  // Configuración de validación global
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: true,
       transform: true,
     }),
   );
 
-  // 6. Configuración de seguridad global
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
-
-  // 6.5. Configuración de manejo global de excepciones
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // 7. Iniciar aplicación
   const port = process.env.PORT || 3000;
   await app.listen(port);
 

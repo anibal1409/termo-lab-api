@@ -1,8 +1,11 @@
-import * as bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -31,6 +34,14 @@ export class AuthService {
     registerDto: RegisterDto,
     res?: Response,
   ): Promise<RegisterResponseDto> {
+    const registerEnabled =
+      this.configService.get('REGISTER_ENABLED') === 'true' ||
+      (this.configService.get('NODE_ENV') !== 'production' &&
+        this.configService.get('REGISTER_ENABLED') !== 'false');
+    if (!registerEnabled) {
+      throw new ForbiddenException('Registro público deshabilitado');
+    }
+
     const { email, password, name } = registerDto;
 
     const userExists = await this.userRepository.findOne({ where: { email } });
@@ -38,13 +49,12 @@ export class AuthService {
       throw new UnauthorizedException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const user = this.userRepository.create({
       email,
       name,
-      password: hashedPassword,
-      role: UserRole.OPERATOR, // Rol por defecto según tu entidad
-      birthDate: new Date(), // Fecha por defecto, deberías recibirla en el DTO
+      password, // plain: User.@BeforeInsert hashea una sola vez
+      role: UserRole.OPERATOR,
+      birthDate: new Date(),
     });
 
     await this.userRepository.save(user);

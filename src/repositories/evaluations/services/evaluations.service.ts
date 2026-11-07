@@ -113,12 +113,13 @@ export class EvaluationsService {
         approved: this.calculatorService.isCriteriaApproved(
           c.actualValue,
           c.requiredValue,
-          c.maxValue ? 'range' : 'min',
+          this.calculatorService.resolveComparisonOperator(c),
           c.maxValue,
         ),
         complianceMargin: this.calculatorService.calculateComplianceMargin(
           c.actualValue,
           c.requiredValue,
+          this.calculatorService.resolveComparisonOperator(c),
         ),
         isCritical: c.isCritical || false,
         weight: c.weight || 1,
@@ -130,7 +131,7 @@ export class EvaluationsService {
         );
 
       evaluation.approved = calculatedApproval.approved;
-      (evaluation as any).score = calculatedApproval.score; // Temporal hasta actualizar entidad
+      evaluation.score = calculatedApproval.score;
 
       const savedEvaluation = await this.evaluationRepository.save(evaluation);
       await this.saveEvaluationCriteria(createDto.criteria, savedEvaluation);
@@ -278,9 +279,7 @@ export class EvaluationsService {
         evaluation.comments = updateDto.comments;
       }
 
-      if (updateDto.approved !== undefined) {
-        evaluation.approved = updateDto.approved;
-      }
+      // approved solo se recalcula desde criterios (no bypass manual)
 
       if (updateDto.thermalCalculations !== undefined) {
         evaluation.thermalCalculations = updateDto.thermalCalculations;
@@ -402,7 +401,7 @@ export class EvaluationsService {
       queryBuilder.andWhere(
         '(unaccent(LOWER(evaluation.comments)) LIKE unaccent(LOWER(:term)) OR ' +
           'unaccent(LOWER(externalTreatment.name)) LIKE unaccent(LOWER(:term)) OR ' +
-          'unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term))',
+          'unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term)))',
         { term: `%${normalizedTerm}%` },
       );
     }
@@ -516,13 +515,14 @@ export class EvaluationsService {
         criteria.approved = this.calculatorService.isCriteriaApproved(
           dto.actualValue,
           dto.requiredValue,
-          (dto as any).maxValue ? 'range' : 'min',
-          (dto as any).maxValue,
+          this.calculatorService.resolveComparisonOperator(dto),
+          dto.maxValue,
         );
         criteria.complianceMargin =
           this.calculatorService.calculateComplianceMargin(
             dto.actualValue,
             dto.requiredValue,
+            this.calculatorService.resolveComparisonOperator(dto),
           );
         criteria.isCritical = dto.isCritical || false;
         criteria.weight = dto.weight || 1;
@@ -626,6 +626,9 @@ export class EvaluationsService {
       criteria.description = tc.description;
       criteria.requiredValue = tc.minValue;
       criteria.maxValue = tc.maxValue;
+      criteria.actualValue = 0;
+      criteria.approved = false;
+      criteria.complianceMargin = 0;
       criteria.isCritical = tc.isCritical;
       criteria.weight = tc.weight;
       criteria.unit = tc.unit;

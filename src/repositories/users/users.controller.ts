@@ -8,11 +8,13 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
   ApiCreatedResponse,
+  ApiForbiddenResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
@@ -21,6 +23,7 @@ import {
 } from '@nestjs/swagger';
 
 import { CurrentUser } from '../../auth/decorators';
+import { AdminGuard } from '../../auth/guards';
 import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
 import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities';
@@ -28,6 +31,8 @@ import { UsersService } from './users.service';
 
 @ApiTags('users')
 @Controller('users')
+@UseGuards(AdminGuard)
+@ApiForbiddenResponse({ description: 'Requiere rol administrador' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -36,7 +41,7 @@ export class UsersController {
   @ApiBody({ type: CreateUserDto, description: 'Datos para crear un usuario' })
   @ApiCreatedResponse({
     description:
-      'Usuario creado exitosamente. La contraseña se genera automáticamente.',
+      'Usuario creado exitosamente. La contraseña temporal se devuelve una sola vez.',
     type: UserResponseDto,
   })
   @ApiBadRequestResponse({ description: 'Datos inválidos' })

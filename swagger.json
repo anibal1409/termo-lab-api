@@ -178,7 +178,7 @@
         },
         "responses": {
           "201": {
-            "description": "Usuario creado exitosamente. La contraseña se genera automáticamente.",
+            "description": "Usuario creado exitosamente. La contraseña temporal se devuelve una sola vez.",
             "content": {
               "application/json": {
                 "schema": {
@@ -189,6 +189,9 @@
           },
           "400": {
             "description": "Datos inválidos"
+          },
+          "403": {
+            "description": "Requiere rol administrador"
           }
         },
         "summary": "Crea un nuevo usuario",
@@ -264,6 +267,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Requiere rol administrador"
           }
         },
         "summary": "Obtiene usuarios activos de forma paginada",
@@ -289,6 +295,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Requiere rol administrador"
           }
         },
         "summary": "Obtiene todos los usuarios activos (lista completa)",
@@ -321,6 +330,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Requiere rol administrador"
           },
           "404": {
             "description": "Usuario no encontrado"
@@ -369,6 +381,9 @@
           "400": {
             "description": "Datos inválidos"
           },
+          "403": {
+            "description": "Requiere rol administrador"
+          },
           "404": {
             "description": "Usuario no encontrado"
           }
@@ -406,6 +421,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Requiere rol administrador"
           },
           "404": {
             "description": "Usuario no encontrado"
@@ -990,6 +1008,9 @@
           },
           "400": {
             "description": "Datos de entrada inválidos"
+          },
+          "403": {
+            "description": "Requiere rol administrador"
           }
         },
         "summary": "Crear una nueva opción de tratamiento",
@@ -1002,7 +1023,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Lista paginada de opciones",
+            "description": "Lista de opciones",
             "content": {
               "application/json": {
                 "schema": {
@@ -1015,7 +1036,7 @@
             }
           }
         },
-        "summary": "Obtener todas las opciones de tratamiento paginadas",
+        "summary": "Obtener todas las opciones de tratamiento",
         "tags": [
           "treatment-options"
         ]
@@ -1098,107 +1119,6 @@
         ]
       }
     },
-    "/treatment-options/{id}": {
-      "get": {
-        "operationId": "TreatmentOptionController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Opción encontrada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Opción no encontrada"
-          }
-        },
-        "summary": "Obtener una opción de tratamiento por ID",
-        "tags": [
-          "treatment-options"
-        ]
-      },
-      "put": {
-        "operationId": "TreatmentOptionController_update",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateTreatmentOptionDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Opción actualizada",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Opción no encontrada"
-          }
-        },
-        "summary": "Actualizar una opción de tratamiento existente",
-        "tags": [
-          "treatment-options"
-        ]
-      },
-      "delete": {
-        "operationId": "TreatmentOptionController_remove",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Opción marcada como eliminada"
-          },
-          "404": {
-            "description": "Opción no encontrada"
-          }
-        },
-        "summary": "Eliminar lógicamente una opción de tratamiento",
-        "tags": [
-          "treatment-options"
-        ]
-      }
-    },
     "/treatment-options/type/{type}": {
       "get": {
         "operationId": "TreatmentOptionController_findByType",
@@ -1267,6 +1187,113 @@
           }
         },
         "summary": "Encontrar la mejor opción basada en parámetros técnicos",
+        "tags": [
+          "treatment-options"
+        ]
+      }
+    },
+    "/treatment-options/{id}": {
+      "get": {
+        "operationId": "TreatmentOptionController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "summary": "Obtener una opción de tratamiento por ID",
+        "tags": [
+          "treatment-options"
+        ]
+      },
+      "put": {
+        "operationId": "TreatmentOptionController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTreatmentOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Opción actualizada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TreatmentOptionResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Requiere rol administrador"
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "summary": "Actualizar una opción de tratamiento existente",
+        "tags": [
+          "treatment-options"
+        ]
+      },
+      "delete": {
+        "operationId": "TreatmentOptionController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción marcada como eliminada"
+          },
+          "403": {
+            "description": "Requiere rol administrador"
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "summary": "Eliminar lógicamente una opción de tratamiento",
         "tags": [
           "treatment-options"
         ]
@@ -3164,6 +3191,11 @@
             "type": "string",
             "description": "Fecha del último inicio de sesión",
             "example": "2023-10-30T14:30:00Z"
+          },
+          "temporaryPassword": {
+            "type": "string",
+            "description": "Contraseña temporal generada (solo en creación; no se vuelve a devolver)",
+            "example": "a1b2c3d4e5f67890"
           }
         },
         "required": [
@@ -4102,12 +4134,12 @@
           },
           "approved": {
             "type": "boolean",
-            "description": "Indica si el valor actual cumple con el requerimiento",
+            "description": "Calculado en servidor si se omite",
             "example": true
           },
           "complianceMargin": {
             "type": "number",
-            "description": "Porcentaje de cumplimiento respecto al valor requerido (100% = cumplimiento exacto)",
+            "description": "Calculado en servidor si se omite",
             "example": 104.17
           },
           "isCritical": {
@@ -4128,6 +4160,16 @@
             "description": "Valor máximo permitido (si aplica)",
             "example": 120
           },
+          "comparisonOperator": {
+            "type": "string",
+            "description": "Operador de comparación del criterio",
+            "enum": [
+              "min",
+              "max",
+              "range"
+            ],
+            "example": "min"
+          },
           "unit": {
             "type": "string",
             "description": "Unidad de medida del valor",
@@ -4139,9 +4181,7 @@
           "name",
           "description",
           "requiredValue",
-          "actualValue",
-          "approved",
-          "complianceMargin"
+          "actualValue"
         ]
       },
       "CreateEvaluationDto": {
@@ -4176,7 +4216,7 @@
           },
           "approved": {
             "type": "boolean",
-            "description": "Resultado general de la evaluación",
+            "description": "Ignorado: la aprobación se calcula a partir de los criterios",
             "example": true
           },
           "comments": {
@@ -4215,7 +4255,6 @@
         "required": [
           "evaluationType",
           "evaluationDate",
-          "approved",
           "criteria"
         ]
       },
@@ -4484,7 +4523,7 @@
           },
           "approved": {
             "type": "boolean",
-            "description": "Resultado general de la evaluación",
+            "description": "Ignorado: la aprobación se calcula a partir de los criterios",
             "example": true
           },
           "comments": {

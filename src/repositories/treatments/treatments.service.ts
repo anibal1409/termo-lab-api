@@ -313,7 +313,7 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     if (term) {
       const normalizedTerm = normalizeText(term);
       queryBuilder.andWhere(
-        '(unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term))',
+        '(unaccent(LOWER(treatment.name)) LIKE unaccent(LOWER(:term)))',
         { term: `%${normalizedTerm}%` },
       );
     }
@@ -356,11 +356,17 @@ export class TreatmentsService implements CrudRepository<Treatment> {
   }
 
   async softDelete(id: number): Promise<void> {
-    await this.treatmentRepository.softDelete(id);
+    const treatment = await this.treatmentRepository.findOne({ where: { id } });
+    if (!treatment) throw new NotFoundException('Tratamiento no encontrado');
+    treatment.deleted = true;
+    await this.treatmentRepository.save(treatment);
   }
 
   async restore(id: number): Promise<void> {
-    await this.treatmentRepository.restore(id);
+    const treatment = await this.treatmentRepository.findOne({ where: { id } });
+    if (!treatment) throw new NotFoundException('Tratamiento no encontrado');
+    treatment.deleted = false;
+    await this.treatmentRepository.save(treatment);
   }
   /**
    * Calcula parámetros de tratamiento según fórmulas API-12L
@@ -416,12 +422,12 @@ export class TreatmentsService implements CrudRepository<Treatment> {
       heatLoss = 0;
     }
 
-    // 6. Calcular tiempo de residencia estimado
+    // 6. Tiempo de residencia de diseño (entrada), no volumen/flujo rederivado
     const maxRetentionVolume = Math.max(
       oilRetentionVolume,
       waterRetentionVolume,
     );
-    const estimatedResidenceTime = (maxRetentionVolume * 1440) / data.totalFlow;
+    const estimatedResidenceTime = data.oilRetentionTime;
 
     // 7. Validar cumplimiento API-12L
     const complianceResult = this.validateAPI12LCompliance({
@@ -575,11 +581,29 @@ export class TreatmentsService implements CrudRepository<Treatment> {
    * Obtiene constante K según velocidad del viento (API-12L)
    */
   private getWindConstant(windSpeed: number): number {
-    if (windSpeed <= 5) return 8.5;
-    if (windSpeed <= 10) return 10.2;
-    if (windSpeed <= 15) return 13.2;
-    if (windSpeed <= 20) return 16.8;
-    return 21.0; // > 20 mph
+    // Tabla API-12L (misma que thermal-calculator)
+    const kValues: Record<number, number> = {
+      0: 9.3,
+      5: 9.8,
+      10: 13.2,
+      15: 15.7,
+      20: 20.0,
+    };
+    const speeds = Object.keys(kValues)
+      .map(Number)
+      .sort((a, b) => a - b);
+    for (let i = 0; i < speeds.length - 1; i++) {
+      if (windSpeed >= speeds[i] && windSpeed <= speeds[i + 1]) {
+        const x1 = speeds[i];
+        const x2 = speeds[i + 1];
+        return (
+          kValues[x1] +
+          ((kValues[x2] - kValues[x1]) * (windSpeed - x1)) / (x2 - x1)
+        );
+      }
+    }
+    if (windSpeed <= speeds[0]) return kValues[speeds[0]];
+    return kValues[speeds[speeds.length - 1]];
   }
 
   /**
