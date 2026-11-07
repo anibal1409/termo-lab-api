@@ -2,28 +2,6 @@
   "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
   "spaces": 2,
   "generator-cli": {
-    "version": "7.3.0",
-    "generators": {
-      "angular": {
-        "generatorName": "typescript-angular",
-        "output": "./generated/api-client",
-        "inputSpec": "./swagger.json",
-        "additionalProperties": {
-          "npmName": "@termo-lab/api-client",
-          "npmVersion": "1.0.0",
-          "providedInRoot": true,
-          "basePath": "http://localhost:3333/api",
-          "apiModulePrefix": "Api",
-          "configurationPrefix": "ApiConfiguration",
-          "fileNaming": "kebab-case",
-          "useSingleRequestParameter": true,
-          "modelPropertyNaming": "original",
-          "stringEnums": true,
-          "enumPropertyNaming": "UPPERCASE",
-          "generatePublicApi": true,
-          "skipFormModel": false
-        }
-      }
-    }
+    "version": "7.14.0"
   }
 }

@@ -1,28 +1,13 @@
-import {
-  FindManyOptions,
-  Not,
-  Raw,
-  Repository,
-} from 'typeorm';
+import { FindManyOptions, Not, Raw, Repository } from 'typeorm';
 
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import {
-  PaginationDto,
-  QueryBaseDto,
-} from '../../common/pagination/dto';
+import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
 import { pagination } from '../../common/pagination/pagination';
 import { CrudRepository } from '../../common/use-case';
 import { normalizeText } from '../../common/utlis/string.utils';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  UserResponseDto,
-} from './dto';
+import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
 import { User } from './entities/user.entity';
 
 @Injectable()

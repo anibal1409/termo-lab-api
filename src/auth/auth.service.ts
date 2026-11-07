@@ -1,22 +1,13 @@
 import * as bcrypt from 'bcrypt';
-import {
-  Request,
-  Response,
-} from 'express';
+import { Request, Response } from 'express';
 import { Repository } from 'typeorm';
 
-import {
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import {
-  User,
-  UserRole,
-} from '../repositories/users/entities';
+import { User, UserRole } from '../repositories/users/entities';
 import {
   LoginResponseDto,
   LogoutResponseDto,
@@ -108,6 +99,7 @@ export class AuthService {
     return {
       success: true,
       message: 'Login successful',
+      accessToken,
       user: {
         id: user.id,
         name: user.name,

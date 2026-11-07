@@ -1,12 +1,6 @@
-import {
-  Column,
-  Entity,
-} from 'typeorm';
+import { Column, Entity } from 'typeorm';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { IdEntity } from '../../base';
 
@@ -234,7 +228,8 @@ export class ExternalTreatment extends IdEntity {
    * @description Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas
    */
   @ApiPropertyOptional({
-    description: 'Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas',
+    description:
+      'Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas',
     example: 12.0,
   })
   @Column('decimal', { precision: 10, scale: 2, nullable: true })

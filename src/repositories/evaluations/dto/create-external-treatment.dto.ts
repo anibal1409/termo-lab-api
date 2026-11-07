@@ -8,10 +8,7 @@ import {
   Min,
 } from 'class-validator';
 
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 /**
  * @description DTO para creación de tratadores externos
@@ -255,7 +252,8 @@ export class CreateExternalTreatmentDto {
    * @description Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas
    */
   @ApiPropertyOptional({
-    description: 'Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas',
+    description:
+      'Nivel desde el fondo al nivel de interfase agua-crudo en pulgadas',
     example: 12.0,
   })
   @IsNumber()

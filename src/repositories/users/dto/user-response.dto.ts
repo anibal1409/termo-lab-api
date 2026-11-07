@@ -1,13 +1,7 @@
-import {
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { BaseResponseDto } from '../../base';
-import {
-  User,
-  UserRole,
-} from '../entities/user.entity';
+import { User, UserRole } from '../entities/user.entity';
 
 /**
  * DTO para la respuesta de usuarios.

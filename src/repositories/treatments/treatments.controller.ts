@@ -21,12 +21,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { CurrentUser, Public } from '../../auth/decorators';
+import { User } from '../users/entities/user.entity';
+
 import { PaginationDto } from '../../common/pagination/dto/pagination.dto';
 import { QueryBaseDto } from '../../common/pagination/dto/query-base.dto';
-import {
-  QueryTreatmentDto,
-  TreatmentCalculationsDto,
-} from './dto';
+import { QueryTreatmentDto, TreatmentCalculationsDto } from './dto';
 import { CalculateTreatmentDto } from './dto/calculate-treatment.dto';
 import { CreateTreatmentDto } from './dto/create-treatment.dto';
 import { TreatmentResponseDto } from './dto/treatment-response.dto';
@@ -60,10 +60,12 @@ export class TreatmentsController {
   @ApiBadRequestResponse({ description: 'Datos de entrada inválidos' })
   async create(
     @Body() createTreatmentDto: CreateTreatmentDto,
+    @CurrentUser() user: User,
   ): Promise<TreatmentResponseDto> {
-    return this.treatmentsService.create(createTreatmentDto, 1);
+    return this.treatmentsService.create(createTreatmentDto, user.id);
   }
 
+  @Public() // ✅ Endpoint público - No requiere autenticación para cálculos
   @Post('calculate')
   @ApiOperation({
     summary: 'Calcular parámetros de tratamiento',
@@ -88,23 +90,23 @@ export class TreatmentsController {
   }
 
   /**
-   * Endpoint para obtener todos los tratamientos activos
+   * Endpoint para obtener todos los tratamientos activos del usuario actual
    */
   @Get('all')
-  @ApiOperation({ summary: 'Obtener todos los tratamientos activos' })
+  @ApiOperation({ summary: 'Obtener todos los tratamientos activos del usuario actual' })
   @ApiOkResponse({
-    description: 'Lista de tratamientos activos',
+    description: 'Lista de tratamientos activos del usuario',
     type: [TreatmentResponseDto],
   })
-  async findAll(): Promise<TreatmentResponseDto[]> {
-    return this.treatmentsService.findAll();
+  async findAll(@CurrentUser() user: User): Promise<TreatmentResponseDto[]> {
+    return this.treatmentsService.findAll(user.id);
   }
 
   /**
-   * Endpoint para obtener tratamientos paginados
+   * Endpoint para obtener tratamientos paginados del usuario actual
    */
   @Get()
-  @ApiOperation({ summary: 'Obtener tratamientos paginados' })
+  @ApiOperation({ summary: 'Obtener tratamientos paginados del usuario actual' })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -133,20 +135,21 @@ export class TreatmentsController {
     description: 'Campo por el cual ordenar',
   })
   @ApiOkResponse({
-    description: 'Tratamientos paginados',
+    description: 'Tratamientos paginados del usuario',
     type: PaginationDto<TreatmentResponseDto>,
   })
   async findPaginated(
     @Query() query: QueryBaseDto,
+    @CurrentUser() user: User,
   ): Promise<PaginationDto<TreatmentResponseDto>> {
-    return this.treatmentsService.findPaginated(query);
+    return this.treatmentsService.findPaginated(query, user.id);
   }
 
   /**
-   * Endpoint para obtener un tratamiento por ID
+   * Endpoint para obtener un tratamiento por ID del usuario actual
    */
   @Get(':id')
-  @ApiOperation({ summary: 'Obtener un tratamiento por ID' })
+  @ApiOperation({ summary: 'Obtener un tratamiento por ID del usuario actual' })
   @ApiParam({
     name: 'id',
     description: 'ID del tratamiento',
@@ -156,11 +159,12 @@ export class TreatmentsController {
     description: 'Tratamiento encontrado',
     type: TreatmentResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado' })
+  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado o no pertenece al usuario actual' })
   async findOne(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
   ): Promise<TreatmentResponseDto> {
-    return this.treatmentsService.findOne(id);
+    return this.treatmentsService.findOne(id, user.id);
   }
 
   /**
@@ -207,10 +211,10 @@ export class TreatmentsController {
   }
 
   /**
-   * Endpoint para actualizar un tratamiento
+   * Endpoint para actualizar un tratamiento del usuario actual
    */
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar un tratamiento' })
+  @ApiOperation({ summary: 'Actualizar un tratamiento del usuario actual' })
   @ApiParam({
     name: 'id',
     description: 'ID del tratamiento a actualizar',
@@ -224,20 +228,21 @@ export class TreatmentsController {
     description: 'Tratamiento actualizado',
     type: TreatmentResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado' })
+  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado o no pertenece al usuario actual' })
   @ApiBadRequestResponse({ description: 'Datos de entrada inválidos' })
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTreatmentDto: UpdateTreatmentDto,
+    @CurrentUser() user: User,
   ): Promise<TreatmentResponseDto> {
-    return this.treatmentsService.update(id, updateTreatmentDto);
+    return this.treatmentsService.update(id, updateTreatmentDto, user.id);
   }
 
   /**
-   * Endpoint para eliminar lógicamente un tratamiento
+   * Endpoint para eliminar lógicamente un tratamiento del usuario actual
    */
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un tratamiento (soft delete)' })
+  @ApiOperation({ summary: 'Eliminar un tratamiento del usuario actual (soft delete)' })
   @ApiParam({
     name: 'id',
     description: 'ID del tratamiento a eliminar',
@@ -250,10 +255,11 @@ export class TreatmentsController {
       properties: { message: { type: 'string' } },
     },
   })
-  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado' })
+  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado o no pertenece al usuario actual' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
   ): Promise<{ message: string }> {
-    return this.treatmentsService.remove(id);
+    return this.treatmentsService.remove(id, user.id);
   }
 }

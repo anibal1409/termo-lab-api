@@ -5,6 +5,7 @@ import { TreatmentsModule } from '../treatments/treatments.module';
 import { UsersModule } from '../users/users.module';
 import { EvaluationsController } from './controllers/evaluations.controller';
 import { ThermalCalculationsController } from './controllers/thermal-calculations.controller';
+import { ReportsController } from './controllers/reports.controller';
 import {
   Evaluation,
   EvaluationCriteria,
@@ -16,6 +17,7 @@ import {
   EvaluationCalculatorService,
   EvaluationsService,
   ThermalCalculatorService,
+  ReportGeneratorService,
 } from './services';
 
 /**
@@ -33,8 +35,23 @@ import {
     UsersModule,
     TreatmentsModule,
   ],
-  controllers: [EvaluationsController, ThermalCalculationsController],
-  providers: [EvaluationsService, EvaluationCalculatorService, ThermalCalculatorService],
-  exports: [EvaluationsService, EvaluationCalculatorService, ThermalCalculatorService, TypeOrmModule],
+  controllers: [
+    EvaluationsController,
+    ThermalCalculationsController,
+    ReportsController,
+  ],
+  providers: [
+    EvaluationsService,
+    EvaluationCalculatorService,
+    ThermalCalculatorService,
+    ReportGeneratorService,
+  ],
+  exports: [
+    EvaluationsService,
+    EvaluationCalculatorService,
+    ThermalCalculatorService,
+    ReportGeneratorService,
+    TypeOrmModule,
+  ],
 })
 export class EvaluationsModule {}

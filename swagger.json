@@ -13,6 +13,46 @@
         "tags": [
           "App"
         ]
+      },
+      "post": {
+        "operationId": "AppController_logError",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/info": {
+      "post": {
+        "operationId": "AppController_logInfo",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/warning": {
+      "post": {
+        "operationId": "AppController_logWarning",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
       }
     },
     "/auth/login": {
@@ -1645,6 +1685,74 @@
         ]
       }
     },
+    "/evaluations/templates/active": {
+      "get": {
+        "operationId": "EvaluationsController_getActiveTemplates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de plantillas activas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EvaluationTemplateResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener todas las plantillas activas",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    },
+    "/evaluations/templates/{id}": {
+      "get": {
+        "operationId": "EvaluationsController_getTemplateById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plantilla encontrada"
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "404": {
+            "description": "Plantilla no encontrada"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener plantilla por ID con criterios",
+        "tags": [
+          "Evaluations"
+        ]
+      }
+    },
     "/evaluations/from-template/{templateId}": {
       "post": {
         "operationId": "EvaluationsController_createFromTemplate",
@@ -1692,12 +1800,42 @@
     },
     "/thermal-calculations/calculate": {
       "post": {
-        "description": "Calcula todos los parámetros térmicos según la metodología del PDF y la norma API-12L",
+        "description": "Calcula todos los parámetros térmicos según la metodología del módulo de evaluación y norma API-12L",
         "operationId": "ThermalCalculationsController_calculateThermalResults",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Datos de entrada del tratador térmico según Tabla 4-1 del PDF",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Object"
+              },
+              "examples": {
+                "example1": {
+                  "summary": "Ejemplo básico",
+                  "value": {
+                    "diameter": 6,
+                    "length": 20,
+                    "totalFlow": 500,
+                    "waterFraction": 20,
+                    "apiGravity": 18,
+                    "inletTemperature": 75,
+                    "ambientTemperature": 30,
+                    "operatingPressure": 50,
+                    "treatmentTemperature": 140,
+                    "oilRetentionTime": 60,
+                    "waterRetentionTime": 30,
+                    "windSpeed": 15
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Resultados térmicos calculados exitosamente",
+            "description": "Resultados de cálculos térmicos calculados exitosamente",
             "content": {
               "application/json": {
                 "schema": {
@@ -1707,20 +1845,349 @@
             }
           },
           "400": {
-            "description": "Datos de entrada inválidos"
-          },
-          "401": {
-            "description": "No autorizado"
+            "description": "Datos de entrada inválidos o incompletos"
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
         "summary": "Calcular resultados térmicos completos",
         "tags": [
           "Thermal Calculations"
+        ]
+      }
+    },
+    "/thermal-calculations/validate-input": {
+      "post": {
+        "description": "Valida que los datos de entrada cumplan con los requisitos para cálculos térmicos",
+        "operationId": "ThermalCalculationsController_validateInput",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Datos de entrada válidos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "valid": {
+                      "type": "boolean"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          }
+        },
+        "summary": "Validar datos de entrada",
+        "tags": [
+          "Thermal Calculations"
+        ]
+      }
+    },
+    "/thermal-calculations/recommend-dimensions": {
+      "post": {
+        "description": "Genera recomendaciones de dimensiones según las tablas API-12L",
+        "operationId": "ThermalCalculationsController_recommendDimensions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Recomendaciones de dimensiones generadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "recommendedDiameter": {
+                      "type": "number"
+                    },
+                    "recommendedLength": {
+                      "type": "number"
+                    },
+                    "recommendedPressure": {
+                      "type": "number"
+                    },
+                    "fireboxArea": {
+                      "type": "number"
+                    },
+                    "fireboxCapacity": {
+                      "type": "number"
+                    },
+                    "fireboxClassification": {
+                      "type": "string"
+                    },
+                    "compliance": {
+                      "type": "boolean"
+                    },
+                    "recommendations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Recomendar dimensiones óptimas",
+        "tags": [
+          "Thermal Calculations"
+        ]
+      }
+    },
+    "/reports/evaluation-report": {
+      "post": {
+        "description": "Genera un reporte completo según el formato del Paso 9 del documento, incluyendo tabla de resultados, resumen ejecutivo y datos para gráficas",
+        "operationId": "ReportsController_generateEvaluationReport",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Datos de entrada del tratador térmico",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Object"
+              },
+              "examples": {
+                "example1": {
+                  "summary": "Ejemplo de evaluación completa",
+                  "value": {
+                    "diameter": 6,
+                    "length": 20,
+                    "totalFlow": 500,
+                    "waterFraction": 20,
+                    "apiGravity": 18,
+                    "inletTemperature": 75,
+                    "treatmentTemperature": 140,
+                    "ambientTemperature": 30,
+                    "operatingPressure": 50,
+                    "oilRetentionTime": 60,
+                    "waterRetentionTime": 30,
+                    "windSpeed": 15
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reporte de evaluación generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reportData": {
+                      "type": "object"
+                    },
+                    "resultsTable": {
+                      "type": "array"
+                    },
+                    "executiveSummary": {
+                      "type": "object"
+                    },
+                    "simulationCharts": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          }
+        },
+        "summary": "Generar reporte completo de evaluación",
+        "tags": [
+          "Evaluation Reports"
+        ]
+      }
+    },
+    "/reports/results-table": {
+      "post": {
+        "description": "Genera la tabla de resultados según el formato del Paso 9 del documento",
+        "operationId": "ReportsController_generateResultsTable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tabla de resultados generada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "parameter": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "unit": {
+                        "type": "string"
+                      },
+                      "category": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Generar tabla de resultados",
+        "tags": [
+          "Evaluation Reports"
+        ]
+      }
+    },
+    "/reports/executive-summary": {
+      "post": {
+        "description": "Genera un resumen ejecutivo del reporte de evaluación",
+        "operationId": "ReportsController_generateExecutiveSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Resumen ejecutivo generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "keyFindings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "recommendations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "compliance": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Generar resumen ejecutivo",
+        "tags": [
+          "Evaluation Reports"
+        ]
+      }
+    },
+    "/reports/simulation-charts": {
+      "post": {
+        "description": "Genera datos para las gráficas de simulación según Figuras 4-1, 4-2, 4-3 del documento",
+        "operationId": "ReportsController_generateSimulationCharts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Datos para gráficas generados exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "flowRatesChart": {
+                      "type": "object"
+                    },
+                    "retentionVolumesChart": {
+                      "type": "object"
+                    },
+                    "heatRequirementsChart": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Generar datos para gráficas de simulación",
+        "tags": [
+          "Evaluation Reports"
+        ]
+      }
+    },
+    "/reports/compliance-report": {
+      "post": {
+        "description": "Genera un reporte detallado del cumplimiento con la norma API-12L",
+        "operationId": "ReportsController_generateComplianceReport",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Reporte de cumplimiento generado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "compliant": {
+                      "type": "boolean"
+                    },
+                    "dimensionalCompliant": {
+                      "type": "boolean"
+                    },
+                    "pressureCompliant": {
+                      "type": "boolean"
+                    },
+                    "heatCapacityCompliant": {
+                      "type": "boolean"
+                    },
+                    "warnings": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "recommendations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "score": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Generar reporte de cumplimiento API-12L",
+        "tags": [
+          "Evaluation Reports"
         ]
       }
     }
@@ -1784,6 +2251,10 @@
             "type": "string",
             "description": "Mensaje descriptivo del resultado"
           },
+          "accessToken": {
+            "type": "string",
+            "description": "Token de acceso JWT"
+          },
           "user": {
             "$ref": "#/components/schemas/UserDataDto"
           },
@@ -1795,6 +2266,7 @@
         "required": [
           "success",
           "message",
+          "accessToken",
           "user",
           "expiresAt"
         ]
@@ -2453,6 +2925,26 @@
               "type": "string"
             }
           },
+          "api12lCompliance": {
+            "type": "boolean",
+            "description": "Cumplimiento con la norma API-12L",
+            "example": true
+          },
+          "complianceWarnings": {
+            "description": "Advertencias de cumplimiento API-12L",
+            "example": [
+              "Tiempo de retención insuficiente"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "separationEfficiency": {
+            "type": "number",
+            "description": "Eficiencia de separación calculada (%)",
+            "example": 92.5
+          },
           "requiredRetentionVolume": {
             "type": "number",
             "description": "Volumen de retención total requerido (bbl)",
@@ -2476,6 +2968,9 @@
           "recommendedLength",
           "recommendedPressure",
           "recommendedTreaters",
+          "api12lCompliance",
+          "complianceWarnings",
+          "separationEfficiency",
           "requiredRetentionVolume",
           "estimatedResidenceTime"
         ]
@@ -2959,6 +3454,21 @@
             "type": "number",
             "description": "ID de la plantilla utilizada (opcional)",
             "example": 1
+          },
+          "thermalCalculations": {
+            "type": "object",
+            "description": "Datos de cálculos térmicos realizados durante la evaluación (input, results, complianceWarnings)",
+            "example": {
+              "input": {
+                "diameter": 6,
+                "length": 20,
+                "totalFlow": 500,
+                "waterFraction": 20,
+                "apiGravity": 18
+              },
+              "results": {},
+              "calculatedAt": "2023-10-27T10:30:00Z"
+            }
           }
         },
         "required": [
@@ -3147,6 +3657,11 @@
               "$ref": "#/components/schemas/EvaluationCriteriaResponseDto"
             }
           },
+          "templateId": {
+            "type": "number",
+            "example": 1,
+            "description": "ID de la plantilla utilizada"
+          },
           "templateName": {
             "type": "string",
             "example": "Evaluación API-12L",
@@ -3161,6 +3676,10 @@
             "type": "number",
             "example": 85.5,
             "description": "Puntaje calculado de la evaluación"
+          },
+          "thermalCalculations": {
+            "type": "object",
+            "description": "Datos de cálculos térmicos realizados durante la evaluación (input, results, complianceWarnings)"
           },
           "treatment": {
             "description": "Tratamiento relacionado (solo para tipo internal)",
@@ -3188,8 +3707,6 @@
           "evaluationDate",
           "approved",
           "criteria",
-          "templateName",
-          "templateVersion",
           "createdAt",
           "updatedAt"
         ]
@@ -3245,8 +3762,75 @@
             "type": "number",
             "description": "ID de la plantilla utilizada (opcional)",
             "example": 1
+          },
+          "thermalCalculations": {
+            "type": "object",
+            "description": "Datos de cálculos térmicos realizados durante la evaluación (input, results, complianceWarnings)",
+            "example": {
+              "input": {
+                "diameter": 6,
+                "length": 20,
+                "totalFlow": 500,
+                "waterFraction": 20,
+                "apiGravity": 18
+              },
+              "results": {},
+              "calculatedAt": "2023-10-27T10:30:00Z"
+            }
           }
         }
+      },
+      "EvaluationTemplateResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1,
+            "description": "ID de la plantilla creada"
+          },
+          "name": {
+            "type": "string",
+            "example": "Evaluación API-12L para tratadores horizontales",
+            "description": "Nombre de la plantilla"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0",
+            "description": "Versión de la plantilla"
+          },
+          "applicableTo": {
+            "type": "string",
+            "enum": [
+              "vertical",
+              "horizontal",
+              "ambos"
+            ],
+            "example": "horizontal",
+            "description": "Tipo de tratador aplicable"
+          },
+          "criteriaCount": {
+            "type": "number",
+            "example": 5,
+            "description": "Cantidad de criterios incluidos"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2023-10-27T10:30:00Z",
+            "description": "Fecha de creación"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version",
+          "applicableTo",
+          "criteriaCount",
+          "createdAt"
+        ]
+      },
+      "Object": {
+        "type": "object",
+        "properties": {}
       },
       "ThermalCalculationResults": {
         "type": "object",
@@ -3386,6 +3970,180 @@
           "calculatedWaterDensity": {
             "type": "number",
             "description": "Densidad del agua calculada en lb/pie³"
+          },
+          "inletMixtureDensityMaximum": {
+            "type": "number",
+            "description": "Densidad de la mezcla en la boquilla de entrada para flujo máximo en lb/pie³"
+          },
+          "inletMixtureDensityOperational": {
+            "type": "number",
+            "description": "Densidad de la mezcla en la boquilla de entrada para flujo operativo en lb/pie³"
+          },
+          "inletNozzleVelocityMaximum": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de entrada para flujo máximo (pie/s)"
+          },
+          "inletNozzleVelocityOperational": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de entrada para flujo operativo (pie/s)"
+          },
+          "inletNozzleDiameterMaximum": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de entrada para flujo máximo (pulgadas)"
+          },
+          "inletNozzleDiameterOperational": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de entrada para flujo operativo (pulgadas)"
+          },
+          "oilOutletNozzleVelocityMaximum": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de salida de crudo para flujo máximo (pie/s)"
+          },
+          "oilOutletNozzleVelocityOperational": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de salida de crudo para flujo operativo (pie/s)"
+          },
+          "oilOutletNozzleDiameterMaximum": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de salida de crudo para flujo máximo (pulgadas)"
+          },
+          "oilOutletNozzleDiameterOperational": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de salida de crudo para flujo operativo (pulgadas)"
+          },
+          "waterOutletNozzleVelocityMaximum": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de salida de agua para flujo máximo (pie/s)"
+          },
+          "waterOutletNozzleVelocityOperational": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de salida de agua para flujo operativo (pie/s)"
+          },
+          "waterOutletNozzleDiameterMaximum": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de salida de agua para flujo máximo (pulgadas)"
+          },
+          "waterOutletNozzleDiameterOperational": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de salida de agua para flujo operativo (pulgadas)"
+          },
+          "gasOutletNozzleVelocityMaximum": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de salida de gas para flujo máximo (pie/s)"
+          },
+          "gasOutletNozzleVelocityOperational": {
+            "type": "number",
+            "description": "Velocidad en la boquilla de salida de gas para flujo operativo (pie/s)"
+          },
+          "gasOutletNozzleDiameterMaximum": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de salida de gas para flujo máximo (pulgadas)"
+          },
+          "gasOutletNozzleDiameterOperational": {
+            "type": "number",
+            "description": "Diámetro requerido de la boquilla de salida de gas para flujo operativo (pulgadas)"
+          },
+          "gasCompressibilityFactor": {
+            "type": "number",
+            "description": "Factor de compresibilidad del gas (Z)"
+          },
+          "gasComposition": {
+            "type": "object",
+            "description": "Composición del gas natural (%)"
+          },
+          "calculatedOilSpecificHeat": {
+            "type": "number",
+            "description": "Calor específico del crudo calculado en BTU/(lb·°F)"
+          },
+          "calculatedWaterSpecificHeat": {
+            "type": "number",
+            "description": "Calor específico del agua calculado en BTU/(lb·°F)"
+          },
+          "separationEfficiency": {
+            "type": "number",
+            "description": "Eficiencia de separación según API-12L (%)"
+          },
+          "api12lCompliance": {
+            "type": "boolean",
+            "description": "Cumplimiento con límites API-12L"
+          },
+          "complianceWarnings": {
+            "description": "Advertencias de cumplimiento",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "oilRetentionTime": {
+            "type": "number",
+            "description": "Tiempo de retención del petróleo en minutos"
+          },
+          "waterRetentionTime": {
+            "type": "number",
+            "description": "Tiempo de retención del agua en minutos"
+          },
+          "windSpeed": {
+            "type": "number",
+            "description": "Velocidad del viento en MPH"
+          },
+          "heatLosses": {
+            "type": "number",
+            "description": "Pérdidas de calor en BTU/h"
+          },
+          "processHeatDuty": {
+            "type": "number",
+            "description": "Calor absorbido por el proceso en BTU/h"
+          },
+          "recommendedDiameter": {
+            "type": "number",
+            "description": "Diámetro recomendado según API-12L en pies"
+          },
+          "recommendedLength": {
+            "type": "number",
+            "description": "Longitud recomendada según API-12L en pies"
+          },
+          "recommendedDesignPressure": {
+            "type": "number",
+            "description": "Presión de diseño recomendada en psig"
+          },
+          "recommendedVesselOrientation": {
+            "type": "string",
+            "description": "Orientación del tratador recomendada (horizontal o vertical)"
+          },
+          "minimumFireboxArea": {
+            "type": "number",
+            "description": "Área mínima de cámara de combustión en pie²"
+          },
+          "minimumHeatCapacity": {
+            "type": "number",
+            "description": "Capacidad calorífica mínima en BTU/h"
+          },
+          "fireboxClassification": {
+            "type": "string",
+            "description": "Clasificación de cámara de combustión"
+          },
+          "dimensionalCompliance": {
+            "type": "boolean",
+            "description": "Cumplimiento con dimensiones API-12L"
+          },
+          "pressureCompliance": {
+            "type": "boolean",
+            "description": "Cumplimiento con presiones de diseño"
+          },
+          "heatCapacityCompliance": {
+            "type": "boolean",
+            "description": "Cumplimiento con capacidades caloríficas"
+          },
+          "optimizationRecommendations": {
+            "description": "Recomendaciones de optimización",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "simulationData": {
+            "type": "object",
+            "description": "Datos para gráficas de simulación"
           }
         },
         "required": [
@@ -3422,7 +4180,49 @@
           "volumetricWaterFraction",
           "oilSpecificGravity",
           "calculatedOilDensity",
-          "calculatedWaterDensity"
+          "calculatedWaterDensity",
+          "inletMixtureDensityMaximum",
+          "inletMixtureDensityOperational",
+          "inletNozzleVelocityMaximum",
+          "inletNozzleVelocityOperational",
+          "inletNozzleDiameterMaximum",
+          "inletNozzleDiameterOperational",
+          "oilOutletNozzleVelocityMaximum",
+          "oilOutletNozzleVelocityOperational",
+          "oilOutletNozzleDiameterMaximum",
+          "oilOutletNozzleDiameterOperational",
+          "waterOutletNozzleVelocityMaximum",
+          "waterOutletNozzleVelocityOperational",
+          "waterOutletNozzleDiameterMaximum",
+          "waterOutletNozzleDiameterOperational",
+          "gasOutletNozzleVelocityMaximum",
+          "gasOutletNozzleVelocityOperational",
+          "gasOutletNozzleDiameterMaximum",
+          "gasOutletNozzleDiameterOperational",
+          "gasCompressibilityFactor",
+          "gasComposition",
+          "calculatedOilSpecificHeat",
+          "calculatedWaterSpecificHeat",
+          "separationEfficiency",
+          "api12lCompliance",
+          "complianceWarnings",
+          "oilRetentionTime",
+          "waterRetentionTime",
+          "windSpeed",
+          "heatLosses",
+          "processHeatDuty",
+          "recommendedDiameter",
+          "recommendedLength",
+          "recommendedDesignPressure",
+          "recommendedVesselOrientation",
+          "minimumFireboxArea",
+          "minimumHeatCapacity",
+          "fireboxClassification",
+          "dimensionalCompliance",
+          "pressureCompliance",
+          "heatCapacityCompliance",
+          "optimizationRecommendations",
+          "simulationData"
         ]
       }
     }

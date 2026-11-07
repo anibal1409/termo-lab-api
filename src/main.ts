@@ -1,22 +1,13 @@
 import * as cookieParser from 'cookie-parser';
 import * as csurf from 'csurf';
 
-import {
-  ConsoleLogger,
-  Logger,
-  ValidationPipe,
-} from '@nestjs/common';
-import {
-  NestFactory,
-  Reflector,
-} from '@nestjs/core';
-import {
-  DocumentBuilder,
-  SwaggerModule,
-} from '@nestjs/swagger';
+import { ConsoleLogger, Logger, ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -99,6 +90,9 @@ async function bootstrap() {
   // 6. Configuración de seguridad global
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
+
+  // 6.5. Configuración de manejo global de excepciones
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // 7. Iniciar aplicación
   const port = process.env.PORT || 3000;

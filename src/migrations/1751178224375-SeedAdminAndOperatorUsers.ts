@@ -1,13 +1,7 @@
 import * as bcrypt from 'bcrypt';
-import {
-  MigrationInterface,
-  QueryRunner,
-} from 'typeorm';
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
-import {
-  User,
-  UserRole,
-} from '../repositories/users/entities';
+import { User, UserRole } from '../repositories/users/entities';
 
 export class SeedAdminAndOperatorUsers1751178224375
   implements MigrationInterface
@@ -40,7 +34,7 @@ export class SeedAdminAndOperatorUsers1751178224375
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.manager.delete(User, [
       { email: 'admin@termolab.com' },
-      { email: 'operador@example.com' },
+      { email: 'operador@termolab.com' },
     ]);
   }
 }
