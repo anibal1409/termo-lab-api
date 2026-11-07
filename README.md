@@ -24,7 +24,15 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+API backend de **Termo-Lab**: diseño y evaluación de tratadores térmicos (norma API 12L), usuarios y tratamientos, motor de cálculo térmico, y control del piloto vía serial/Arduino. Construida con [NestJS](https://nestjs.com/) y TypeScript.
+
+## Documentación
+
+La documentación del proyecto está centralizada en [`docs/`](./docs/README.md):
+
+- **[Plan de acción (análisis avanzado y gemelo digital)](./docs/PLAN_ACCION_AVANZADO.md)** — fases 1–4: diagnóstico de cumplimiento, Monte Carlo, ensayos en piloto y gemelo térmico.
+- **[Fórmulas implementadas](./FORMULAS_IMPLEMENTADAS.md)** — referencia de ecuaciones en el motor térmico.
+- **[Scripts del cliente API](./API_CLIENT_SCRIPTS.md)** — generación de Swagger y cliente Angular.
 
 ## Project setup
 
@@ -97,4 +105,3 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-# termo-lab-api

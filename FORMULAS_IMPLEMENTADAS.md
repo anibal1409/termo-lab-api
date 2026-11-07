@@ -17,6 +17,8 @@ Este documento contiene todas las fórmulas implementadas en el sistema, organiz
 9. [Fórmulas de Boquillas](#9-fórmulas-de-boquillas)
 10. [Fórmulas de Evaluación](#10-fórmulas-de-evaluación)
 
+**Roadmap del motor:** extensiones previstas (diagnóstico de criterios, Monte Carlo, piloto y gemelo térmico) están en el [plan de acción avanzado](./docs/PLAN_ACCION_AVANZADO.md) ([índice de documentación](./docs/README.md)).
+
 ---
 
 ## 1. Fórmulas de Propiedades del Crudo
