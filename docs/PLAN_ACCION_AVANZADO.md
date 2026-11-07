@@ -1,6 +1,8 @@
 # Plan de acción — Análisis avanzado y gemelo digital
 
-2026-11-06
+**Última revisión:** 2026-11-06  
+**Índice de documentación:** [docs/README.md](./README.md)  
+**Borrador de referencia:** [artefacto Claude](https://claude.ai/artifact/4vZUoJggjtwYYfYAHTbBSC)
 
 Cuatro fases. Las dos primeras usan solo el motor de cálculo que ya existe y pueden empezar hoy. Las dos últimas dependen del piloto montado y de corridas reales.
 
