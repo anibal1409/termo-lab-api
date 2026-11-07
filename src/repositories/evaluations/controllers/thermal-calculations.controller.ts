@@ -1,21 +1,32 @@
-import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, HttpStatus, Query } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiOkResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 import {
   ThermalCalculatorService,
   ThermalTreatmentInput,
   ThermalCalculationResults,
 } from '../services/thermal-calculator.service';
+import {
+  ThermalAnalysisService,
+  DiagnoseResult,
+  SensitivityResult,
+  MonteCarloInput,
+  MonteCarloResult,
+} from '../services/thermal-analysis.service';
 
-/**
- * @description Controlador para cálculos térmicos de tratadores
- * Implementa la metodología completa del módulo de evaluación según API-12L
- */
 @ApiTags('Thermal Calculations')
 @Controller('thermal-calculations')
 export class ThermalCalculationsController {
   constructor(
     private readonly thermalCalculatorService: ThermalCalculatorService,
+    private readonly analysisService: ThermalAnalysisService,
   ) {}
 
   /**
@@ -212,5 +223,42 @@ export class ThermalCalculationsController {
       compliance: results.api12lCompliance,
       recommendations: results.optimizationRecommendations,
     };
+  }
+
+  @Post('diagnose')
+  @ApiOperation({
+    summary: 'Detective de fallas',
+    description:
+      'Evalúa cada criterio API 12L con valor, límite y margen. Si no cumple, sugiere el cambio mínimo en variables de diseño.',
+  })
+  @ApiOkResponse({ description: 'Diagnóstico con criterios y sugerencias' })
+  diagnose(@Body() input: ThermalTreatmentInput): DiagnoseResult {
+    return this.analysisService.diagnose(input);
+  }
+
+  @Post('sensitivity')
+  @ApiOperation({
+    summary: 'Análisis de sensibilidad (tornado)',
+    description:
+      'Mueve cada variable de diseño ±δ% y mide el cambio en el margen de cada criterio.',
+  })
+  @ApiQuery({ name: 'delta', required: false, description: 'Porcentaje de variación (default 10)' })
+  @ApiOkResponse({ description: 'Barras del tornado ordenadas por impacto' })
+  sensitivity(
+    @Body() input: ThermalTreatmentInput,
+    @Query('delta') delta?: string,
+  ): SensitivityResult {
+    return this.analysisService.sensitivity(input, delta ? +delta : 10);
+  }
+
+  @Post('monte-carlo')
+  @ApiOperation({
+    summary: 'Monte Carlo de cumplimiento',
+    description:
+      'Ejecuta N corridas con propiedades del crudo muestreadas de distribuciones. Devuelve probabilidad de cumplir por criterio y percentiles.',
+  })
+  @ApiOkResponse({ description: 'Resultado de la simulación Monte Carlo' })
+  monteCarlo(@Body() input: MonteCarloInput): MonteCarloResult {
+    return this.analysisService.monteCarlo(input);
   }
 }

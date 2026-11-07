@@ -17,6 +17,7 @@ import {
   EvaluationCalculatorService,
   EvaluationsService,
   ThermalCalculatorService,
+  ThermalAnalysisService,
   ReportGeneratorService,
 } from './services';
 
@@ -44,12 +45,14 @@ import {
     EvaluationsService,
     EvaluationCalculatorService,
     ThermalCalculatorService,
+    ThermalAnalysisService,
     ReportGeneratorService,
   ],
   exports: [
     EvaluationsService,
     EvaluationCalculatorService,
     ThermalCalculatorService,
+    ThermalAnalysisService,
     ReportGeneratorService,
     TypeOrmModule,
   ],
