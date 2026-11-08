@@ -154,12 +154,23 @@ export class TrialsController {
       eta?: number;
       ua?: number;
       cp?: number;
-      heaterSeries: TimeSeries[];
-      ambientSeries: TimeSeries[];
-      realTempSeries: TimeSeries[];
+      heaterSeries?: TimeSeries[];
+      ambientSeries?: TimeSeries[];
+      realTempSeries?: TimeSeries[];
     },
   ): Promise<TwinPoint[]> {
     const trial = await this.trialsService.findOne(id);
+
+    // Auto-load from channel readings when series not provided
+    const from = trial.startedAt;
+    const to = trial.endedAt ?? new Date();
+    const heaterSeries = body.heaterSeries
+      ?? (trial.heaterChannelId && from ? await this.trialsService.getChannelSeries(trial.heaterChannelId, from, to) : []);
+    const ambientSeries = body.ambientSeries
+      ?? (trial.ambientTempChannelId && from ? await this.trialsService.getChannelSeries(trial.ambientTempChannelId, from, to) : []);
+    const realTempSeries = body.realTempSeries
+      ?? (trial.bathTempChannelId && from ? await this.trialsService.getChannelSeries(trial.bathTempChannelId, from, to) : []);
+
     const defaults = await this.trialsService.getCalibrationDefaults(
       trial.pilotDiameter,
       trial.pilotLength,
@@ -168,16 +179,16 @@ export class TrialsController {
     const params: TwinParams = {
       mass,
       cp: body.cp ?? 1.0,
-      eta: body.eta ?? defaults?.eta ?? 0.85,
-      ua: body.ua ?? defaults?.ua ?? 5,
+      eta: body.eta ?? trial.calibratedEta ?? defaults?.eta ?? 0.85,
+      ua: body.ua ?? trial.calibratedUA ?? defaults?.ua ?? 5,
       heaterPower: trial.heaterPower,
     };
-    const T0 = body.realTempSeries[0]?.value ?? 75;
+    const T0 = realTempSeries[0]?.value ?? 75;
     return this.twinService.simulate(
       params, T0,
-      body.heaterSeries,
-      body.ambientSeries,
-      body.realTempSeries,
+      heaterSeries,
+      ambientSeries,
+      realTempSeries,
     );
   }
 
@@ -191,20 +202,30 @@ export class TrialsController {
     @Param('id', ParseIntPipe) id: number,
     @Body() body: {
       cp?: number;
-      realTemp: TimeSeries[];
-      ambientTemp: TimeSeries[];
-      heaterState: TimeSeries[];
+      realTemp?: TimeSeries[];
+      ambientTemp?: TimeSeries[];
+      heaterState?: TimeSeries[];
     },
   ): Promise<CalibrationResult> {
     const trial = await this.trialsService.findOne(id);
+    const from = trial.startedAt;
+    const to = trial.endedAt ?? new Date();
+
+    const realTemp = body.realTemp
+      ?? (trial.bathTempChannelId && from ? await this.trialsService.getChannelSeries(trial.bathTempChannelId, from, to) : []);
+    const ambientTemp = body.ambientTemp
+      ?? (trial.ambientTempChannelId && from ? await this.trialsService.getChannelSeries(trial.ambientTempChannelId, from, to) : []);
+    const heaterState = body.heaterState
+      ?? (trial.heaterChannelId && from ? await this.trialsService.getChannelSeries(trial.heaterChannelId, from, to) : []);
+
     const mass = this.twinService.pilotMass(trial.pilotDiameter, trial.pilotLength);
     const result = this.twinService.calibrate(
       mass,
       body.cp ?? 1.0,
       trial.heaterPower,
-      body.realTemp,
-      body.ambientTemp,
-      body.heaterState,
+      realTemp,
+      ambientTemp,
+      heaterState,
     );
     await this.trialsService.saveCalibration(id, result.eta, result.ua, result.rmse);
     return result;

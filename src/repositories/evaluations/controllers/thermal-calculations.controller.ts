@@ -258,7 +258,12 @@ export class ThermalCalculationsController {
       'Ejecuta N corridas con propiedades del crudo muestreadas de distribuciones. Devuelve probabilidad de cumplir por criterio y percentiles.',
   })
   @ApiOkResponse({ description: 'Resultado de la simulación Monte Carlo' })
-  monteCarlo(@Body() input: MonteCarloInput): MonteCarloResult {
+  monteCarlo(@Body() input: MonteCarloInput & Record<string, any>): MonteCarloResult {
+    // Accept flat body (same shape as diagnose + runs/seed) or nested { base, runs, seed }
+    if (!input.base && input.diameter != null) {
+      const { runs, seed, distributions, ...rest } = input as any;
+      input = { base: rest, runs, seed, distributions };
+    }
     return this.analysisService.monteCarlo(input);
   }
 }

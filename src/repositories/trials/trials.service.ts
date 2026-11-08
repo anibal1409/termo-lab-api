@@ -228,6 +228,25 @@ export class TrialsService {
     return this.trialRepo.save(trial);
   }
 
+  async getChannelSeries(
+    channelId: number,
+    from: Date,
+    to: Date,
+  ): Promise<{ t: number; value: number }[]> {
+    const readings = await this.readingRepo
+      .createQueryBuilder('r')
+      .where('r.channelId = :id', { id: channelId })
+      .andWhere('r.at BETWEEN :from AND :to', { from, to })
+      .orderBy('r.at', 'ASC')
+      .getMany();
+    if (!readings.length) return [];
+    const t0 = readings[0].at.getTime() / 1000;
+    return readings.map((r) => ({
+      t: r.at.getTime() / 1000 - t0,
+      value: r.value,
+    }));
+  }
+
   async getCalibrationDefaults(
     pilotDiameter: number,
     pilotLength: number,
