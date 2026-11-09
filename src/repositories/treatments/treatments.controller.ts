@@ -92,7 +92,9 @@ export class TreatmentsController {
    * Endpoint para obtener todos los tratamientos activos del usuario actual
    */
   @Get('all')
-  @ApiOperation({ summary: 'Obtener todos los tratamientos activos del usuario actual' })
+  @ApiOperation({
+    summary: 'Obtener todos los tratamientos activos del usuario actual',
+  })
   @ApiOkResponse({
     description: 'Lista de tratamientos activos del usuario',
     type: [TreatmentResponseDto],
@@ -105,7 +107,9 @@ export class TreatmentsController {
    * Endpoint para obtener tratamientos paginados del usuario actual
    */
   @Get()
-  @ApiOperation({ summary: 'Obtener tratamientos paginados del usuario actual' })
+  @ApiOperation({
+    summary: 'Obtener tratamientos paginados del usuario actual',
+  })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -158,7 +162,9 @@ export class TreatmentsController {
     description: 'Tratamiento encontrado',
     type: TreatmentResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado o no pertenece al usuario actual' })
+  @ApiNotFoundResponse({
+    description: 'Tratamiento no encontrado o no pertenece al usuario actual',
+  })
   async findOne(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: User,
@@ -227,7 +233,9 @@ export class TreatmentsController {
     description: 'Tratamiento actualizado',
     type: TreatmentResponseDto,
   })
-  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado o no pertenece al usuario actual' })
+  @ApiNotFoundResponse({
+    description: 'Tratamiento no encontrado o no pertenece al usuario actual',
+  })
   @ApiBadRequestResponse({ description: 'Datos de entrada inválidos' })
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -241,7 +249,9 @@ export class TreatmentsController {
    * Endpoint para eliminar lógicamente un tratamiento del usuario actual
    */
   @Delete(':id')
-  @ApiOperation({ summary: 'Eliminar un tratamiento del usuario actual (soft delete)' })
+  @ApiOperation({
+    summary: 'Eliminar un tratamiento del usuario actual (soft delete)',
+  })
   @ApiParam({
     name: 'id',
     description: 'ID del tratamiento a eliminar',
@@ -254,7 +264,9 @@ export class TreatmentsController {
       properties: { message: { type: 'string' } },
     },
   })
-  @ApiNotFoundResponse({ description: 'Tratamiento no encontrado o no pertenece al usuario actual' })
+  @ApiNotFoundResponse({
+    description: 'Tratamiento no encontrado o no pertenece al usuario actual',
+  })
   async remove(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user: User,

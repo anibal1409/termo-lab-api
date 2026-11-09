@@ -137,7 +137,10 @@ export class TrialsController {
   ): Promise<void> {
     const csv = await this.trialsService.exportCsv(id);
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename=ensayo-${id}.csv`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=ensayo-${id}.csv`,
+    );
     res.send(csv);
   }
 
@@ -150,7 +153,8 @@ export class TrialsController {
   })
   async simulate(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: {
+    @Body()
+    body: {
       eta?: number;
       ua?: number;
       cp?: number;
@@ -164,18 +168,42 @@ export class TrialsController {
     // Auto-load from channel readings when series not provided
     const from = trial.startedAt;
     const to = trial.endedAt ?? new Date();
-    const heaterSeries = body.heaterSeries
-      ?? (trial.heaterChannelId && from ? await this.trialsService.getChannelSeries(trial.heaterChannelId, from, to) : []);
-    const ambientSeries = body.ambientSeries
-      ?? (trial.ambientTempChannelId && from ? await this.trialsService.getChannelSeries(trial.ambientTempChannelId, from, to) : []);
-    const realTempSeries = body.realTempSeries
-      ?? (trial.bathTempChannelId && from ? await this.trialsService.getChannelSeries(trial.bathTempChannelId, from, to) : []);
+    const heaterSeries =
+      body.heaterSeries ??
+      (trial.heaterChannelId && from
+        ? await this.trialsService.getChannelSeries(
+            trial.heaterChannelId,
+            from,
+            to,
+          )
+        : []);
+    const ambientSeries =
+      body.ambientSeries ??
+      (trial.ambientTempChannelId && from
+        ? await this.trialsService.getChannelSeries(
+            trial.ambientTempChannelId,
+            from,
+            to,
+          )
+        : []);
+    const realTempSeries =
+      body.realTempSeries ??
+      (trial.bathTempChannelId && from
+        ? await this.trialsService.getChannelSeries(
+            trial.bathTempChannelId,
+            from,
+            to,
+          )
+        : []);
 
     const defaults = await this.trialsService.getCalibrationDefaults(
       trial.pilotDiameter,
       trial.pilotLength,
     );
-    const mass = this.twinService.pilotMass(trial.pilotDiameter, trial.pilotLength);
+    const mass = this.twinService.pilotMass(
+      trial.pilotDiameter,
+      trial.pilotLength,
+    );
     const params: TwinParams = {
       mass,
       cp: body.cp ?? 1.0,
@@ -185,7 +213,8 @@ export class TrialsController {
     };
     const T0 = realTempSeries[0]?.value ?? 75;
     return this.twinService.simulate(
-      params, T0,
+      params,
+      T0,
       heaterSeries,
       ambientSeries,
       realTempSeries,
@@ -200,7 +229,8 @@ export class TrialsController {
   })
   async calibrateTwin(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: {
+    @Body()
+    body: {
       cp?: number;
       realTemp?: TimeSeries[];
       ambientTemp?: TimeSeries[];
@@ -211,14 +241,38 @@ export class TrialsController {
     const from = trial.startedAt;
     const to = trial.endedAt ?? new Date();
 
-    const realTemp = body.realTemp
-      ?? (trial.bathTempChannelId && from ? await this.trialsService.getChannelSeries(trial.bathTempChannelId, from, to) : []);
-    const ambientTemp = body.ambientTemp
-      ?? (trial.ambientTempChannelId && from ? await this.trialsService.getChannelSeries(trial.ambientTempChannelId, from, to) : []);
-    const heaterState = body.heaterState
-      ?? (trial.heaterChannelId && from ? await this.trialsService.getChannelSeries(trial.heaterChannelId, from, to) : []);
+    const realTemp =
+      body.realTemp ??
+      (trial.bathTempChannelId && from
+        ? await this.trialsService.getChannelSeries(
+            trial.bathTempChannelId,
+            from,
+            to,
+          )
+        : []);
+    const ambientTemp =
+      body.ambientTemp ??
+      (trial.ambientTempChannelId && from
+        ? await this.trialsService.getChannelSeries(
+            trial.ambientTempChannelId,
+            from,
+            to,
+          )
+        : []);
+    const heaterState =
+      body.heaterState ??
+      (trial.heaterChannelId && from
+        ? await this.trialsService.getChannelSeries(
+            trial.heaterChannelId,
+            from,
+            to,
+          )
+        : []);
 
-    const mass = this.twinService.pilotMass(trial.pilotDiameter, trial.pilotLength);
+    const mass = this.twinService.pilotMass(
+      trial.pilotDiameter,
+      trial.pilotLength,
+    );
     const result = this.twinService.calibrate(
       mass,
       body.cp ?? 1.0,
@@ -227,15 +281,23 @@ export class TrialsController {
       ambientTemp,
       heaterState,
     );
-    await this.trialsService.saveCalibration(id, result.eta, result.ua, result.rmse);
+    await this.trialsService.saveCalibration(
+      id,
+      result.eta,
+      result.ua,
+      result.rmse,
+    );
     return result;
   }
 
   @Get(':id/twin/calibration')
   @ApiOperation({ summary: 'Estado de calibración del ensayo' })
-  async calibrationStatus(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<{ eta?: number; ua?: number; rmse?: number; calibratedTrials: number }> {
+  async calibrationStatus(@Param('id', ParseIntPipe) id: number): Promise<{
+    eta?: number;
+    ua?: number;
+    rmse?: number;
+    calibratedTrials: number;
+  }> {
     const trial = await this.trialsService.findOne(id);
     const defaults = await this.trialsService.getCalibrationDefaults(
       trial.pilotDiameter,

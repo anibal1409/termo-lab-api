@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class SeedTrialAndDeviceData1794021872973
-  implements MigrationInterface
-{
+export class SeedTrialAndDeviceData1794021872973 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ── 1. Dispositivo piloto ────────────────────────────────
     const [device] = await queryRunner.query(
@@ -13,9 +11,24 @@ export class SeedTrialAndDeviceData1794021872973
     const deviceId = device.id;
 
     // ── 2. Canales ───────────────────────────────────────────
-    const channels: { name: string; type: string; pins: string; unit: string }[] = [
-      { name: 'Temp. Baño (MAX6675)', type: 'max6675', pins: '10,13,12', unit: '°F' },
-      { name: 'Temp. Ambiente (DS18B20)', type: 'ds18b20', pins: '4,0', unit: '°F' },
+    const channels: {
+      name: string;
+      type: string;
+      pins: string;
+      unit: string;
+    }[] = [
+      {
+        name: 'Temp. Baño (MAX6675)',
+        type: 'max6675',
+        pins: '10,13,12',
+        unit: '°F',
+      },
+      {
+        name: 'Temp. Ambiente (DS18B20)',
+        type: 'ds18b20',
+        pins: '4,0',
+        unit: '°F',
+      },
       { name: 'Calentador (PWM)', type: 'pwm', pins: '9', unit: '' },
       { name: 'Nivel HC-SR04', type: 'analog_in', pins: '5', unit: 'cm' },
     ];
@@ -145,7 +158,9 @@ export class SeedTrialAndDeviceData1794021872973
 
     const sampleValues = samples
       .map((s) => {
-        const at = new Date(startTime.getTime() + s.minOffset * 60_000).toISOString();
+        const at = new Date(
+          startTime.getTime() + s.minOffset * 60_000,
+        ).toISOString();
         return `(${trial.id}, '${s.label}', ${s.value}, '${s.unit}', '${at}')`;
       })
       .join(',');
@@ -173,11 +188,23 @@ export class SeedTrialAndDeviceData1794021872973
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DELETE FROM "trial_samples"`);
     await queryRunner.query(`DELETE FROM "trials"`);
-    await queryRunner.query(`DELETE FROM "device_command_logs" WHERE "deviceId" IN (SELECT id FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED')`);
-    await queryRunner.query(`DELETE FROM "channel_readings" WHERE "channelId" IN (SELECT id FROM "device_channels" WHERE "deviceId" IN (SELECT id FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED'))`);
-    await queryRunner.query(`DELETE FROM "pid_loops" WHERE "name" = 'PID Baño → Calentador'`);
-    await queryRunner.query(`DELETE FROM "device_rules" WHERE "name" = 'Apagar calentador >180°F'`);
-    await queryRunner.query(`DELETE FROM "device_channels" WHERE "deviceId" IN (SELECT id FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED')`);
-    await queryRunner.query(`DELETE FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED'`);
+    await queryRunner.query(
+      `DELETE FROM "device_command_logs" WHERE "deviceId" IN (SELECT id FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED')`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "channel_readings" WHERE "channelId" IN (SELECT id FROM "device_channels" WHERE "deviceId" IN (SELECT id FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED'))`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "pid_loops" WHERE "name" = 'PID Baño → Calentador'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "device_rules" WHERE "name" = 'Apagar calentador >180°F'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "device_channels" WHERE "deviceId" IN (SELECT id FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED')`,
+    );
+    await queryRunner.query(
+      `DELETE FROM "devices" WHERE "path" = '/dev/ttyUSB_SEED'`,
+    );
   }
 }

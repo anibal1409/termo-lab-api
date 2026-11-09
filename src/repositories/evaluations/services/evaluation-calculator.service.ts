@@ -43,9 +43,7 @@ export class EvaluationCalculatorService {
     criteria: CalculationCriteria[],
   ): EvaluationCalculationResult {
     if (!criteria || criteria.length === 0) {
-      throw new BadRequestException(
-        'No criteria provided for calculation',
-      );
+      throw new BadRequestException('No criteria provided for calculation');
     }
 
     const processedCriteria = criteria.map((c) => ({

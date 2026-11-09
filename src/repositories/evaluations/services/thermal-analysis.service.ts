@@ -63,8 +63,7 @@ export function checkCriteria(r: ThermalCalculationResults): CriterionResult[] {
       limit: '0,1 – 2,0',
       marginPercent: zMargin(r.gasCompressibilityFactor),
       passes:
-        r.gasCompressibilityFactor >= 0.1 &&
-        r.gasCompressibilityFactor <= 2.0,
+        r.gasCompressibilityFactor >= 0.1 && r.gasCompressibilityFactor <= 2.0,
     },
   ];
 }
@@ -286,17 +285,16 @@ export class ThermalAnalysisService {
         const s = bisect(this.calc, input, v);
         if (s) suggestions.push(s);
       }
-      suggestions.sort((a, b) => Math.abs(a.changePercent) - Math.abs(b.changePercent));
+      suggestions.sort(
+        (a, b) => Math.abs(a.changePercent) - Math.abs(b.changePercent),
+      );
       suggestions.splice(3);
     }
 
     return { criteria, compliant, suggestions };
   }
 
-  sensitivity(
-    input: ThermalTreatmentInput,
-    deltaPct = 10,
-  ): SensitivityResult {
+  sensitivity(input: ThermalTreatmentInput, deltaPct = 10): SensitivityResult {
     const delta = deltaPct / 100;
     const bars: SensitivityBar[] = [];
 
@@ -304,8 +302,14 @@ export class ThermalAnalysisService {
       const current = (input[v.key] as number) ?? 0;
       if (current <= 0) continue;
 
-      const inputLo = { ...input, [v.key]: current * (1 - delta) } as ThermalTreatmentInput;
-      const inputHi = { ...input, [v.key]: current * (1 + delta) } as ThermalTreatmentInput;
+      const inputLo = {
+        ...input,
+        [v.key]: current * (1 - delta),
+      } as ThermalTreatmentInput;
+      const inputHi = {
+        ...input,
+        [v.key]: current * (1 + delta),
+      } as ThermalTreatmentInput;
 
       let criteriaLo: CriterionResult[];
       let criteriaHi: CriterionResult[];
@@ -344,10 +348,26 @@ export class ThermalAnalysisService {
     const dist = input.distributions ?? {};
 
     const defaults: Record<string, Distribution> = {
-      apiGravity: { type: 'normal', mean: input.base.apiGravity, stddev: input.base.apiGravity * 0.05 },
-      waterFraction: { type: 'normal', mean: input.base.waterFraction, stddev: input.base.waterFraction * 0.1 },
-      oilViscosity: { type: 'normal', mean: input.base.oilViscosity ?? 15.5, stddev: (input.base.oilViscosity ?? 15.5) * 0.15 },
-      waterDropSize: { type: 'normal', mean: input.base.waterDropSize ?? 150, stddev: (input.base.waterDropSize ?? 150) * 0.2 },
+      apiGravity: {
+        type: 'normal',
+        mean: input.base.apiGravity,
+        stddev: input.base.apiGravity * 0.05,
+      },
+      waterFraction: {
+        type: 'normal',
+        mean: input.base.waterFraction,
+        stddev: input.base.waterFraction * 0.1,
+      },
+      oilViscosity: {
+        type: 'normal',
+        mean: input.base.oilViscosity ?? 15.5,
+        stddev: (input.base.oilViscosity ?? 15.5) * 0.15,
+      },
+      waterDropSize: {
+        type: 'normal',
+        mean: input.base.waterDropSize ?? 150,
+        stddev: (input.base.waterDropSize ?? 150) * 0.2,
+      },
     };
 
     const dists = {
@@ -377,9 +397,18 @@ export class ThermalAnalysisService {
       const sampled: ThermalTreatmentInput = {
         ...input.base,
         apiGravity: Math.max(1, sampleDistribution(rng, dists.apiGravity)),
-        waterFraction: Math.max(0, Math.min(100, sampleDistribution(rng, dists.waterFraction))),
-        oilViscosity: Math.max(0.1, sampleDistribution(rng, dists.oilViscosity)),
-        waterDropSize: Math.max(1, sampleDistribution(rng, dists.waterDropSize)),
+        waterFraction: Math.max(
+          0,
+          Math.min(100, sampleDistribution(rng, dists.waterFraction)),
+        ),
+        oilViscosity: Math.max(
+          0.1,
+          sampleDistribution(rng, dists.oilViscosity),
+        ),
+        waterDropSize: Math.max(
+          1,
+          sampleDistribution(rng, dists.waterDropSize),
+        ),
       };
 
       let results: ThermalCalculationResults;
@@ -415,9 +444,9 @@ export class ThermalAnalysisService {
         return {
           criterion: name,
           complianceProbability: +((passCount[j] / validRuns) * 100).toFixed(2),
-          p10: +(percentile(sorted, 10)).toFixed(2),
-          p50: +(percentile(sorted, 50)).toFixed(2),
-          p90: +(percentile(sorted, 90)).toFixed(2),
+          p10: +percentile(sorted, 10).toFixed(2),
+          p50: +percentile(sorted, 50).toFixed(2),
+          p90: +percentile(sorted, 90).toFixed(2),
         };
       },
     );
@@ -425,23 +454,25 @@ export class ThermalAnalysisService {
     return {
       runs: validRuns,
       seed,
-      overallComplianceProbability: +((allPassCount / validRuns) * 100).toFixed(2),
+      overallComplianceProbability: +((allPassCount / validRuns) * 100).toFixed(
+        2,
+      ),
       criteria: criteriaStats,
       percentiles: {
         retentionTime: {
-          p10: +(percentile(sortedRetention, 10)).toFixed(2),
-          p50: +(percentile(sortedRetention, 50)).toFixed(2),
-          p90: +(percentile(sortedRetention, 90)).toFixed(2),
+          p10: +percentile(sortedRetention, 10).toFixed(2),
+          p50: +percentile(sortedRetention, 50).toFixed(2),
+          p90: +percentile(sortedRetention, 90).toFixed(2),
         },
         waterCut: {
-          p10: +(percentile(sortedWaterCut, 10)).toFixed(4),
-          p50: +(percentile(sortedWaterCut, 50)).toFixed(4),
-          p90: +(percentile(sortedWaterCut, 90)).toFixed(4),
+          p10: +percentile(sortedWaterCut, 10).toFixed(4),
+          p50: +percentile(sortedWaterCut, 50).toFixed(4),
+          p90: +percentile(sortedWaterCut, 90).toFixed(4),
         },
         totalHeatRequired: {
-          p10: +(percentile(sortedHeat, 10)).toFixed(0),
-          p50: +(percentile(sortedHeat, 50)).toFixed(0),
-          p90: +(percentile(sortedHeat, 90)).toFixed(0),
+          p10: +percentile(sortedHeat, 10).toFixed(0),
+          p50: +percentile(sortedHeat, 50).toFixed(0),
+          p90: +percentile(sortedHeat, 90).toFixed(0),
         },
       },
     };

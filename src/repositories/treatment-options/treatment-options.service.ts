@@ -1,6 +1,10 @@
 import { FindManyOptions, Raw, Repository } from 'typeorm';
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
@@ -233,14 +237,16 @@ export class TreatmentOptionService implements CrudRepository<TreatmentOption> {
     // ✅ Corregido: redondear valores a enteros porque minHeatCapacity es int en la BD
     const minHeatInt = Math.ceil(minHeat);
     const maxHeatInt = maxHeat ? Math.floor(maxHeat) : undefined;
-    
+
     const query = this.treatmentOptionRepository
       .createQueryBuilder('option')
       .where('option.minHeatCapacity >= :minHeat', { minHeat: minHeatInt })
       .andWhere('option.deleted = false');
 
     if (maxHeatInt !== undefined) {
-      query.andWhere('option.minHeatCapacity <= :maxHeat', { maxHeat: maxHeatInt });
+      query.andWhere('option.minHeatCapacity <= :maxHeat', {
+        maxHeat: maxHeatInt,
+      });
     }
 
     return query.orderBy('option.minHeatCapacity', 'ASC').getMany();

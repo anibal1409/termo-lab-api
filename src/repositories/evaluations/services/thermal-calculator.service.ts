@@ -349,7 +349,9 @@ export class ThermalCalculationResults {
   @ApiProperty({ description: 'Presión de diseño recomendada en psig' })
   recommendedDesignPressure: number;
 
-  @ApiProperty({ description: 'Orientación del tratador recomendada (horizontal o vertical)' })
+  @ApiProperty({
+    description: 'Orientación del tratador recomendada (horizontal o vertical)',
+  })
   recommendedVesselOrientation: 'horizontal' | 'vertical';
 
   @ApiProperty({ description: 'Área mínima de cámara de combustión en pie²' })
@@ -453,7 +455,9 @@ export class ThermalCalculatorService {
     results.volumetricFlowRate = input.totalFlow;
 
     // 8. Calcular densidades y peso molecular del gas (Ecuación 1.31)
-    results.gasMolecularWeight = this.calculateGasMolecularWeight(input.gasComposition);
+    results.gasMolecularWeight = this.calculateGasMolecularWeight(
+      input.gasComposition,
+    );
     results.gasDensity = this.calculateGasDensity(
       input.operatingPressure,
       input.inletTemperature,
@@ -849,8 +853,14 @@ export class ThermalCalculatorService {
     if (!input.apiGravity || input.apiGravity <= 0) {
       throw new BadRequestException('Gravedad API debe ser mayor a 0');
     }
-    if (input.waterFraction == null || input.waterFraction < 0 || input.waterFraction > 100) {
-      throw new BadRequestException('Fracción de agua debe estar entre 0 y 100');
+    if (
+      input.waterFraction == null ||
+      input.waterFraction < 0 ||
+      input.waterFraction > 100
+    ) {
+      throw new BadRequestException(
+        'Fracción de agua debe estar entre 0 y 100',
+      );
     }
     const maxLevelInches = input.diameter * 12;
     for (const [label, level] of [
@@ -1050,7 +1060,7 @@ export class ThermalCalculatorService {
     const VA = waterVolume; // Volumen de retención de agua
     const CAL = freeWaterFlowEntering; // Agua libre entrando (cAL de Ec. 35)
     const CAE = emulsifiedWaterFlowEntering; // Agua emulsionada entrando (CAE de Ec. 36)
-    
+
     const VDP = this.calculateHeavyPhaseSettlingVelocity(
       dropSize,
       waterDensity,
@@ -1443,7 +1453,7 @@ export class ThermalCalculatorService {
     // Tratadores verticales: diámetros de 3-10 ft
     const maxDiameter =
       results.recommendedVesselOrientation === 'vertical' ? 10 : 12;
-    
+
     if (
       results.recommendedDiameter < 3 ||
       results.recommendedDiameter > maxDiameter
@@ -1462,7 +1472,7 @@ export class ThermalCalculatorService {
       (results.recommendedDiameter === 8 || results.recommendedDiameter === 10)
         ? 40
         : 50;
-    
+
     if (results.recommendedDesignPressure < minPressure) {
       warnings.push(
         `Presión de diseño insuficiente: ${results.recommendedDesignPressure.toFixed(1)} psig < ${minPressure} psig mínimo para tratador ${results.recommendedVesselOrientation}`,

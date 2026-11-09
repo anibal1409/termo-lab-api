@@ -1,14 +1,26 @@
+import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { FindManyOptions, Not, Raw, Repository } from 'typeorm';
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
 import { pagination } from '../../common/pagination/pagination';
 import { CrudRepository } from '../../common/use-case';
 import { normalizeText } from '../../common/utlis/string.utils';
-import { CreateUserDto, UpdateUserDto, UserResponseDto } from './dto';
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  UpdateProfileDto,
+  UpdateUserDto,
+  UserResponseDto,
+} from './dto';
 import { User } from './entities/user.entity';
 
 const ALLOWED_SORT = new Set([
@@ -143,5 +155,41 @@ export class UsersService implements CrudRepository<User> {
     return this.usersRepository.findOne({
       where: { email, deleted: false },
     });
+  }
+
+  // ── Profile ─────────────────────────────────────────────
+
+  async getProfile(userId: number): Promise<UserResponseDto> {
+    const user = await this.findValid(userId);
+    return new UserResponseDto(user);
+  }
+
+  async updateProfile(
+    userId: number,
+    dto: UpdateProfileDto,
+  ): Promise<UserResponseDto> {
+    const user = await this.findValid(userId);
+    Object.assign(user, dto);
+    const saved = await this.usersRepository.save(user);
+    return new UserResponseDto(saved);
+  }
+
+  async changePassword(
+    userId: number,
+    dto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.usersRepository.findOne({
+      where: { id: userId, deleted: false },
+      select: ['id', 'password'],
+    });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const valid = await user.comparePassword(dto.currentPassword);
+    if (!valid) throw new UnauthorizedException('Contraseña actual incorrecta');
+
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
+    const hashed = await bcrypt.hash(dto.newPassword, saltRounds);
+    await this.usersRepository.update(userId, { password: hashed });
+    return { message: 'Contraseña actualizada exitosamente' };
   }
 }

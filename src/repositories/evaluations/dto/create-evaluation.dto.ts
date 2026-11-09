@@ -57,8 +57,7 @@ export class CreateEvaluationDto {
   evaluationDate: string;
 
   @ApiPropertyOptional({
-    description:
-      'Ignorado: la aprobación se calcula a partir de los criterios',
+    description: 'Ignorado: la aprobación se calcula a partir de los criterios',
     example: true,
   })
   @IsBoolean()

@@ -122,12 +122,54 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
 
     // Criterios API-12L reales
     const api12LCriteria = [
-      { name: 'Tiempo de retención de petróleo', desc: 'Mínimo 60 min según API-12L sección 4.5', unit: 'min', required: 60, critical: true, weight: 25 },
-      { name: 'Porcentaje de deshidratación', desc: 'Mínimo 85% para cumplir especificación de exportación', unit: '%', required: 85, critical: true, weight: 20 },
-      { name: 'Eficiencia de separación', desc: 'Mínimo 85% de eficiencia en separación gravitacional', unit: '%', required: 85, critical: true, weight: 20 },
-      { name: 'Área de gas disponible', desc: 'Área transversal disponible para flujo de gas', unit: 'pie²', required: 0.907, critical: false, weight: 10 },
-      { name: 'Corte de agua a la salida', desc: 'Máximo 2% de agua en crudo tratado', unit: '%', required: 2, critical: true, weight: 15 },
-      { name: 'Factor Z', desc: 'Factor de compresibilidad del gas entre 0.1 y 2.0', unit: '', required: 2, critical: false, weight: 10 },
+      {
+        name: 'Tiempo de retención de petróleo',
+        desc: 'Mínimo 60 min según API-12L sección 4.5',
+        unit: 'min',
+        required: 60,
+        critical: true,
+        weight: 25,
+      },
+      {
+        name: 'Porcentaje de deshidratación',
+        desc: 'Mínimo 85% para cumplir especificación de exportación',
+        unit: '%',
+        required: 85,
+        critical: true,
+        weight: 20,
+      },
+      {
+        name: 'Eficiencia de separación',
+        desc: 'Mínimo 85% de eficiencia en separación gravitacional',
+        unit: '%',
+        required: 85,
+        critical: true,
+        weight: 20,
+      },
+      {
+        name: 'Área de gas disponible',
+        desc: 'Área transversal disponible para flujo de gas',
+        unit: 'pie²',
+        required: 0.907,
+        critical: false,
+        weight: 10,
+      },
+      {
+        name: 'Corte de agua a la salida',
+        desc: 'Máximo 2% de agua en crudo tratado',
+        unit: '%',
+        required: 2,
+        critical: true,
+        weight: 15,
+      },
+      {
+        name: 'Factor Z',
+        desc: 'Factor de compresibilidad del gas entre 0.1 y 2.0',
+        unit: '',
+        required: 2,
+        critical: false,
+        weight: 10,
+      },
     ];
 
     // Escenarios de evaluación (tratamiento_id, tipo, aprobado, score, commentario)
@@ -139,14 +181,15 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
         extId: 'NULL',
         approved: i < 4, // los primeros 4 aprueban
         score: [95, 88, 72, 65, 45, 98][i] ?? 80,
-        comment: [
-          'Cumple holgadamente, crudo ligero sin problemas',
-          'Cumple con margen ajustado en retención',
-          'No cumple retención ni eficiencia de separación — crudo muy pesado',
-          'Diseño insuficiente para emulsión tenaz de Hamaca',
-          'Subdimensionado a propósito para demo de diagnóstico',
-          'Sobredimensionado, holgura en todos los criterios',
-        ][i] ?? '',
+        comment:
+          [
+            'Cumple holgadamente, crudo ligero sin problemas',
+            'Cumple con margen ajustado en retención',
+            'No cumple retención ni eficiencia de separación — crudo muy pesado',
+            'Diseño insuficiente para emulsión tenaz de Hamaca',
+            'Subdimensionado a propósito para demo de diagnóstico',
+            'Sobredimensionado, holgura en todos los criterios',
+          ][i] ?? '',
         user: (i % 2) + 1,
       })),
       // Externos
@@ -156,12 +199,13 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
         extId: e.id,
         approved: i < 2,
         score: [82, 70, 90, 55][i] ?? 75,
-        comment: [
-          'Operación estable, cumple norma con margen',
-          'Requiere aumento de temperatura para cumplir en invierno',
-          'Excelente rendimiento con crudo liviano',
-          'Sobrecargado, no cumple en condiciones pico',
-        ][i] ?? '',
+        comment:
+          [
+            'Operación estable, cumple norma con margen',
+            'Requiere aumento de temperatura para cumplir en invierno',
+            'Excelente rendimiento con crudo liviano',
+            'Sobrecargado, no cumple en condiciones pico',
+          ][i] ?? '',
         user: ((i + 1) % 2) + 1,
       })),
     ];
@@ -175,9 +219,13 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
 
       // Criterios para cada evaluación
       for (const c of api12LCriteria) {
-        const margin = sc.approved ? 5 + Math.random() * 30 : -10 - Math.random() * 40;
+        const margin = sc.approved
+          ? 5 + Math.random() * 30
+          : -10 - Math.random() * 40;
         const actual = c.name.includes('Corte de agua')
-          ? (sc.approved ? 0.5 + Math.random() * 1 : 2.5 + Math.random() * 3)
+          ? sc.approved
+            ? 0.5 + Math.random() * 1
+            : 2.5 + Math.random() * 3
           : c.required * (1 + margin / 100);
         criteriaInserts.push(
           `(${evalId}, '${c.name}', '${c.desc.replace(/'/g, "''")}', '${c.unit}', ${c.required}, ${actual.toFixed(2)},
@@ -218,9 +266,24 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
     `);
 
     const labChannels = [
-      { name: 'PT100 Baño Principal', type: 'max31865', pins: '5,23,24,25,4', unit: '°F' },
-      { name: 'DS18B20 Ambiente Lab', type: 'ds18b20', pins: '7,0', unit: '°F' },
-      { name: 'Termopar Chimenea', type: 'max6675', pins: '8,13,12', unit: '°F' },
+      {
+        name: 'PT100 Baño Principal',
+        type: 'max31865',
+        pins: '5,23,24,25,4',
+        unit: '°F',
+      },
+      {
+        name: 'DS18B20 Ambiente Lab',
+        type: 'ds18b20',
+        pins: '7,0',
+        unit: '°F',
+      },
+      {
+        name: 'Termopar Chimenea',
+        type: 'max6675',
+        pins: '8,13,12',
+        unit: '°F',
+      },
       { name: 'Relé Calentador 1', type: 'digital_out', pins: '22', unit: '' },
       { name: 'Relé Calentador 2', type: 'digital_out', pins: '23', unit: '' },
       { name: 'Sensor Nivel 1', type: 'analog_in', pins: 'A0', unit: 'cm' },
@@ -281,13 +344,25 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
       T += ((P - loss) / 80) * (1 / 60);
 
       bathReadings.push(`(${labChIds[0]}, ${T.toFixed(2)}, '${at}')`);
-      ambReadings.push(`(${labChIds[1]}, ${amb2 + Math.random() * 2 - 1}, '${at}')`);
-      chimReadings.push(`(${labChIds[2]}, ${heaterOn ? 280 + Math.random() * 20 : 120 - min * 0.5}, '${at}')`);
+      ambReadings.push(
+        `(${labChIds[1]}, ${amb2 + Math.random() * 2 - 1}, '${at}')`,
+      );
+      chimReadings.push(
+        `(${labChIds[2]}, ${heaterOn ? 280 + Math.random() * 20 : 120 - min * 0.5}, '${at}')`,
+      );
       heater1Readings.push(`(${labChIds[3]}, ${heaterOn ? 1 : 0}, '${at}')`);
-      level1Readings.push(`(${labChIds[5]}, ${10 + Math.sin(min / 15) * 2}, '${at}')`);
+      level1Readings.push(
+        `(${labChIds[5]}, ${10 + Math.sin(min / 15) * 2}, '${at}')`,
+      );
     }
 
-    for (const batch of [bathReadings, ambReadings, chimReadings, heater1Readings, level1Readings]) {
+    for (const batch of [
+      bathReadings,
+      ambReadings,
+      chimReadings,
+      heater1Readings,
+      level1Readings,
+    ]) {
       if (batch.length) {
         await queryRunner.query(
           `INSERT INTO channel_readings ("channelId", value, at) VALUES ${batch.join(',')}`,
@@ -367,15 +442,22 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
       { label: 'BSW salida (60 min)', value: 2.1, unit: '%', min: 60 },
       { label: 'BSW salida (80 min)', value: 1.5, unit: '%', min: 80 },
       { label: 'Viscosidad entrada', value: 45, unit: 'cSt', min: 0 },
-      { label: 'Viscosidad salida (60 min)', value: 18.5, unit: 'cSt', min: 60 },
+      {
+        label: 'Viscosidad salida (60 min)',
+        value: 18.5,
+        unit: 'cSt',
+        min: 60,
+      },
       { label: 'Temperatura de corte', value: 152, unit: '°F', min: 45 },
       { label: 'Gravedad API salida', value: 23.1, unit: '°API', min: 80 },
     ];
 
-    const sampleVals = trial3Samples.map((s) => {
-      const at = new Date(start2.getTime() + s.min * 60_000).toISOString();
-      return `(${trial3.id}, '${s.label}', ${s.value}, '${s.unit}', '${at}')`;
-    }).join(',');
+    const sampleVals = trial3Samples
+      .map((s) => {
+        const at = new Date(start2.getTime() + s.min * 60_000).toISOString();
+        return `(${trial3.id}, '${s.label}', ${s.value}, '${s.unit}', '${at}')`;
+      })
+      .join(',');
 
     await queryRunner.query(`
       INSERT INTO trial_samples ("trialId", label, value, unit, at)
@@ -405,9 +487,11 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
     `);
 
     // Criterios para template de crudo pesado
-    const heavyTemplateId = (await queryRunner.query(
-      `SELECT id FROM evaluation_templates WHERE name LIKE '%pesado%' ORDER BY id DESC LIMIT 1`,
-    ))[0].id;
+    const heavyTemplateId = (
+      await queryRunner.query(
+        `SELECT id FROM evaluation_templates WHERE name LIKE '%pesado%' ORDER BY id DESC LIMIT 1`,
+      )
+    )[0].id;
 
     await queryRunner.query(`
       INSERT INTO evaluation_template_criteria
@@ -431,9 +515,11 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
     `);
 
     // Criterios para template rápido
-    const quickTemplateId = (await queryRunner.query(
-      `SELECT id FROM evaluation_templates WHERE name LIKE '%rápida%' ORDER BY id DESC LIMIT 1`,
-    ))[0].id;
+    const quickTemplateId = (
+      await queryRunner.query(
+        `SELECT id FROM evaluation_templates WHERE name LIKE '%rápida%' ORDER BY id DESC LIMIT 1`,
+      )
+    )[0].id;
 
     await queryRunner.query(`
       INSERT INTO evaluation_template_criteria
@@ -455,18 +541,40 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
     // Limpiar en orden inverso de dependencias
     await queryRunner.query(`DELETE FROM trial_samples WHERE "trialId" > 2`);
     await queryRunner.query(`DELETE FROM trials WHERE id > 2`);
-    await queryRunner.query(`DELETE FROM channel_readings WHERE "channelId" IN (SELECT id FROM device_channels WHERE "deviceId" IN (SELECT id FROM devices WHERE path = '/dev/ttyACM_SEED'))`);
-    await queryRunner.query(`DELETE FROM device_command_logs WHERE "deviceId" IN (SELECT id FROM devices WHERE path = '/dev/ttyACM_SEED')`);
-    await queryRunner.query(`DELETE FROM pid_loops WHERE name LIKE 'PID Baño Principal%'`);
-    await queryRunner.query(`DELETE FROM device_rules WHERE name LIKE 'Apagar calentador 1%' OR name LIKE 'Apagar calentador 2%' OR name LIKE 'Alarma chimenea%' OR name LIKE 'Cerrar válvula%'`);
-    await queryRunner.query(`DELETE FROM device_channels WHERE "deviceId" IN (SELECT id FROM devices WHERE path = '/dev/ttyACM_SEED')`);
-    await queryRunner.query(`DELETE FROM devices WHERE path = '/dev/ttyACM_SEED'`);
-    await queryRunner.query(`DELETE FROM evaluation_template_criteria WHERE "templateId" IN (SELECT id FROM evaluation_templates WHERE name LIKE '%pesado%' OR name LIKE '%rápida%')`);
-    await queryRunner.query(`DELETE FROM evaluation_templates WHERE name LIKE '%pesado%' OR name LIKE '%rápida%'`);
-    await queryRunner.query(`DELETE FROM evaluation_criteria WHERE "evaluationId" > 3`);
+    await queryRunner.query(
+      `DELETE FROM channel_readings WHERE "channelId" IN (SELECT id FROM device_channels WHERE "deviceId" IN (SELECT id FROM devices WHERE path = '/dev/ttyACM_SEED'))`,
+    );
+    await queryRunner.query(
+      `DELETE FROM device_command_logs WHERE "deviceId" IN (SELECT id FROM devices WHERE path = '/dev/ttyACM_SEED')`,
+    );
+    await queryRunner.query(
+      `DELETE FROM pid_loops WHERE name LIKE 'PID Baño Principal%'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM device_rules WHERE name LIKE 'Apagar calentador 1%' OR name LIKE 'Apagar calentador 2%' OR name LIKE 'Alarma chimenea%' OR name LIKE 'Cerrar válvula%'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM device_channels WHERE "deviceId" IN (SELECT id FROM devices WHERE path = '/dev/ttyACM_SEED')`,
+    );
+    await queryRunner.query(
+      `DELETE FROM devices WHERE path = '/dev/ttyACM_SEED'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM evaluation_template_criteria WHERE "templateId" IN (SELECT id FROM evaluation_templates WHERE name LIKE '%pesado%' OR name LIKE '%rápida%')`,
+    );
+    await queryRunner.query(
+      `DELETE FROM evaluation_templates WHERE name LIKE '%pesado%' OR name LIKE '%rápida%'`,
+    );
+    await queryRunner.query(
+      `DELETE FROM evaluation_criteria WHERE "evaluationId" > 3`,
+    );
     await queryRunner.query(`DELETE FROM evaluations WHERE id > 3`);
-    await queryRunner.query(`DELETE FROM external_treatments WHERE name LIKE '%Campo%' OR name LIKE '%Gun Barrel%'`);
+    await queryRunner.query(
+      `DELETE FROM external_treatments WHERE name LIKE '%Campo%' OR name LIKE '%Gun Barrel%'`,
+    );
     await queryRunner.query(`DELETE FROM treatments WHERE id > 2`);
-    await queryRunner.query(`DELETE FROM users WHERE email LIKE '%@termolab.com' AND id > 2`);
+    await queryRunner.query(
+      `DELETE FROM users WHERE email LIKE '%@termolab.com' AND id > 2`,
+    );
   }
 }

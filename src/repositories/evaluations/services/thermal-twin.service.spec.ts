@@ -9,10 +9,10 @@ import {
 
 describe('Thermal Twin', () => {
   const params: TwinParams = {
-    mass: 100,       // lb
-    cp: 1.0,         // BTU/(lb·°F)
+    mass: 100, // lb
+    cp: 1.0, // BTU/(lb·°F)
     eta: 0.9,
-    ua: 10,          // BTU/(h·°F)
+    ua: 10, // BTU/(h·°F)
     heaterPower: 5000,
   };
 
@@ -38,7 +38,8 @@ describe('Thermal Twin', () => {
       const noLoss = { ...params, ua: 0 };
       const dt = 3600; // 1 hour
       const T = twinStep(noLoss, 75, 30, true, dt);
-      const expected = 75 + (noLoss.eta * noLoss.heaterPower * 1) / (noLoss.mass * noLoss.cp);
+      const expected =
+        75 + (noLoss.eta * noLoss.heaterPower * 1) / (noLoss.mass * noLoss.cp);
       expect(T).toBeCloseTo(expected, 4);
     });
   });
@@ -65,7 +66,11 @@ describe('Thermal Twin', () => {
       const trueEta = 0.85;
       const trueUA = 8;
       const trueParams: TwinParams = {
-        mass: 100, cp: 1.0, eta: trueEta, ua: trueUA, heaterPower: 5000,
+        mass: 100,
+        cp: 1.0,
+        eta: trueEta,
+        ua: trueUA,
+        heaterPower: 5000,
       };
 
       // Generate synthetic data: 30 min heating then 30 min cooling
@@ -89,7 +94,11 @@ describe('Thermal Twin', () => {
 
     it('RMSE after calibration < RMSE before', () => {
       const trueParams: TwinParams = {
-        mass: 100, cp: 1.0, eta: 0.8, ua: 12, heaterPower: 5000,
+        mass: 100,
+        cp: 1.0,
+        eta: 0.8,
+        ua: 12,
+        heaterPower: 5000,
       };
       const real: TimeSeries[] = [];
       const heater: TimeSeries[] = [];
@@ -103,7 +112,11 @@ describe('Thermal Twin', () => {
 
       // Simulate with wrong params
       const wrongParams: TwinParams = {
-        mass: 100, cp: 1.0, eta: 0.5, ua: 2, heaterPower: 5000,
+        mass: 100,
+        cp: 1.0,
+        eta: 0.5,
+        ua: 2,
+        heaterPower: 5000,
       };
       const wrongPts = simulateTwin(wrongParams, 75, heater, ambient, real);
       const wrongRmse = Math.sqrt(

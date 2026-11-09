@@ -52,9 +52,12 @@ export interface FlightRecorderRow {
 export class TrialsService {
   constructor(
     @InjectRepository(Trial) private readonly trialRepo: Repository<Trial>,
-    @InjectRepository(TrialSample) private readonly sampleRepo: Repository<TrialSample>,
-    @InjectRepository(ChannelReading) private readonly readingRepo: Repository<ChannelReading>,
-    @InjectRepository(DeviceCommandLog) private readonly logRepo: Repository<DeviceCommandLog>,
+    @InjectRepository(TrialSample)
+    private readonly sampleRepo: Repository<TrialSample>,
+    @InjectRepository(ChannelReading)
+    private readonly readingRepo: Repository<ChannelReading>,
+    @InjectRepository(DeviceCommandLog)
+    private readonly logRepo: Repository<DeviceCommandLog>,
   ) {}
 
   findAll(): Promise<Trial[]> {
@@ -97,17 +100,24 @@ export class TrialsService {
   async start(id: number): Promise<Trial> {
     const trial = await this.findOne(id);
     if (trial.state !== 'draft')
-      throw new BadRequestException(`Estado actual: ${trial.state}, solo se puede iniciar desde draft`);
+      throw new BadRequestException(
+        `Estado actual: ${trial.state}, solo se puede iniciar desde draft`,
+      );
     trial.state = 'running';
     trial.startedAt = new Date();
     trial.endedAt = null;
     return this.trialRepo.save(trial);
   }
 
-  async stop(id: number, state: 'completed' | 'aborted' = 'completed'): Promise<Trial> {
+  async stop(
+    id: number,
+    state: 'completed' | 'aborted' = 'completed',
+  ): Promise<Trial> {
     const trial = await this.findOne(id);
     if (trial.state !== 'running')
-      throw new BadRequestException(`El ensayo no está en curso (estado: ${trial.state})`);
+      throw new BadRequestException(
+        `El ensayo no está en curso (estado: ${trial.state})`,
+      );
     trial.state = state;
     trial.endedAt = new Date();
     return this.trialRepo.save(trial);
@@ -207,7 +217,9 @@ export class TrialsService {
     if (trial.samples?.length) {
       lines.push('', '# Muestras manuales', 'at,label,value,unit');
       for (const s of trial.samples) {
-        lines.push([s.at.toISOString(), s.label, s.value, s.unit ?? ''].join(','));
+        lines.push(
+          [s.at.toISOString(), s.label, s.value, s.unit ?? ''].join(','),
+        );
       }
     }
     return lines.join('\n');
@@ -260,8 +272,10 @@ export class TrialsService {
       .orderBy('t.endedAt', 'DESC')
       .getMany();
     if (calibrated.length === 0) return null;
-    const eta = calibrated.reduce((s, t) => s + t.calibratedEta!, 0) / calibrated.length;
-    const ua = calibrated.reduce((s, t) => s + t.calibratedUA!, 0) / calibrated.length;
+    const eta =
+      calibrated.reduce((s, t) => s + t.calibratedEta!, 0) / calibrated.length;
+    const ua =
+      calibrated.reduce((s, t) => s + t.calibratedUA!, 0) / calibrated.length;
     return { eta, ua, count: calibrated.length };
   }
 }

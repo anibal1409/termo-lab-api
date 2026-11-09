@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 
 import {
   ForbiddenException,
@@ -18,6 +18,7 @@ import {
 } from './dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { FaceLoginDto, EnrollFaceDto } from './dto/face-login.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 
 @Injectable()
@@ -180,6 +181,77 @@ export class AuthService {
       expiresIn,
       expiresAt,
     };
+  }
+
+  async faceLogin(
+    dto: FaceLoginDto,
+    res?: Response,
+  ): Promise<LoginResponseDto> {
+    const users = await this.userRepository.find({
+      select: ['id', 'name', 'email', 'role', 'faceEmbedding'],
+      where: { faceEmbedding: Not(IsNull()) },
+    });
+
+    let best: User | null = null;
+    let bestDist = Infinity;
+    for (const u of users) {
+      const d = Math.sqrt(
+        dto.embedding.reduce((s, v, i) => s + (v - u.faceEmbedding[i]) ** 2, 0),
+      );
+      if (d < bestDist) {
+        bestDist = d;
+        best = u;
+      }
+    }
+
+    if (!best || bestDist > 0.6) {
+      throw new UnauthorizedException('Rostro no reconocido');
+    }
+
+    const { accessToken, expiresIn, expiresAt } = this.generateToken(best);
+
+    if (res) {
+      res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: this.configService.get('NODE_ENV') === 'production',
+        sameSite: 'strict',
+        maxAge: expiresIn * 1000,
+      });
+    }
+
+    return {
+      success: true,
+      message: 'Login facial exitoso',
+      accessToken,
+      user: {
+        id: best.id,
+        name: best.name,
+        email: best.email,
+        role: best.role,
+      },
+      expiresAt: expiresAt.toISOString(),
+    };
+  }
+
+  async enrollFace(
+    userId: number,
+    dto: EnrollFaceDto,
+  ): Promise<{ success: boolean }> {
+    await this.userRepository.update(userId, { faceEmbedding: dto.embedding });
+    return { success: true };
+  }
+
+  async unenrollFace(userId: number): Promise<{ success: boolean }> {
+    await this.userRepository.update(userId, { faceEmbedding: null });
+    return { success: true };
+  }
+
+  async hasFace(userId: number): Promise<{ enrolled: boolean }> {
+    const user = await this.userRepository.findOne({
+      select: ['id', 'faceEmbedding'],
+      where: { id: userId },
+    });
+    return { enrolled: !!user?.faceEmbedding };
   }
 
   async logout(req: Request, res: Response): Promise<LogoutResponseDto> {

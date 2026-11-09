@@ -69,7 +69,9 @@ export class EvaluationsController {
    * @ApiResponse 401 - No autorizado
    */
   @Get('all')
-  @ApiOperation({ summary: 'Obtener todas las evaluaciones del usuario actual' })
+  @ApiOperation({
+    summary: 'Obtener todas las evaluaciones del usuario actual',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de evaluaciones del usuario obtenida',
@@ -81,7 +83,9 @@ export class EvaluationsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Obtener evaluaciones paginadas del usuario actual' })
+  @ApiOperation({
+    summary: 'Obtener evaluaciones paginadas del usuario actual',
+  })
   @ApiResponse({
     status: 200,
     description: 'Lista de evaluaciones paginadas del usuario',
@@ -109,7 +113,10 @@ export class EvaluationsController {
     type: EvaluationResponseDto,
   })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada o no pertenece al usuario actual' })
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
   findOne(@Param('id') id: number, @CurrentUser() user: User) {
     return this.evaluationsService.getEvaluationById(+id, user.id);
   }
@@ -123,7 +130,9 @@ export class EvaluationsController {
    * @ApiResponse 404 - Evaluación no encontrada o no pertenece al usuario actual
    */
   @Patch(':id')
-  @ApiOperation({ summary: 'Actualizar evaluación existente del usuario actual' })
+  @ApiOperation({
+    summary: 'Actualizar evaluación existente del usuario actual',
+  })
   @ApiResponse({
     status: 200,
     description: 'Evaluación actualizada',
@@ -131,7 +140,10 @@ export class EvaluationsController {
   })
   @ApiResponse({ status: 400, description: 'Datos de entrada inválidos' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada o no pertenece al usuario actual' })
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
   update(
     @Param('id') id: number,
     @Body() updateEvaluationDto: UpdateEvaluationDto,
@@ -151,7 +163,10 @@ export class EvaluationsController {
   @ApiOperation({ summary: 'Eliminar evaluación del usuario actual' })
   @ApiResponse({ status: 200, description: 'Evaluación eliminada' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada o no pertenece al usuario actual' })
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
   remove(@Param('id') id: number, @CurrentUser() user: User) {
     return this.evaluationsService.remove(+id, user.id);
   }
@@ -165,7 +180,9 @@ export class EvaluationsController {
    * @ApiResponse 404 - Evaluación no encontrada o no pertenece al usuario actual
    */
   @Post(':id/calculate')
-  @ApiOperation({ summary: 'Calcular resultado de evaluación del usuario actual' })
+  @ApiOperation({
+    summary: 'Calcular resultado de evaluación del usuario actual',
+  })
   @ApiResponse({
     status: 200,
     description: 'Resultado calculado',
@@ -173,7 +190,10 @@ export class EvaluationsController {
   })
   @ApiResponse({ status: 400, description: 'Evaluación sin criterios' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 404, description: 'Evaluación no encontrada o no pertenece al usuario actual' })
+  @ApiResponse({
+    status: 404,
+    description: 'Evaluación no encontrada o no pertenece al usuario actual',
+  })
   calculateResult(@Param('id') id: number, @CurrentUser() user: User) {
     return this.evaluationsService.calculateEvaluationResult(+id, user.id);
   }

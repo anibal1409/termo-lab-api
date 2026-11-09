@@ -32,4 +32,3 @@ export class AddThermalCalculationsToEvaluations1763061460756
     }
   }
 }
-

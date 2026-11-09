@@ -96,8 +96,16 @@ describe('ThermalAnalysisService', () => {
       const mc = svc.monteCarlo({
         base: BASE_INPUT,
         distributions: {
-          apiGravity: { type: 'normal', mean: BASE_INPUT.apiGravity, stddev: 0 },
-          waterFraction: { type: 'normal', mean: BASE_INPUT.waterFraction, stddev: 0 },
+          apiGravity: {
+            type: 'normal',
+            mean: BASE_INPUT.apiGravity,
+            stddev: 0,
+          },
+          waterFraction: {
+            type: 'normal',
+            mean: BASE_INPUT.waterFraction,
+            stddev: 0,
+          },
           oilViscosity: { type: 'normal', mean: 15.5, stddev: 0 },
           waterDropSize: { type: 'normal', mean: 150, stddev: 0 },
         },
@@ -116,7 +124,9 @@ describe('ThermalAnalysisService', () => {
       const opts = { base: BASE_INPUT, runs: 200, seed: 99 };
       const a = svc.monteCarlo(opts);
       const b = svc.monteCarlo(opts);
-      expect(a.overallComplianceProbability).toBe(b.overallComplianceProbability);
+      expect(a.overallComplianceProbability).toBe(
+        b.overallComplianceProbability,
+      );
     });
 
     it('respects max 20000 runs', () => {

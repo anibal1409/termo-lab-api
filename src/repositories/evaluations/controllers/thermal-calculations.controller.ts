@@ -242,7 +242,11 @@ export class ThermalCalculationsController {
     description:
       'Mueve cada variable de diseño ±δ% y mide el cambio en el margen de cada criterio.',
   })
-  @ApiQuery({ name: 'delta', required: false, description: 'Porcentaje de variación (default 10)' })
+  @ApiQuery({
+    name: 'delta',
+    required: false,
+    description: 'Porcentaje de variación (default 10)',
+  })
   @ApiOkResponse({ description: 'Barras del tornado ordenadas por impacto' })
   sensitivity(
     @Body() input: ThermalTreatmentInput,
@@ -258,7 +262,9 @@ export class ThermalCalculationsController {
       'Ejecuta N corridas con propiedades del crudo muestreadas de distribuciones. Devuelve probabilidad de cumplir por criterio y percentiles.',
   })
   @ApiOkResponse({ description: 'Resultado de la simulación Monte Carlo' })
-  monteCarlo(@Body() input: MonteCarloInput & Record<string, any>): MonteCarloResult {
+  monteCarlo(
+    @Body() input: MonteCarloInput & Record<string, any>,
+  ): MonteCarloResult {
     // Accept flat body (same shape as diagnose + runs/seed) or nested { base, runs, seed }
     if (!input.base && input.diameter != null) {
       const { runs, seed, distributions, ...rest } = input as any;

@@ -37,7 +37,10 @@ export class Trial extends IdEntity {
   @Column(double)
   pilotLength: number;
 
-  @ApiProperty({ description: 'Potencia del calentador (BTU/h)', example: 5000 })
+  @ApiProperty({
+    description: 'Potencia del calentador (BTU/h)',
+    example: 5000,
+  })
   @Column(double)
   heaterPower: number;
 
@@ -99,7 +102,9 @@ export class Trial extends IdEntity {
   @Column({ ...double, nullable: true })
   calibratedEta?: number;
 
-  @ApiPropertyOptional({ description: 'Coef. de pérdida de calor calibrado (BTU/h·°F)' })
+  @ApiPropertyOptional({
+    description: 'Coef. de pérdida de calor calibrado (BTU/h·°F)',
+  })
   @Column({ ...double, nullable: true })
   calibratedUA?: number;
 

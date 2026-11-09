@@ -32,8 +32,7 @@ describe('ThermalCalculatorService', () => {
     expect(results.emulsifiedWaterPercentage).toBeCloseTo(3, 5);
     // CAL = ((100-3)*waterFlow/100)*(100-85)/100
     const waterFlow = results.waterFlowRate;
-    const expected =
-      ((((100 - 3) * waterFlow) / 100) * (100 - 85)) / 100;
+    const expected = ((((100 - 3) * waterFlow) / 100) * (100 - 85)) / 100;
     expect(results.freeWaterFlowEntering).toBeCloseTo(expected, 5);
   });
 

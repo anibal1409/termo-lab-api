@@ -1,6 +1,15 @@
 import { Request, Response } from 'express';
 
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBody,
   ApiCookieAuth,
@@ -12,6 +21,8 @@ import {
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import {
+  EnrollFaceDto,
+  FaceLoginDto,
   LoginDto,
   LoginResponseDto,
   LogoutResponseDto,
@@ -19,6 +30,7 @@ import {
   RegisterResponseDto,
 } from './dto';
 import { JwtAuthGuard } from './guards';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -65,6 +77,59 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<RegisterResponseDto> {
     return this.authService.register(registerDto, res);
+  }
+
+  @Public()
+  @Post('face-login')
+  @ApiOperation({
+    summary: 'Login con reconocimiento facial',
+    description:
+      'Autentica al usuario comparando el embedding facial enviado desde el navegador',
+  })
+  @ApiBody({ type: FaceLoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login facial exitoso',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Rostro no reconocido' })
+  async faceLogin(
+    @Body() dto: FaceLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<LoginResponseDto> {
+    return this.authService.faceLogin(dto, res);
+  }
+
+  @Post('enroll-face')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Registrar rostro del usuario autenticado',
+    description:
+      'Guarda el embedding facial para permitir login por reconocimiento facial',
+  })
+  @ApiBody({ type: EnrollFaceDto })
+  @ApiResponse({ status: 200, description: 'Rostro registrado' })
+  async enrollFace(
+    @CurrentUser() user: any,
+    @Body() dto: EnrollFaceDto,
+  ): Promise<{ success: boolean }> {
+    return this.authService.enrollFace(user.id, dto);
+  }
+
+  @Delete('enroll-face')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Eliminar rostro registrado' })
+  @ApiResponse({ status: 200, description: 'Rostro eliminado' })
+  async unenrollFace(@CurrentUser() user: any): Promise<{ success: boolean }> {
+    return this.authService.unenrollFace(user.id);
+  }
+
+  @Get('face-status')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Consultar si el usuario tiene rostro registrado' })
+  @ApiResponse({ status: 200, description: 'Estado de registro facial' })
+  async faceStatus(@CurrentUser() user: any): Promise<{ enrolled: boolean }> {
+    return this.authService.hasFace(user.id);
   }
 
   @Post('logout')

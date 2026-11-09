@@ -12,7 +12,11 @@ import {
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([...TRIAL_ENTITIES, ChannelReading, DeviceCommandLog]),
+    TypeOrmModule.forFeature([
+      ...TRIAL_ENTITIES,
+      ChannelReading,
+      DeviceCommandLog,
+    ]),
   ],
   controllers: [TrialsController],
   providers: [TrialsService, ThermalTwinService],

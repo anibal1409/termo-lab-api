@@ -90,6 +90,9 @@ export class User extends IdEntity {
   @Column({ type: 'timestamp', nullable: true })
   lastLogin?: Date;
 
+  @Column({ type: 'float', array: true, nullable: true, select: false })
+  faceEmbedding?: number[];
+
   /**
    * Genera y hashea una contraseña aleatoria antes de insertar.
    */

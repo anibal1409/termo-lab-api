@@ -1,9 +1,8 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddTrials1794021872972 implements MigrationInterface {
-
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             CREATE TABLE "trials" (
                 "id" SERIAL PRIMARY KEY,
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
@@ -31,7 +30,7 @@ export class AddTrials1794021872972 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "trial_samples" (
                 "id" SERIAL PRIMARY KEY,
                 "trialId" integer NOT NULL,
@@ -43,12 +42,13 @@ export class AddTrials1794021872972 implements MigrationInterface {
             )
         `);
 
-        await queryRunner.query(`CREATE INDEX "IDX_trial_samples_trialId_at" ON "trial_samples" ("trialId", "at")`);
-    }
+    await queryRunner.query(
+      `CREATE INDEX "IDX_trial_samples_trialId_at" ON "trial_samples" ("trialId", "at")`,
+    );
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DROP TABLE "trial_samples"`);
-        await queryRunner.query(`DROP TABLE "trials"`);
-    }
-
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE "trial_samples"`);
+    await queryRunner.query(`DROP TABLE "trials"`);
+  }
 }
