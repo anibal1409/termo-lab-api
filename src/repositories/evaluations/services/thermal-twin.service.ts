@@ -64,8 +64,9 @@ export function simulateTwin(
 ): TwinPoint[] {
   if (realTempSeries.length === 0) return [];
 
-  const ambientAt = (t: number) => interpolate(ambientSeries, t);
-  const heaterAt = (t: number) => interpolate(heaterSeries, t) > 0.5;
+  const ambientAt = sampler(ambientSeries);
+  const heaterOn = sampler(heaterSeries);
+  const heaterAt = (t: number) => heaterOn(t) > 0.5;
 
   const points: TwinPoint[] = [];
   let Tsim = T0;
@@ -99,8 +100,9 @@ export function calibrate(
     return { eta: 0.85, ua: 5, rmse: Infinity, points: realTemp.length };
   }
 
-  const ambientAt = (t: number) => interpolate(ambientTemp, t);
-  const heaterAt = (t: number) => interpolate(heaterState, t) > 0.5;
+  const ambientAt = sampler(ambientTemp);
+  const heaterOn = sampler(heaterState);
+  const heaterAt = (t: number) => heaterOn(t) > 0.5;
 
   // y_i = eta * x1_i + UA * x2_i
   // where y_i = m*cp*(T[i+1]-T[i]) / dt_hr
@@ -170,21 +172,25 @@ export function calibrate(
   };
 }
 
-function interpolate(series: TimeSeries[], t: number): number {
-  if (series.length === 0) return 0;
-  if (t <= series[0].t) return series[0].value;
-  if (t >= series[series.length - 1].t) return series[series.length - 1].value;
-  for (let i = 1; i < series.length; i++) {
-    if (series[i].t >= t) {
-      const dt = series[i].t - series[i - 1].t;
-      if (dt === 0) return series[i].value;
-      const frac = (t - series[i - 1].t) / dt;
-      return (
-        series[i - 1].value + frac * (series[i].value - series[i - 1].value)
-      );
-    }
-  }
-  return series[series.length - 1].value;
+/**
+ * Interpolador lineal con cursor: O(1) amortizado para t creciente
+ * (antes O(n) por consulta → O(n²) por simulación). Si t retrocede, reinicia.
+ */
+function sampler(series: TimeSeries[]): (t: number) => number {
+  let i = 1;
+  return (t: number) => {
+    const n = series.length;
+    if (n === 0) return 0;
+    if (t <= series[0].t) return series[0].value;
+    if (t >= series[n - 1].t) return series[n - 1].value;
+    if (series[i - 1].t > t) i = 1;
+    while (series[i].t < t) i++;
+    const a = series[i - 1];
+    const b = series[i];
+    const dt = b.t - a.t;
+    if (dt === 0) return b.value;
+    return a.value + ((t - a.t) / dt) * (b.value - a.value);
+  };
 }
 
 // ── Service ────────────────────────────────────────────────

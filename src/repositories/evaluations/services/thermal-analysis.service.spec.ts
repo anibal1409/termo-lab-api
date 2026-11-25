@@ -21,10 +21,10 @@ describe('ThermalAnalysisService', () => {
   const svc = new ThermalAnalysisService(calc);
 
   describe('checkCriteria', () => {
-    it('returns 6 criteria with value, limit, margin and passes', () => {
+    it('returns 9 criteria (6 de proceso + 3 de tablas API-12L) with value, limit, margin and passes', () => {
       const results = calc.calculateThermalResults(BASE_INPUT);
       const criteria = checkCriteria(results);
-      expect(criteria).toHaveLength(6);
+      expect(criteria).toHaveLength(9);
       for (const c of criteria) {
         expect(c).toHaveProperty('criterion');
         expect(c).toHaveProperty('value');
@@ -77,7 +77,9 @@ describe('ThermalAnalysisService', () => {
         expect(z.value).toBeLessThanOrEqual(2.0);
       }
 
-      const cut = criteria.find((c) => c.criterion === 'Corte de agua a la salida')!;
+      const cut = criteria.find(
+        (c) => c.criterion === 'Corte de agua a la salida',
+      )!;
       expect(cut.value).toBeGreaterThanOrEqual(0);
       expect(cut.value).toBeLessThanOrEqual(100);
     });

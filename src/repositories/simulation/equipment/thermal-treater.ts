@@ -9,7 +9,10 @@
  * Referencia: API 12L, Stewart (2008), módulo de evaluaciones
  */
 
-import { ThermalCalculatorService } from '../../evaluations/services/thermal-calculator.service';
+import {
+  API12L_HORIZONTAL_SIZES,
+  ThermalCalculatorService,
+} from '../../evaluations/services/thermal-calculator.service';
 import {
   checkCriteria,
   CriterionResult,
@@ -111,35 +114,15 @@ export interface ThermalTreaterResult {
 const FT_TO_M = 0.3048;
 const BTU_TO_KW = 0.000293071;
 const BBL_TO_M3 = 0.158987;
-const BBL_TO_GAL = 42;
 const ATM_KPA = 101.325;
 const FT_S_TO_M_S = 0.3048;
 
-/** Tabla simplificada capacidad térmica nominal vs D×L (API 12L / práctica). */
-const NOMINAL_HEAT_TABLE: { d: number; l: number; maxHeat: number }[] = [
-  { d: 3, l: 10, maxHeat: 100000 },
-  { d: 3, l: 12, maxHeat: 120000 },
-  { d: 3, l: 15, maxHeat: 150000 },
-  { d: 4, l: 10, maxHeat: 200000 },
-  { d: 4, l: 12, maxHeat: 240000 },
-  { d: 4, l: 15, maxHeat: 300000 },
-  { d: 6, l: 10, maxHeat: 400000 },
-  { d: 6, l: 15, maxHeat: 600000 },
-  { d: 6, l: 20, maxHeat: 800000 },
-  { d: 8, l: 15, maxHeat: 800000 },
-  { d: 8, l: 20, maxHeat: 1000000 },
-  { d: 8, l: 25, maxHeat: 1250000 },
-  { d: 8, l: 30, maxHeat: 1500000 },
-  { d: 10, l: 20, maxHeat: 1500000 },
-  { d: 10, l: 30, maxHeat: 2250000 },
-  { d: 10, l: 40, maxHeat: 3000000 },
-  { d: 10, l: 50, maxHeat: 3750000 },
-  { d: 10, l: 60, maxHeat: 4500000 },
-  { d: 12, l: 30, maxHeat: 3000000 },
-  { d: 12, l: 40, maxHeat: 4000000 },
-  { d: 12, l: 50, maxHeat: 5000000 },
-  { d: 12, l: 60, maxHeat: 6000000 },
-];
+/** Tabla 4.2 API-12L (horizontales), misma fuente que ThermalCalculatorService. */
+const NOMINAL_HEAT_TABLE = API12L_HORIZONTAL_SIZES.map((row) => ({
+  d: row.diameter,
+  l: row.length,
+  maxHeat: row.maxHeat,
+}));
 
 const thermalCalculator = new ThermalCalculatorService();
 
@@ -169,12 +152,16 @@ export function calculateThermalTreater(
     const VwaterReq = (Qwater * retWater) / 1440;
     const Vtotal = Math.max(VoilReq / FILL_OIL, VwaterReq / FILL_WATER);
 
-    const ldRatio = 4;
-    D_ft = input.diameter ?? Math.pow(Vtotal / (0.1399 * ldRatio), 1 / 3);
-    D_ft = Math.ceil(D_ft * 2) / 2;
-
-    L_ft = input.length ?? D_ft * ldRatio;
-    L_ft = Math.ceil(L_ft);
+    // Menor tamaño estándar API-12L (Tabla 4.2) con volumen suficiente
+    const vol = (row: { d: number; l: number }) =>
+      0.1399 * row.d * row.d * row.l;
+    const std =
+      [...NOMINAL_HEAT_TABLE]
+        .sort((a, b) => vol(a) - vol(b))
+        .find((row) => vol(row) >= Vtotal) ??
+      NOMINAL_HEAT_TABLE[NOMINAL_HEAT_TABLE.length - 1];
+    D_ft = input.diameter ?? std.d;
+    L_ft = input.length ?? std.l;
   }
 
   const D_m = D_ft * FT_TO_M;
@@ -188,21 +175,7 @@ export function calculateThermalTreater(
   const retWaterActual = Qwater > 0 ? (VwaterActual / Qwater) * 1440 : 999;
 
   const deltaT = input.treatmentTemperature - input.inletTemperature;
-  const cpOil =
-    0.388 + 0.00045 * ((input.treatmentTemperature * 9) / 5 + 32);
-  const massFlowOil = (Qoil * BBL_TO_GAL * 8.33 * sg) / 24;
-  const Qheat = massFlowOil * cpOil * ((deltaT * 9) / 5);
-
-  const surfaceArea = Math.PI * D_ft * L_ft;
-  const Tavg_F =
-    ((input.treatmentTemperature + input.inletTemperature) / 2) * (9 / 5) + 32;
-  const Tamb_F = (input.ambientTemperature * 9) / 5 + 32;
-  const hConv = 1 + 0.225 * windSpeed;
-  const Qloss = surfaceArea * hConv * (Tavg_F - Tamb_F);
-  const Qburner = (Qheat + Qloss) / eta;
-
   const nominalCapacity = lookupNominalHeat_BTUh(D_ft, L_ft);
-  const capacityOk = Qburner <= nominalCapacity * 1.05;
 
   // BSW salida % — mejor con más ΔT y retención; más emulsionada de entrada → peor
   const emulIn =
@@ -225,7 +198,10 @@ export function calculateThermalTreater(
   const tempFactor = deltaT > 40 ? 0.7 : deltaT > 20 ? 1.0 : 1.4;
   const retFactor =
     retOilActual > retOil ? 0.75 : retOilActual > retOil * 0.5 ? 1.0 : 1.8;
-  const settleFactor = vHeavy_fts > 0.001 ? 0.9 : 1.2;
+  // Decanta si la gota recorre medio diámetro dentro del tiempo de retención del crudo
+  const settleTime_min =
+    vHeavy_fts > 0 ? D_ft / 2 / vHeavy_fts / 60 : Number.POSITIVE_INFINITY;
+  const settleFactor = settleTime_min <= retOilActual ? 0.9 : 1.2;
   const estimatedBSW = Math.max(
     0.05,
     bswBase * tempFactor * retFactor * settleFactor,
@@ -257,24 +233,13 @@ export function calculateThermalTreater(
       `BSW salida (${r(estimatedBSW, 2)} %) ≥ ${TREATER_BSW_LIMIT_PCT} % especificación`,
     );
   }
-  if (!capacityOk) {
-    warnings.push(
-      `Duty quemador (${r(Qburner / 1e6, 2)} MMBTU/h) > nominal volumétrico (${r(nominalCapacity / 1e6, 2)} MMBTU/h)`,
-    );
-  }
   if (deltaT > 80) warnings.push('ΔT > 80°C: riesgo de coquización');
   if (input.operatingPressure < 200) {
     warnings.push('Presión baja: mayor pérdida evaporativa');
   }
-  if (Qburner > 5e6) {
-    warnings.push(
-      `Capacidad del quemador (${r(Qburner / 1e6, 2)} MMBTU/h) es alta; considerar múltiples unidades`,
-    );
-  }
 
   const toF = (c: number) => (c * 9) / 5 + 32;
-  const toPsig = (kPaAbs: number) =>
-    Math.max(0, (kPaAbs - ATM_KPA) * 0.145038);
+  const toPsig = (kPaAbs: number) => Math.max(0, (kPaAbs - ATM_KPA) * 0.145038);
   const apiResults = thermalCalculator.calculateThermalResults({
     diameter: D_ft,
     length: L_ft,
@@ -291,6 +256,21 @@ export function calculateThermalTreater(
     gasFlowRate: input.gasFlowRate ?? gasFlash,
     waterDropSize: drop_um,
   });
+  // Calor según API-12L: Q = (mo·cpo + mw·cpw)·ΔT; pérdidas = K(viento)·D·L·(T2−T3)
+  const Qheat = apiResults.processHeatDuty;
+  const Qloss = apiResults.heatLosses;
+  const Qburner = (Qheat + Qloss) / eta;
+  const capacityOk = Qburner <= nominalCapacity * 1.05;
+  if (!capacityOk) {
+    warnings.push(
+      `Duty quemador (${r(Qburner / 1e6, 2)} MMBTU/h) > nominal volumétrico (${r(nominalCapacity / 1e6, 2)} MMBTU/h)`,
+    );
+  }
+  if (Qburner > 5e6) {
+    warnings.push(
+      `Capacidad del quemador (${r(Qburner / 1e6, 2)} MMBTU/h) es alta; considerar múltiples unidades`,
+    );
+  }
   const apiCriteria = checkCriteria(apiResults);
   const simCriteria: CriterionResult[] = [
     ...apiCriteria,

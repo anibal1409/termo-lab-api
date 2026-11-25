@@ -388,6 +388,54 @@ export class ThermalCalculationResults {
  * @description Servicio para cálculos térmicos según metodología del PDF
  * Implementa todas las fórmulas de la Tabla 4-2 y metodología de cálculo
  */
+/** Tabla API-12L de K (BTU/h·pie²·°F por pie de D×L) vs viento (MPH), interpolada linealmente. */
+const API12L_WIND_K: [number, number][] = [
+  [0, 9.3],
+  [5, 9.8],
+  [10, 13.2],
+  [15, 15.7],
+  [20, 20.0],
+];
+
+export function api12lWindK(windSpeed: number): number {
+  const t = API12L_WIND_K;
+  if (windSpeed <= t[0][0]) return t[0][1];
+  for (let i = 1; i < t.length; i++) {
+    const [x2, y2] = t[i];
+    if (windSpeed <= x2) {
+      const [x1, y1] = t[i - 1];
+      return y1 + ((y2 - y1) * (windSpeed - x1)) / (x2 - x1);
+    }
+  }
+  return t[t.length - 1][1];
+}
+
+/** Tabla 4.2 API-12L: tratadores horizontales (D, L en pies; presión psig; calor BTU/h). */
+export const API12L_HORIZONTAL_SIZES = [
+  { diameter: 3, length: 10, pressure: 50, maxHeat: 100000 },
+  { diameter: 3, length: 12, pressure: 50, maxHeat: 120000 },
+  { diameter: 3, length: 15, pressure: 50, maxHeat: 150000 },
+  { diameter: 4, length: 10, pressure: 50, maxHeat: 200000 },
+  { diameter: 4, length: 12, pressure: 50, maxHeat: 240000 },
+  { diameter: 4, length: 15, pressure: 50, maxHeat: 300000 },
+  { diameter: 6, length: 10, pressure: 50, maxHeat: 400000 },
+  { diameter: 6, length: 15, pressure: 50, maxHeat: 600000 },
+  { diameter: 6, length: 20, pressure: 50, maxHeat: 800000 },
+  { diameter: 8, length: 15, pressure: 50, maxHeat: 800000 },
+  { diameter: 8, length: 20, pressure: 50, maxHeat: 1000000 },
+  { diameter: 8, length: 25, pressure: 50, maxHeat: 1250000 },
+  { diameter: 8, length: 30, pressure: 50, maxHeat: 1500000 },
+  { diameter: 10, length: 20, pressure: 50, maxHeat: 1500000 },
+  { diameter: 10, length: 30, pressure: 50, maxHeat: 2250000 },
+  { diameter: 10, length: 40, pressure: 50, maxHeat: 3000000 },
+  { diameter: 10, length: 50, pressure: 50, maxHeat: 3750000 },
+  { diameter: 10, length: 60, pressure: 50, maxHeat: 4500000 },
+  { diameter: 12, length: 30, pressure: 50, maxHeat: 3000000 },
+  { diameter: 12, length: 40, pressure: 50, maxHeat: 4000000 },
+  { diameter: 12, length: 50, pressure: 50, maxHeat: 5000000 },
+  { diameter: 12, length: 60, pressure: 50, maxHeat: 6000000 },
+];
+
 @Injectable()
 export class ThermalCalculatorService {
   private readonly GAS_CONSTANT = 10.7316; // Constante de los gases
@@ -821,8 +869,16 @@ export class ThermalCalculatorService {
     results.fireboxClassification = fireboxData.classification;
 
     // 38. Validar cumplimiento API-12L
-    const complianceResult = this.validateAPI12LCompliance(results);
-    results.api12lCompliance = complianceResult.compliant;
+    const complianceResult = this.validateAPI12LCompliance(
+      results,
+      input,
+      dimensionalRecommendation.fits,
+    );
+    results.api12lCompliance =
+      complianceResult.compliant &&
+      complianceResult.dimensionalCompliant &&
+      complianceResult.pressureCompliant &&
+      complianceResult.heatCapacityCompliant;
     results.complianceWarnings = complianceResult.warnings;
     results.dimensionalCompliance = complianceResult.dimensionalCompliant;
     results.pressureCompliance = complianceResult.pressureCompliant;
@@ -1177,8 +1233,12 @@ export class ThermalCalculatorService {
     oilDensity: number,
     oilViscosity: number,
   ): number {
+    // 18.4663 = g/(18·144·cP→lb/ft·s): d en pulgadas → ft/s. d llega en µm → /25400²; ×60 → pie/min
     return (
-      (18.4663 * Math.pow(dropSize, 2) * (waterDensity - oilDensity)) /
+      ((18.4663 / 25400 ** 2) *
+        60 *
+        Math.pow(dropSize, 2) *
+        (waterDensity - oilDensity)) /
       oilViscosity
     );
   }
@@ -1388,7 +1448,11 @@ export class ThermalCalculatorService {
   /**
    * Valida el cumplimiento con la norma API-12L
    */
-  private validateAPI12LCompliance(results: ThermalCalculationResults): {
+  private validateAPI12LCompliance(
+    results: ThermalCalculationResults,
+    input: ThermalTreatmentInput,
+    tableFits: boolean,
+  ): {
     compliant: boolean;
     warnings: string[];
     dimensionalCompliant: boolean;
@@ -1452,42 +1516,36 @@ export class ThermalCalculatorService {
       compliant = false;
     }
 
-    // Validar dimensiones según Tablas 4.1 y 4.2 de API-12L
-    // Tratadores horizontales: diámetros de 3-12 ft
-    // Tratadores verticales: diámetros de 3-10 ft
+    // Validar dimensiones del equipo evaluado según Tablas 4.1 y 4.2 de API-12L
+    // Horizontales: 3-12 ft; verticales: 3-10 ft
     const maxDiameter =
       results.recommendedVesselOrientation === 'vertical' ? 10 : 12;
 
-    if (
-      results.recommendedDiameter < 3 ||
-      results.recommendedDiameter > maxDiameter
-    ) {
+    if (input.diameter < 3 || input.diameter > maxDiameter) {
       warnings.push(
-        `Diámetro fuera de rango API-12L: ${results.recommendedDiameter.toFixed(1)} ft (debe estar entre 3-${maxDiameter} ft para tratador ${results.recommendedVesselOrientation})`,
+        `Diámetro fuera de rango API-12L: ${input.diameter.toFixed(1)} ft (debe estar entre 3-${maxDiameter} ft para tratador ${results.recommendedVesselOrientation})`,
+      );
+      dimensionalCompliant = false;
+    }
+    if (!tableFits) {
+      warnings.push(
+        `Ningún tamaño estándar API-12L cubre ${results.totalHeatRequired.toFixed(0)} BTU/h y el volumen de retención; considerar múltiples unidades`,
       );
       dimensionalCompliant = false;
     }
 
-    // Validar presión de diseño según orientación
-    // Tratadores horizontales: mínimo 50 psig para todos los diámetros
-    // Tratadores verticales: mínimo 50 psig para diámetros 3-6 ft, mínimo 40 psig para 8-10 ft
-    const minPressure =
-      results.recommendedVesselOrientation === 'vertical' &&
-      (results.recommendedDiameter === 8 || results.recommendedDiameter === 10)
-        ? 40
-        : 50;
-
-    if (results.recommendedDesignPressure < minPressure) {
+    // La presión de operación no puede exceder la presión de diseño de tabla
+    if (input.operatingPressure > results.recommendedDesignPressure) {
       warnings.push(
-        `Presión de diseño insuficiente: ${results.recommendedDesignPressure.toFixed(1)} psig < ${minPressure} psig mínimo para tratador ${results.recommendedVesselOrientation}`,
+        `Presión de operación ${input.operatingPressure.toFixed(1)} psig > presión de diseño API-12L ${results.recommendedDesignPressure} psig: requiere recipiente de mayor clase`,
       );
       pressureCompliant = false;
     }
 
-    // Validar capacidad calorífica mínima
-    if (results.minimumHeatCapacity < 100000) {
+    // Cámara de combustión: densidad de flujo 10.000 BTU/h·pie² (Tabla 3)
+    if (results.totalHeatRequired > results.minimumHeatCapacity) {
       warnings.push(
-        `Capacidad calorífica insuficiente: ${results.minimumHeatCapacity.toFixed(0)} BTU/h < 100,000 BTU/h mínimo`,
+        `Calor requerido ${results.totalHeatRequired.toFixed(0)} BTU/h > capacidad máxima de cámara ${results.minimumHeatCapacity.toFixed(0)} BTU/h`,
       );
       heatCapacityCompliant = false;
     }
@@ -1531,45 +1589,9 @@ export class ThermalCalculatorService {
     ambientTemp: number,
     windSpeed: number,
   ): number {
-    // Constante K según velocidad del viento (Tabla API-12L)
-    const kValues = {
-      0: 9.3,
-      5: 9.8,
-      10: 13.2,
-      15: 15.7,
-      20: 20.0,
-    };
-
-    const k = this.getKValueForWindSpeed(windSpeed, kValues);
-    return k * diameter * length * (treatmentTemp - ambientTemp);
-  }
-
-  /**
-   * Obtiene valor K según velocidad del viento
-   */
-  private getKValueForWindSpeed(
-    windSpeed: number,
-    kValues: Record<number, number>,
-  ): number {
-    const speeds = Object.keys(kValues)
-      .map(Number)
-      .sort((a, b) => a - b);
-
-    for (let i = 0; i < speeds.length - 1; i++) {
-      if (windSpeed >= speeds[i] && windSpeed <= speeds[i + 1]) {
-        // Interpolación lineal
-        const x1 = speeds[i];
-        const x2 = speeds[i + 1];
-        const y1 = kValues[x1];
-        const y2 = kValues[x2];
-
-        return y1 + ((y2 - y1) * (windSpeed - x1)) / (x2 - x1);
-      }
-    }
-
-    // Si está fuera del rango, usar el valor más cercano
-    if (windSpeed <= speeds[0]) return kValues[speeds[0]];
-    return kValues[speeds[speeds.length - 1]];
+    return (
+      api12lWindK(windSpeed) * diameter * length * (treatmentTemp - ambientTemp)
+    );
   }
 
   /**
@@ -1599,33 +1621,7 @@ export class ThermalCalculatorService {
     oilVolume: number,
     waterVolume: number,
     orientation: 'horizontal' | 'vertical' = 'horizontal',
-  ): { diameter: number; length: number; pressure: number } {
-    // Tabla 4.2: Dimensiones para tratadores horizontales
-    const horizontalDimensions = [
-      { diameter: 3, length: 10, pressure: 50, maxHeat: 100000 },
-      { diameter: 3, length: 12, pressure: 50, maxHeat: 120000 },
-      { diameter: 3, length: 15, pressure: 50, maxHeat: 150000 },
-      { diameter: 4, length: 10, pressure: 50, maxHeat: 200000 },
-      { diameter: 4, length: 12, pressure: 50, maxHeat: 240000 },
-      { diameter: 4, length: 15, pressure: 50, maxHeat: 300000 },
-      { diameter: 6, length: 10, pressure: 50, maxHeat: 400000 },
-      { diameter: 6, length: 15, pressure: 50, maxHeat: 600000 },
-      { diameter: 6, length: 20, pressure: 50, maxHeat: 800000 },
-      { diameter: 8, length: 15, pressure: 50, maxHeat: 800000 },
-      { diameter: 8, length: 20, pressure: 50, maxHeat: 1000000 },
-      { diameter: 8, length: 25, pressure: 50, maxHeat: 1250000 },
-      { diameter: 8, length: 30, pressure: 50, maxHeat: 1500000 },
-      { diameter: 10, length: 20, pressure: 50, maxHeat: 1500000 },
-      { diameter: 10, length: 30, pressure: 50, maxHeat: 2250000 },
-      { diameter: 10, length: 40, pressure: 50, maxHeat: 3000000 },
-      { diameter: 10, length: 50, pressure: 50, maxHeat: 3750000 },
-      { diameter: 10, length: 60, pressure: 50, maxHeat: 4500000 },
-      { diameter: 12, length: 30, pressure: 50, maxHeat: 3000000 },
-      { diameter: 12, length: 40, pressure: 50, maxHeat: 4000000 },
-      { diameter: 12, length: 50, pressure: 50, maxHeat: 5000000 },
-      { diameter: 12, length: 60, pressure: 50, maxHeat: 6000000 },
-    ];
-
+  ): { diameter: number; length: number; pressure: number; fits: boolean } {
     // Tabla 4.1: Dimensiones para tratadores verticales
     const verticalDimensions = [
       { diameter: 3, length: 10, pressure: 50, maxHeat: 100000 },
@@ -1646,7 +1642,7 @@ export class ThermalCalculatorService {
 
     // Seleccionar la tabla según la orientación
     const dimensions =
-      orientation === 'vertical' ? verticalDimensions : horizontalDimensions;
+      orientation === 'vertical' ? verticalDimensions : API12L_HORIZONTAL_SIZES;
 
     // Encontrar la configuración más adecuada
     // oilVolume/waterVolume están en pie³; calculateVolume también en pie³
@@ -1664,6 +1660,7 @@ export class ThermalCalculatorService {
         diameter: largest.diameter,
         length: largest.length,
         pressure: largest.pressure,
+        fits: false,
       };
     }
 
@@ -1676,6 +1673,7 @@ export class ThermalCalculatorService {
       diameter: selected.diameter,
       length: selected.length,
       pressure: selected.pressure,
+      fits: true,
     };
   }
 

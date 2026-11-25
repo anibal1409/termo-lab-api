@@ -130,10 +130,10 @@ export class ThermalCalculationsController {
       if (!input.apiGravity || input.apiGravity <= 0) {
         errors.push('Gravedad API debe ser mayor a 0');
       }
-      if (!input.inletTemperature) {
+      if (input.inletTemperature == null) {
         errors.push('Temperatura de entrada es requerida');
       }
-      if (!input.ambientTemperature) {
+      if (input.ambientTemperature == null) {
         errors.push('Temperatura ambiente es requerida');
       }
       if (!input.operatingPressure || input.operatingPressure <= 0) {

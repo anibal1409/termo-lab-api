@@ -1,3 +1,4 @@
+import { api12lWindK } from '../evaluations/services/thermal-calculator.service';
 import { Repository } from 'typeorm';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -410,23 +411,23 @@ export class TreatmentsService implements CrudRepository<Treatment> {
           treater.length,
         );
         const totalHeat = requiredHeat + heatLoss; // Qtotal = Q + Qpérdida según API-12L
+        // La capacidad del tratador debe cubrir Q + pérdidas, no solo Q
+        if (treater.minHeatCapacity < totalHeat) continue;
 
         if (totalHeat < minTotalHeat) {
           minTotalHeat = totalHeat;
           bestTreater = { ...treater, totalHeat, heatLoss };
         }
       }
-    } else {
-      // Si no hay tratadores candidatos, usar valores por defecto
+    }
+    if (!bestTreater) {
+      // Ningún candidato cubre Q + pérdidas
       minTotalHeat = requiredHeat;
       heatLoss = 0;
     }
 
     // 6. Tiempo de residencia de diseño (entrada), no volumen/flujo rederivado
-    const maxRetentionVolume = Math.max(
-      oilRetentionVolume,
-      waterRetentionVolume,
-    );
+    const maxRetentionVolume = oilRetentionVolume + waterRetentionVolume;
     const estimatedResidenceTime = data.oilRetentionTime;
 
     // 7. Validar cumplimiento API-12L
@@ -570,40 +571,11 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     diameter: number,
     length: number,
   ): number {
-    const K = this.getWindConstant(data.windSpeed);
+    const K = api12lWindK(data.windSpeed);
 
     return (
       K * diameter * length * (data.targetTemperature - data.ambientTemperature)
     );
-  }
-
-  /**
-   * Obtiene constante K según velocidad del viento (API-12L)
-   */
-  private getWindConstant(windSpeed: number): number {
-    // Tabla API-12L (misma que thermal-calculator)
-    const kValues: Record<number, number> = {
-      0: 9.3,
-      5: 9.8,
-      10: 13.2,
-      15: 15.7,
-      20: 20.0,
-    };
-    const speeds = Object.keys(kValues)
-      .map(Number)
-      .sort((a, b) => a - b);
-    for (let i = 0; i < speeds.length - 1; i++) {
-      if (windSpeed >= speeds[i] && windSpeed <= speeds[i + 1]) {
-        const x1 = speeds[i];
-        const x2 = speeds[i + 1];
-        return (
-          kValues[x1] +
-          ((kValues[x2] - kValues[x1]) * (windSpeed - x1)) / (x2 - x1)
-        );
-      }
-    }
-    if (windSpeed <= speeds[0]) return kValues[speeds[0]];
-    return kValues[speeds[speeds.length - 1]];
   }
 
   /**
@@ -622,10 +594,8 @@ export class TreatmentsService implements CrudRepository<Treatment> {
     oilRetentionVolume: number,
     waterRetentionVolume: number,
   ): Promise<TreatmentOption[]> {
-    const maxRetentionVolume = Math.max(
-      oilRetentionVolume,
-      waterRetentionVolume,
-    );
+    // Crudo y agua conviven en el recipiente: se requiere la suma
+    const requiredVolume = oilRetentionVolume + waterRetentionVolume;
 
     if (!this.treatmentOptionRepository) {
       throw new Error('treatmentOptionRepository no está disponible');
@@ -655,7 +625,7 @@ export class TreatmentsService implements CrudRepository<Treatment> {
           option.diameter,
           option.length,
         );
-        return internalVolume >= maxRetentionVolume;
+        return internalVolume >= requiredVolume;
       } catch {
         return false;
       }

@@ -51,8 +51,7 @@ export function checkCriteria(r: ThermalCalculationResults): CriterionResult[] {
       limit: '≥ 85 %',
       marginPercent: ((r.separationEfficiency - 85) / 85) * 100,
       passes:
-        Number.isFinite(r.separationEfficiency) &&
-        r.separationEfficiency >= 85,
+        Number.isFinite(r.separationEfficiency) && r.separationEfficiency >= 85,
     },
     {
       criterion: 'Área de gas',
@@ -65,7 +64,8 @@ export function checkCriteria(r: ThermalCalculationResults): CriterionResult[] {
         ? ((r.gasArea - (requiredGas || 0)) / r.gasArea) * 100
         : -100,
       // 0/0 no cuenta como cumple: hace falta área disponible válida
-      passes: gasAreaOk && Number.isFinite(requiredGas) && requiredGas <= r.gasArea,
+      passes:
+        gasAreaOk && Number.isFinite(requiredGas) && requiredGas <= r.gasArea,
     },
     {
       criterion: 'Corte de agua a la salida',
@@ -80,6 +80,23 @@ export function checkCriteria(r: ThermalCalculationResults): CriterionResult[] {
       limit: '0,1 – 2,0',
       marginPercent: zFinite ? zMargin(z) : -100,
       passes: zFinite && z >= 0.1 && z <= 2.0,
+    },
+    ...normFlag('Dimensiones API-12L', r.dimensionalCompliance),
+    ...normFlag('Presión de diseño API-12L', r.pressureCompliance),
+    ...normFlag('Capacidad de cámara API-12L', r.heatCapacityCompliance),
+  ];
+}
+
+/** Criterio pasa/no pasa de tablas API-12L; omitido si el resultado no lo trae. */
+function normFlag(criterion: string, ok?: boolean): CriterionResult[] {
+  if (ok == null) return [];
+  return [
+    {
+      criterion,
+      value: ok ? 1 : 0,
+      limit: 'cumple',
+      marginPercent: ok ? 0 : -100,
+      passes: ok,
     },
   ];
 }
@@ -121,8 +138,8 @@ interface DesignVar {
 }
 
 const DESIGN_VARS: DesignVar[] = [
-  { key: 'diameter', label: 'Diámetro', unit: 'pies', lo: 1, hi: 20 },
-  { key: 'length', label: 'Longitud', unit: 'pies', lo: 5, hi: 60 },
+  { key: 'diameter', label: 'Diámetro', unit: 'pies', lo: 3, hi: 12 },
+  { key: 'length', label: 'Longitud', unit: 'pies', lo: 10, hi: 60 },
   {
     key: 'treatmentTemperature',
     label: 'Temperatura de tratamiento',
@@ -176,9 +193,10 @@ function bisect(
     if (!testVal(lo)) return null;
     for (let i = 0; i < 30; i++) {
       const mid = (lo + hi) / 2;
-      if (testVal(mid)) hi = mid;
-      else lo = mid;
+      if (testVal(mid)) lo = mid;
+      else hi = mid;
     }
+    hi = lo; // valor que pasa, más cercano al actual
   } else {
     for (let i = 0; i < 30; i++) {
       const mid = (lo + hi) / 2;
@@ -398,14 +416,9 @@ export class ThermalAnalysisService {
       waterDropSize: dist.waterDropSize ?? defaults.waterDropSize,
     };
 
-    const criterionNames = [
-      'Tiempo de retención',
-      'Deshidratación',
-      'Eficiencia de separación',
-      'Área de gas',
-      'Corte de agua a la salida',
-      'Factor Z',
-    ];
+    const criterionNames = checkCriteria(
+      this.calc.calculateThermalResults(input.base),
+    ).map((c) => c.criterion);
     const passCount = new Array(criterionNames.length).fill(0);
     const margins: number[][] = criterionNames.map(() => []);
     let allPassCount = 0;

@@ -69,7 +69,8 @@ export function stewartDropRange(
 
 /**
  * Velocidad de decantación Stokes (fase pesada en liviana), ft/s.
- * V = 18.4663 · d² · (ρw − ρo) / μo   (d en µm, ρ en lb/ft³, μ en cP)
+ * V = 18.4663 · d² · (ρw − ρo) / μo con d en pulgadas (ρ lb/ft³, μ cP);
+ * d llega en µm → se divide entre 25400².
  */
 export function stokesSettlingVelocity_fts(
   dropSize_um: number,
@@ -79,7 +80,7 @@ export function stokesSettlingVelocity_fts(
 ): number {
   const mu = Math.max(oilViscosity_cP, 0.1);
   return (
-    (18.4663 *
+    ((18.4663 / 25400 ** 2) *
       dropSize_um *
       dropSize_um *
       (waterDensity_lbft3 - oilDensity_lbft3)) /
