@@ -41,6 +41,46 @@ describe('ThermalAnalysisService', () => {
         if (c.passes) expect(c.marginPercent).toBeGreaterThanOrEqual(0);
       }
     });
+
+    it('caso 8×32 ft / 5000 BPD: deshidratación ≤100 % y valores coherentes', () => {
+      // Mismo caso reportado: 9 % agua, 22 °API, 176→284 °F, 72.5 psig, 86 °F amb
+      const results = calc.calculateThermalResults({
+        diameter: 8,
+        length: 32,
+        totalFlow: 5000,
+        waterFraction: 9,
+        apiGravity: 22,
+        inletTemperature: 176,
+        treatmentTemperature: 284,
+        ambientTemperature: 86,
+        operatingPressure: 72.5,
+        oilRetentionTime: 60,
+        waterRetentionTime: 30,
+        windSpeed: 10,
+        gasFlowRate: 0.5,
+      });
+      const criteria = checkCriteria(results);
+      const dehy = criteria.find((c) => c.criterion === 'Deshidratación')!;
+      expect(dehy.value).toBeLessThanOrEqual(100);
+      expect(dehy.value).toBeGreaterThanOrEqual(0);
+
+      const gas = criteria.find((c) => c.criterion === 'Área de gas')!;
+      expect(results.gasArea).toBeGreaterThan(0);
+      // Con gasFlow > 0, required no debería ser un “0 vacío” que aprueba solo
+      expect(Number.isFinite(gas.value)).toBe(true);
+
+      const z = criteria.find((c) => c.criterion === 'Factor Z')!;
+      expect(Number.isFinite(z.value)).toBe(true);
+      // Z no debe estar forzado artificialmente al borde 0.1 si el solver converge
+      if (z.passes) {
+        expect(z.value).toBeGreaterThanOrEqual(0.1);
+        expect(z.value).toBeLessThanOrEqual(2.0);
+      }
+
+      const cut = criteria.find((c) => c.criterion === 'Corte de agua a la salida')!;
+      expect(cut.value).toBeGreaterThanOrEqual(0);
+      expect(cut.value).toBeLessThanOrEqual(100);
+    });
   });
 
   describe('diagnose', () => {

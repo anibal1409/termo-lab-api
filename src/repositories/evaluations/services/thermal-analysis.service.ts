@@ -16,56 +16,77 @@ export interface CriterionResult {
 }
 
 export function checkCriteria(r: ThermalCalculationResults): CriterionResult[] {
+  const dehydration = clampPercent(r.dehydrationPercentage);
+  const waterCut = effectiveWaterCut({
+    ...r,
+    dehydrationPercentage: dehydration,
+  });
+  const z = r.gasCompressibilityFactor;
+  const zFinite = Number.isFinite(z);
+  const gasAreaOk = Number.isFinite(r.gasArea) && r.gasArea > 0;
+  const requiredGas = Number.isFinite(r.requiredGasArea)
+    ? r.requiredGasArea
+    : Number.NaN;
+
   return [
     {
       criterion: 'Tiempo de retención',
       value: r.estimatedRetentionTime,
       limit: '≥ 60 min',
       marginPercent: ((r.estimatedRetentionTime - 60) / 60) * 100,
-      passes: r.estimatedRetentionTime >= 60,
+      passes:
+        Number.isFinite(r.estimatedRetentionTime) &&
+        r.estimatedRetentionTime >= 60,
     },
     {
       criterion: 'Deshidratación',
-      value: r.dehydrationPercentage,
+      value: dehydration,
       limit: '≥ 85 %',
-      marginPercent: ((r.dehydrationPercentage - 85) / 85) * 100,
-      passes: r.dehydrationPercentage >= 85,
+      marginPercent: ((dehydration - 85) / 85) * 100,
+      passes: dehydration >= 85,
     },
     {
       criterion: 'Eficiencia de separación',
       value: r.separationEfficiency,
       limit: '≥ 85 %',
       marginPercent: ((r.separationEfficiency - 85) / 85) * 100,
-      passes: r.separationEfficiency >= 85,
+      passes:
+        Number.isFinite(r.separationEfficiency) &&
+        r.separationEfficiency >= 85,
     },
     {
       criterion: 'Área de gas',
-      value: r.requiredGasArea,
-      limit: `≤ ${r.gasArea.toFixed(3)} pie²`,
-      marginPercent:
-        r.gasArea > 0
-          ? ((r.gasArea - r.requiredGasArea) / r.gasArea) * 100
-          : r.requiredGasArea === 0
-            ? 100
-            : -100,
-      passes: r.requiredGasArea <= r.gasArea,
+      // Valor: área requerida; el límite cita la disponible
+      value: Number.isFinite(requiredGas) ? requiredGas : 0,
+      limit: gasAreaOk
+        ? `≤ ${r.gasArea.toFixed(3)} pie² disponible`
+        : 'área disponible > 0 (no evaluable)',
+      marginPercent: gasAreaOk
+        ? ((r.gasArea - (requiredGas || 0)) / r.gasArea) * 100
+        : -100,
+      // 0/0 no cuenta como cumple: hace falta área disponible válida
+      passes: gasAreaOk && Number.isFinite(requiredGas) && requiredGas <= r.gasArea,
     },
     {
       criterion: 'Corte de agua a la salida',
-      value: effectiveWaterCut(r),
+      value: waterCut,
       limit: '≤ 2 %',
-      marginPercent: ((2 - effectiveWaterCut(r)) / 2) * 100,
-      passes: effectiveWaterCut(r) <= 2,
+      marginPercent: ((2 - waterCut) / 2) * 100,
+      passes: Number.isFinite(waterCut) && waterCut <= 2,
     },
     {
       criterion: 'Factor Z',
-      value: r.gasCompressibilityFactor,
+      value: zFinite ? z : Number.NaN,
       limit: '0,1 – 2,0',
-      marginPercent: zMargin(r.gasCompressibilityFactor),
-      passes:
-        r.gasCompressibilityFactor >= 0.1 && r.gasCompressibilityFactor <= 2.0,
+      marginPercent: zFinite ? zMargin(z) : -100,
+      passes: zFinite && z >= 0.1 && z <= 2.0,
     },
   ];
+}
+
+function clampPercent(v: number): number {
+  if (!Number.isFinite(v) || v < 0) return 0;
+  return Math.min(100, v);
 }
 
 // ponytail: dehydration > 100% means all water removed; the raw waterCut formula goes negative then wraps positive — clamp to 0

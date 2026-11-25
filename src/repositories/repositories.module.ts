@@ -6,6 +6,7 @@ import { TreatmentOptionsModule } from './treatment-options/treatment-options.mo
 import { EvaluationsModule } from './evaluations/evaluations.module';
 import { DevicesModule } from './devices/devices.module';
 import { TrialsModule } from './trials/trials.module';
+import { SimulationModule } from './simulation/simulation.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { TrialsModule } from './trials/trials.module';
     EvaluationsModule,
     DevicesModule,
     TrialsModule,
+    SimulationModule,
   ],
 })
 export class RepositoriesModule {}

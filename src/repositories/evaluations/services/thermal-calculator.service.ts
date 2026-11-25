@@ -1081,7 +1081,10 @@ export class ThermalCalculatorService {
       return 0;
     }
 
-    return (100 * (VA / 5.6146)) / denominator;
+    // Capacidad > demanda se reporta como 100 % (no tiene sentido físico >100)
+    const raw = (100 * (VA / 5.6146)) / denominator;
+    if (!Number.isFinite(raw) || raw < 0) return 0;
+    return Math.min(100, raw);
   }
 
   // Ecuación 1.20: Flujo másico del crudo
@@ -1318,51 +1321,52 @@ export class ThermalCalculatorService {
     const a = 0.8355419;
     const b = 0.3803384;
 
-    // Calcular A y B según ecuaciones 1.2 y 1.3
+    // A y B según ecuaciones 1.2 y 1.3 (P en psia, T en °R)
     const A =
       (a * pressure) /
       (Math.pow(this.GAS_CONSTANT, 2) * Math.pow(temperature, 2));
     const B = (b * pressure) / (this.GAS_CONSTANT * temperature);
 
-    // Resolver ecuación cúbica usando método de Newton-Raphson
+    // Z³ - (1-B)Z² + (A-3B²-2B)Z - (AB-B²-B³) = 0
+    // → forma Z³ + αZ² + βZ + γ = 0
     return this.solveCubicEquation(
-      1 - B,
+      -(1 - B),
       A - 3 * Math.pow(B, 2) - 2 * B,
-      A * B - Math.pow(B, 2) - Math.pow(B, 3),
+      -(A * B - Math.pow(B, 2) - Math.pow(B, 3)),
     );
   }
 
   /**
-   * Resuelve ecuación cúbica usando método de Newton-Raphson
-   * x³ + ax² + bx + c = 0
+   * Resuelve Z³ + aZ² + bZ + c = 0 (Newton-Raphson).
+   * Arranca en Z≈1 (raíz vapor típica); no fuerza el rango 0.1–2.0.
    */
   private solveCubicEquation(a: number, b: number, c: number): number {
-    // Convertir a forma estándar: x³ + ax² + bx + c = 0
-    const A = a;
-    const B = b;
-    const C = c;
-
-    // Método de Newton-Raphson
-    let x = 0.5; // Valor inicial
-    const tolerance = 1e-6;
+    const tolerance = 1e-8;
     const maxIterations = 100;
+    const seeds = [1.0, 0.5, 1.5, 0.1];
 
-    for (let i = 0; i < maxIterations; i++) {
-      const fx = Math.pow(x, 3) + A * Math.pow(x, 2) + B * x + C;
-      const fpx = 3 * Math.pow(x, 2) + 2 * A * x + B;
-
-      if (Math.abs(fpx) < tolerance) break;
-
-      const newX = x - fx / fpx;
-
-      if (Math.abs(newX - x) < tolerance) {
-        return Math.max(0.1, Math.min(2.0, newX)); // Limitar entre 0.1 y 2.0
+    for (const seed of seeds) {
+      let x = seed;
+      let converged = false;
+      for (let i = 0; i < maxIterations; i++) {
+        const fx = Math.pow(x, 3) + a * Math.pow(x, 2) + b * x + c;
+        const fpx = 3 * Math.pow(x, 2) + 2 * a * x + b;
+        if (Math.abs(fpx) < tolerance) break;
+        const newX = x - fx / fpx;
+        if (!Number.isFinite(newX)) break;
+        if (Math.abs(newX - x) < tolerance) {
+          x = newX;
+          converged = Math.abs(fx) < 1e-6;
+          break;
+        }
+        x = newX;
       }
-
-      x = newX;
+      if (converged && Number.isFinite(x) && x > 0) {
+        return x;
+      }
     }
 
-    return Math.max(0.1, Math.min(2.0, x)); // Limitar entre 0.1 y 2.0
+    return Number.NaN;
   }
 
   /**
