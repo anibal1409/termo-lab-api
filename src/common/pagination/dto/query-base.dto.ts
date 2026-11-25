@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, Matches } from 'class-validator';
 
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -61,6 +61,10 @@ export class QueryBaseDto {
   })
   @IsOptional() // Indica que este campo es opcional
   @IsString() // Valida que el campo sea una cadena si está presente
+  // Se interpola en ORDER BY: solo identificadores, evita inyección SQL
+  @Matches(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/, {
+    message: 'sort debe ser un nombre de campo válido.',
+  })
   sort?: string;
 
   /**

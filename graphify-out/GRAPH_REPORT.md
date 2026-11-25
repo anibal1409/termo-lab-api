@@ -1,41 +1,40 @@
-# Graph Report - termo-lab-api  (2026-11-24)
+# Graph Report - termo-lab-api  (2026-11-25)
 
 ## Corpus Check
-- 216 files · ~99,979 words
+- 241 files · ~112,910 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 4 file(s) not represented in the graph (top: (none) 2, .example 1, .ino 1)
 
 ## Summary
-- 1839 nodes · 4261 edges · 108 communities (62 shown, 46 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 142 edges (avg confidence: 0.85)
+- 2078 nodes · 4809 edges · 134 communities (65 shown, 69 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 153 edges (avg confidence: 0.85)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `33d23ec6`
+- Built from commit: `1231fbd3`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- TreatmentOptionController
-- TreatmentOptionResponseDto
+- AppSettingsDto
+- evaluations.module.ts
 - UserResponseDto
 - ThermalCalculatorService
 - devices.dto.ts
 - DevicesController
 - package.json
-- trials.controller.ts
+- TrialsController
 - dependencies
-- TreatmentsService
 - DevicesService
 - QueryBaseDto
 - scripts
-- evaluations.service.ts
+- QueryEvaluationDto
 - treatments.service.ts
 - additionalProperties
-- ThermalTreatmentInput
-- TreatmentOptionService
+- .generateEvaluationReport
+- trials.controller.ts
 - app.module.ts
-- treatment-options.service.ts
+- Trial
 - users.service.ts
 - CurrentUser
 - typeorm
@@ -47,12 +46,12 @@
 - control.ts
 - Evaluation
 - main.ts
-- CreateTreatmentDto
+- ThermalTreatmentInputDto
 - CreateExternalTreatmentDto
 - CreateEvaluationDto
 - ThermalCalculationsController
 - TreatmentResponseDto
-- auth.service.ts
+- .faceLogin
 - 4. Fórmulas de Flujos y Caudales
 - trials.service.ts
 - SerialConnection
@@ -63,12 +62,12 @@
 - 5. Fórmulas de Áreas y Volúmenes
 - jest
 - ChannelType
-- users/entities/index.ts
+- bcrypt
 - AddTrials1794021872972
 - SeedTrialAndDeviceData1794021872973
 - Fórmulas Implementadas en el Sistema Termo-Lab
 - 7. Fórmulas de Decantación
-- generate-swagger.ts
+- auth.service.ts
 - 10. Fórmulas de Evaluación
 - 9. Fórmulas de Boquillas
 - nest-cli.json
@@ -90,12 +89,12 @@
 - AddThermalCalculationsToEvaluations1763061460756
 - AddTemplateIdToEvaluations1763061460757
 - IdCreateEntity
-- storage-tank.ts
-- evaluation-calculator.service.ts
-- thermo/index.ts
+- treatment-options.service.ts
+- thermal-twin.service.ts
+- thermal-calculator.service.ts
 - start-backend-debug.sh
-- QueryTreatmentDto
-- CreateTreatmentOptionDto
+- ReportGeneratorService
+- PdfService
 - EvaluationCriteria
 - CreateUserDto
 - simulation-runner.ts
@@ -103,102 +102,122 @@
 - UsersService
 - @nestjs/swagger
 - .changePassword
-- repositories.module.ts
+- PipelineFeedDto
+- SimulationController
+- Treatment
+- @nestjs/common
+- AuthService
+- auth/dto/index.ts
 - equipment.controller.ts
-- eos.ts
+- FaceLoginDto
 - Public
 - CreateEvaluationCriteriaDto
 - SimulationService
-- Public
+- ChromatographyInputDto
+- LogoutResponseDto
+- UpdateProfileDto
 - heat-exchanger.ts
-- EvaluationType
+- User
+- SetPasswordDto
+- MailService
 - chromatography.ts
+- ThermalTwinService
+- LoginDto
+- RegisterDto
+- rxjs
+- SecurityHardening1794200000000
+- PasswordSetupToken1794200000002
+- UserPermissionsAndSettings1794200000003
 
 ## God Nodes (most connected - your core abstractions)
-1. `@nestjs/swagger` - 74 edges
-2. `ThermalCalculatorService` - 63 edges
-3. `User` - 60 edges
-4. `DevicesService` - 54 edges
-5. `@nestjs/common` - 54 edges
-6. `typeorm` - 38 edges
-7. `TreatmentsService` - 36 edges
-8. `Evaluation` - 32 edges
-9. `IdEntity` - 31 edges
-10. `CurrentUser` - 31 edges
+1. `@nestjs/swagger` - 81 edges
+2. `User` - 69 edges
+3. `@nestjs/common` - 63 edges
+4. `ThermalCalculatorService` - 62 edges
+5. `DevicesService` - 54 edges
+6. `typeorm` - 46 edges
+7. `CurrentUser` - 41 edges
+8. `TreatmentsService` - 34 edges
+9. `Evaluation` - 34 edges
+10. `class-validator` - 32 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `ThermalTreatmentInputDto` --implements--> `ThermalTreatmentInput`  [EXTRACTED]
+  src/repositories/evaluations/dto/thermal-input.dto.ts → src/repositories/evaluations/services/thermal-calculator.service.ts
+- `lookupNominalHeat_BTUh()` --calls--> `api12lFirebox()`  [EXTRACTED]
+  src/repositories/simulation/equipment/thermal-treater.ts → src/repositories/evaluations/services/api12l.tables.ts
 - `DesignVar` --references--> `ThermalTreatmentInput`  [EXTRACTED]
   src/repositories/evaluations/services/thermal-analysis.service.ts → src/repositories/evaluations/services/thermal-calculator.service.ts
-- `runEquipment()` --calls--> `calculateSeparator()`  [EXTRACTED]
-  src/repositories/simulation/runner/simulation-runner.ts → src/repositories/simulation/equipment/separator.ts
 - `calculateThermalTreater()` --calls--> `checkCriteria()`  [EXTRACTED]
   src/repositories/simulation/equipment/thermal-treater.ts → src/repositories/evaluations/services/thermal-analysis.service.ts
 - `runEquipment()` --calls--> `calculateThermalTreater()`  [EXTRACTED]
   src/repositories/simulation/runner/simulation-runner.ts → src/repositories/simulation/equipment/thermal-treater.ts
-- `PipelineInput` --references--> `InletFeedParams`  [EXTRACTED]
-  src/repositories/simulation/runner/simulation-runner.ts → src/repositories/simulation/runner/stream.ts
 
 ## Import Cycles
 - 2-file cycle: `src/repositories/evaluations/entities/evaluation-criteria.entity.ts -> src/repositories/evaluations/entities/evaluation.entity.ts -> src/repositories/evaluations/entities/evaluation-criteria.entity.ts`
 - 2-file cycle: `src/repositories/evaluations/entities/evaluation-template-criteria.entity.ts -> src/repositories/evaluations/entities/evaluation-template.entity.ts -> src/repositories/evaluations/entities/evaluation-template-criteria.entity.ts`
 
-## Communities (108 total, 46 thin omitted)
+## Communities (134 total, 69 thin omitted)
+
+### Community 0 - "AppSettingsDto"
+Cohesion: 0.06
+Nodes (10): MESSAGES, Permission, PermissionGuard(), SettingsController, AppSettingsDto, AppSettingsResponseDto, DEFAULT_SETTINGS, UpdateAppSettingsDto (+2 more)
+
+### Community 1 - "evaluations.module.ts"
+Cohesion: 0.08
+Nodes (4): CreateTreatmentOptionDto, TreatmentOptionResponseDto, TreatmentOptionController, TreatmentOptionService
 
 ### Community 4 - "devices.dto.ts"
-Cohesion: 0.20
-Nodes (8): PIN_REGEX, CreateChannelDto, CreateDeviceDto, CreatePidDto, CreateRuleDto, RawCommandDto, ReadingsQueryDto, WriteChannelDto
+Cohesion: 0.17
+Nodes (11): CreateChannelDto, CreateDeviceDto, CreatePidDto, CreateRuleDto, RawCommandDto, ReadingsQueryDto, UpdateChannelDto, UpdateDeviceDto (+3 more)
 
 ### Community 6 - "package.json"
-Cohesion: 0.06
-Nodes (47): author, description, devDependencies, eslint@^8.0.0, eslint-config-prettier@^9.0.0, eslint-plugin-prettier@^5.0.0, jest@^29.5.0, @nestjs/cli@^10.0.0 (+39 more)
-
-### Community 7 - "trials.controller.ts"
-Cohesion: 0.07
-Nodes (20): calibrate(), CalibrationResult, interpolate(), pilotMass(), simulateTwin(), ThermalTwinService, TimeSeries, TwinParams (+12 more)
+Cohesion: 0.05
+Nodes (52): author, description, devDependencies, eslint@^8.0.0, eslint-config-prettier@^9.0.0, eslint-plugin-prettier@^5.0.0, jest@^29.5.0, @nestjs/cli@^10.0.0 (+44 more)
 
 ### Community 8 - "dependencies"
 Cohesion: 0.05
 Nodes (37): dependencies, class-transformer@^0.5.1, class-validator@^0.14.2, express-session@^1.18.1, jsonwebtoken@^9.0.2, @nestjs/common@^11.1.3, @nestjs/config@^4.0.2, @nestjs/jwt@^11.0.0 (+29 more)
 
-### Community 10 - "DevicesService"
-Cohesion: 0.09
-Nodes (5): UpdateChannelDto, UpdateDeviceDto, UpdatePidDto, UpdateRuleDto, DevicesService
-
 ### Community 11 - "QueryBaseDto"
-Cohesion: 0.13
-Nodes (5): PaginationDataDto, PaginationDto, QueryBaseDto, pagination(), normalizeText()
+Cohesion: 0.12
+Nodes (6): PaginationDataDto, PaginationDto, QueryBaseDto, pagination(), normalizeText(), QueryTreatmentDto
 
 ### Community 12 - "scripts"
 Cohesion: 0.08
 Nodes (26): scripts, build, build:client, clean:generated, clean:generated-windows, deploy:client, deploy:client-windows, format (+18 more)
 
-### Community 13 - "evaluations.service.ts"
-Cohesion: 0.15
-Nodes (3): EvaluationTemplateResponseDto, QueryEvaluationDto, UpdateEvaluationDto
-
 ### Community 14 - "treatments.service.ts"
-Cohesion: 0.24
-Nodes (3): TreatmentCalculationsDto, UpdateTreatmentDto, CalculateTreatmentValidationPipe
+Cohesion: 0.13
+Nodes (4): CalculateTreatmentDto, TreatmentCalculationsDto, UpdateTreatmentDto, CalculateTreatmentValidationPipe
 
 ### Community 15 - "additionalProperties"
 Cohesion: 0.08
 Nodes (23): apiModulePrefix, basePath, configurationPrefix, enumPropertyNaming, fileNaming, generatePublicApi, modelPropertyNaming, npmName (+15 more)
 
-### Community 16 - "ThermalTreatmentInput"
-Cohesion: 0.17
-Nodes (5): ReportsController, EvaluationReportData, ReportGeneratorService, ThermalCalculationResults, ThermalTreatmentInput
+### Community 16 - ".generateEvaluationReport"
+Cohesion: 0.23
+Nodes (3): FORMAT_QUERY, ReportsController, wantsPdf()
+
+### Community 17 - "trials.controller.ts"
+Cohesion: 0.12
+Nodes (21): AddSampleDto, CalibrateTwinDto, CalibrationResultDto, CalibrationStatusDto, CreateTrialDto, FlightRecorderRow, series(), SeriesValidators() (+13 more)
 
 ### Community 18 - "app.module.ts"
+Cohesion: 0.09
+Nodes (10): @nestjs/serve-static@^5.0.3, supertest@^7.0.0, @nestjs/serve-static, supertest, AppController, AppModule, AppService, clip() (+2 more)
+
+### Community 19 - "Trial"
 Cohesion: 0.12
-Nodes (6): @nestjs/serve-static@^5.0.3, @nestjs/serve-static, AppController, AppService, AuthModule, RepositoriesModule
+Nodes (3): Trial, TrialSample, TrialsService
 
 ### Community 20 - "users.service.ts"
-Cohesion: 0.20
-Nodes (3): AdminGuard, UpdateUserDto, ALLOWED_SORT
+Cohesion: 0.16
+Nodes (6): AdminGuard, UpdateUserDto, UserRole, ADMIN, OPERATOR, ALLOWED_SORT
 
 ### Community 22 - "typeorm"
-Cohesion: 0.17
-Nodes (3): typeorm, SeedAllModules1794108000000, IdEntity
+Cohesion: 0.18
+Nodes (5): typeorm, IdEntity, double, TRIAL_ENTITIES, TrialState
 
 ### Community 23 - "compilerOptions"
 Cohesion: 0.09
@@ -208,37 +227,37 @@ Nodes (21): exclude, extends, compilerOptions, allowSyntheticDefaultImports, bas
 Cohesion: 0.05
 Nodes (37): Configuración, Construcción Completa del Cliente, Despliegue Completo (Linux/macOS), Despliegue Completo (Windows), Despliegue del Cliente (Linux/macOS), Despliegue del Cliente (Windows), Estructura de Archivos Generados, Flujo de Trabajo Recomendado (+29 more)
 
-### Community 25 - "BaseResponseDto"
-Cohesion: 0.13
-Nodes (3): BaseResponseDto, TreatmentOptionListDto, TreatmentListDto
-
 ### Community 26 - "thermal-treater.ts"
 Cohesion: 0.10
 Nodes (31): CriterionResult, calculateSeparator(), clamp01(), estimateGasDensity(), estimateGOR(), SeparatorCriterion, SeparatorInput, SeparatorOrientation (+23 more)
 
 ### Community 27 - "thermal-analysis.service.ts"
 Cohesion: 0.11
-Nodes (21): allPass(), bisect(), checkCriteria(), clampPercent(), DESIGN_VARS, DesignVar, DiagnoseResult, Distribution (+13 more)
+Nodes (23): allPass(), bisect(), checkCriteria(), clampPercent(), DESIGN_VARS, DesignVar, DiagnoseResult, Distribution (+15 more)
 
 ### Community 28 - "control.ts"
 Cohesion: 0.12
 Nodes (27): serialport@^13.0.0, @serialport/parser-readline@^13.0.0, serialport, @serialport/parser-readline, calibrate(), ChannelLike, COMMAND_REGEX, evalRule() (+19 more)
 
 ### Community 30 - "main.ts"
-Cohesion: 0.12
-Nodes (10): cookie-parser@^1.4.7, csurf@^1.2.2, helmet@^8.1.0, cookie-parser, csurf, helmet, JwtAuthGuard, HttpExceptionFilter (+2 more)
+Cohesion: 0.10
+Nodes (16): cookie-parser@^1.4.7, csurf@^1.2.2, helmet@^8.1.0, @nestjs/core@^11.1.3, cookie-parser, csurf, helmet, @nestjs/core (+8 more)
 
-### Community 36 - "auth.service.ts"
-Cohesion: 0.05
-Nodes (16): @nestjs/config, @nestjs/jwt, @nestjs/passport, AuthController, AuthService, AuthResponseDto, EnrollFaceDto, FaceLoginDto (+8 more)
+### Community 31 - "ThermalTreatmentInputDto"
+Cohesion: 0.20
+Nodes (6): DistributionDto, DistributionsDto, GasCompositionDto, MonteCarloInputDto, ReportRequestDto, ThermalTreatmentInputDto
+
+### Community 35 - "TreatmentResponseDto"
+Cohesion: 0.06
+Nodes (4): CreateTreatmentDto, TreatmentResponseDto, TreatmentsController, TreatmentsService
 
 ### Community 37 - "4. Fórmulas de Flujos y Caudales"
 Cohesion: 0.20
 Nodes (10): 4.1 Caudal de Agua (Ecuación 1.6), 4.2 Caudal de Crudo Seco (Ecuación 1.7), 4.3 Porcentaje de Agua Libre y Sedimento (Ecuación 1.26), 4.4 Porcentaje de Agua Emulsionada, 4.5 Caudal de Agua Libre Entrando (Ecuación 1.26 / Ec. 35), 4.6 Caudal de Agua Emulsionada Entrando (Ecuación 1.27 / Ec. 36), 4.7 Cantidad de Agua Total a Ser Manejada (Ecuación 1.28 / Ec. 37), 4.8 Fracción Volumétrica del Agua (Ecuación 1.29 / Ec. 38) (+2 more)
 
 ### Community 38 - "trials.service.ts"
-Cohesion: 0.19
-Nodes (10): rxjs, DevicesModule, ChannelReading, Device, DEVICE_ENTITIES, DeviceChannel, DeviceCommandLog, DeviceRule (+2 more)
+Cohesion: 0.13
+Nodes (11): DevicesModule, ChannelReading, Device, DEVICE_ENTITIES, DeviceChannel, DeviceCommandLog, DeviceRule, double (+3 more)
 
 ### Community 40 - "DaysOfWeek"
 Cohesion: 0.20
@@ -246,7 +265,7 @@ Nodes (8): DaysOfWeek, FRIDAY, MONDAY, SATURDAY, SUNDAY, THURSDAY, TUESDAY, WEDN
 
 ### Community 42 - "TestController"
 Cohesion: 0.05
-Nodes (9): CrudRepository, UseCase, CreateTestDto, TestResponseDto, UpdateTestDto, Test, TestController, TestModule (+1 more)
+Nodes (9): CrudRepository, BaseEntityDto, CreateTestDto, TestResponseDto, UpdateTestDto, Test, TestController, TestModule (+1 more)
 
 ### Community 43 - "EvaluationTemplate"
 Cohesion: 0.13
@@ -264,9 +283,9 @@ Nodes (9): jest, collectCoverageFrom, coverageDirectory, moduleFileExtensions, r
 Cohesion: 0.22
 Nodes (9): ChannelType, ANALOG_IN, DIGITAL_IN, DIGITAL_OUT, DS18B20, MAX31865, MAX6675, PWM (+1 more)
 
-### Community 47 - "users/entities/index.ts"
-Cohesion: 0.11
-Nodes (8): bcrypt@^6.0.0, bcrypt, SeedAdminAndOperatorUsers1751178224375, UpdateUserPasswords1759794383734, User, UserRole, ADMIN, OPERATOR
+### Community 47 - "bcrypt"
+Cohesion: 0.15
+Nodes (7): bcrypt@^6.0.0, bcrypt, seedPassword(), SeedAdminAndOperatorUsers1751178224375, UpdateUserPasswords1759794383734, SeedAllModules1794108000000, RotateDefaultPasswords1794200000001
 
 ### Community 50 - "Fórmulas Implementadas en el Sistema Termo-Lab"
 Cohesion: 0.33
@@ -276,9 +295,9 @@ Nodes (6): Backend (termo-lab-api), Fórmulas Implementadas en el Sistema Termo-
 Cohesion: 0.29
 Nodes (7): 7.1 Velocidad de Decantación de la Fase Pesada (Ecuación 1.22), 7.2 Tiempo de Decantación de la Fase Pesada (Ecuación 1.23), 7.3 Tiempo de Decantación de la Fase Liviana (Ecuación 1.24 / Ec. 33), 7.4 Porcentaje de Deshidratación del Equipo (Ecuación 1.19 / Ec. 28), 7.5 Cantidad de Agua Saliendo con el Crudo (Ecuación 1.18 / Ec. 27), 7.6 Corte de Agua del Crudo Saliendo (Ecuación 1.13 / Ec. 23), 7. Fórmulas de Decantación
 
-### Community 52 - "generate-swagger.ts"
-Cohesion: 0.25
-Nodes (3): @nestjs/core@^11.1.3, @nestjs/core, AppModule
+### Community 52 - "auth.service.ts"
+Cohesion: 0.20
+Nodes (6): @nestjs/config, @nestjs/jwt, @nestjs/passport, DUMMY_HASH, JwtPayload, JwtStrategy
 
 ### Community 53 - "10. Fórmulas de Evaluación"
 Cohesion: 0.33
@@ -293,12 +312,12 @@ Cohesion: 0.33
 Nodes (5): collection, compilerOptions, deleteOutDir, $schema, sourceRoot
 
 ### Community 57 - "@nestjs/testing"
-Cohesion: 0.25
-Nodes (4): @nestjs/testing@^11.2.8, supertest@^7.0.0, @nestjs/testing, supertest
+Cohesion: 0.18
+Nodes (4): @nestjs/testing, CalculationCriteria, ComparisonOperator, EvaluationCalculationResult
 
 ### Community 58 - "evaluation-response.dto.ts"
-Cohesion: 0.20
-Nodes (3): EvaluationCriteriaResponseDto, EvaluationResponseDto, ExternalTreatmentResponseDto
+Cohesion: 0.13
+Nodes (5): EvaluationCriteriaResponseDto, EvaluationResponseDto, EvaluationTemplateResponseDto, ExternalTreatmentResponseDto, UpdateEvaluationDto
 
 ### Community 59 - "1. Fórmulas de Propiedades del Crudo"
 Cohesion: 0.40
@@ -332,85 +351,93 @@ Nodes (4): 8.1 Calor Absorbido por el Proceso (Ecuación 1.25 / Ec. 8), 8.2 Pér
 Cohesion: 0.04
 Nodes (44): BIP, C1, C2, C3, C36P, CO2, COMP_INDEX, H2O (+36 more)
 
-### Community 74 - "storage-tank.ts"
-Cohesion: 0.47
-Nodes (5): calculateStorageTank(), estimateRVP(), r(), StorageTankInput, StorageTankResult
+### Community 74 - "treatment-options.service.ts"
+Cohesion: 0.15
+Nodes (3): TreatmentOptionListDto, UpdateTreatmentOptionDto, ALLOWED_SORT
 
-### Community 75 - "evaluation-calculator.service.ts"
-Cohesion: 0.40
-Nodes (3): CalculationCriteria, ComparisonOperator, EvaluationCalculationResult
+### Community 75 - "thermal-twin.service.ts"
+Cohesion: 0.36
+Nodes (9): calibrate(), CalibrationResult, pilotMass(), sampler(), simulateTwin(), TimeSeries, TwinParams, TwinPoint (+1 more)
 
-### Community 76 - "thermo/index.ts"
-Cohesion: 0.40
-Nodes (3): estimateGorFromApi(), GasRateResolution, resolveGasRates()
+### Community 76 - "thermal-calculator.service.ts"
+Cohesion: 0.16
+Nodes (13): CompleteApi12lTreatmentOptions1794200000004, API12L_HORIZONTAL_SIZES, API12L_INSULATED_LOSS_FACTOR, API12L_MAX_HEAT_FLUX, API12L_MAX_OIL_VISCOSITY_CP, API12L_VERTICAL_SIZES, api12lFirebox(), Api12lSize (+5 more)
+
+### Community 79 - "ReportGeneratorService"
+Cohesion: 0.24
+Nodes (3): EvaluationReportData, ReportGeneratorService, ThermalCalculationResults
+
+### Community 80 - "PdfService"
+Cohesion: 0.25
+Nodes (7): pdfkit@^0.21.0, pdfkit, ascii(), canonicalJson(), PdfReport, PdfSection, PdfService
 
 ### Community 81 - "EvaluationCriteria"
-Cohesion: 0.07
-Nodes (5): CreateSampleTreatments1751337651500, CreateSampleEvaluations1751337651990, EvaluationCriteria, ExternalTreatment, Treatment
+Cohesion: 0.14
+Nodes (3): CreateSampleEvaluations1751337651990, EvaluationCriteria, ExternalTreatment
 
 ### Community 83 - "simulation-runner.ts"
-Cohesion: 0.24
-Nodes (14): applyAutoDimension(), EquipmentType, mergeStreamIntoConfig(), pick(), PipelineInput, PipelineResult, PipelineStep, redesignSteps() (+6 more)
+Cohesion: 0.14
+Nodes (17): RunnerService, applyAutoDimension(), EquipmentType, mergeStreamIntoConfig(), pick(), PipelineInput, PipelineResult, PipelineStep (+9 more)
 
 ### Community 86 - "@nestjs/swagger"
-Cohesion: 0.17
-Nodes (4): class-transformer, class-validator, @nestjs/swagger, BaseEntityDto
+Cohesion: 0.19
+Nodes (6): class-transformer, class-validator, @nestjs/swagger, EvaluationType, EXTERNAL, INTERNAL
 
-### Community 87 - ".changePassword"
-Cohesion: 0.10
-Nodes (3): ChangePasswordDto, UpdateProfileDto, ProfileController
+### Community 88 - "PipelineFeedDto"
+Cohesion: 0.18
+Nodes (3): PipelineFeedDto, PipelineStepDto, RunPipelineDto
 
-### Community 90 - "repositories.module.ts"
-Cohesion: 0.17
-Nodes (9): @nestjs/common, @nestjs/typeorm, IS_PUBLIC_KEY, EvaluationsModule, SimulationModule, TreatmentOptionsModule, TreatmentsModule, TrialsModule (+1 more)
+### Community 91 - "@nestjs/common"
+Cohesion: 0.15
+Nodes (7): @nestjs/common, @nestjs/typeorm, EvaluationsModule, TreatmentOption, TreatmentOptionsModule, TreatmentsModule, UsersModule
+
+### Community 93 - "auth/dto/index.ts"
+Cohesion: 0.35
+Nodes (4): AuthResponseDto, LoginResponseDto, UserDataDto, RegisterResponseDto
 
 ### Community 94 - "equipment.controller.ts"
 Cohesion: 0.34
 Nodes (5): HeatExchangerFluidDto, HeatExchangerInputDto, SeparatorInputDto, StorageTankInputDto, ThermalTreaterInputDto
 
-### Community 96 - "eos.ts"
-Cohesion: 0.33
-Nodes (9): getKij(), calcPhase(), EOS_CONST, EosParams, lnPhiMix(), mixParams(), PhaseResult, pureParams() (+1 more)
-
 ### Community 99 - "SimulationService"
-Cohesion: 0.13
-Nodes (8): SimulationService, getComponentsForChromatography(), PureComponent, EosType, wilsonK(), flashPT(), FlashResult, solveRR()
+Cohesion: 0.15
+Nodes (16): SimulationService, getKij(), PureComponent, calcPhase(), EOS_CONST, EosParams, EosType, lnPhiMix() (+8 more)
 
-### Community 100 - "Public"
-Cohesion: 0.08
-Nodes (10): Public(), PipelineFeedDto, PipelineStepDto, RunPipelineDto, ChromatographyInputDto, FlashInputDto, FluidPropertiesInputDto, MoleFractionDto (+2 more)
+### Community 100 - "ChromatographyInputDto"
+Cohesion: 0.29
+Nodes (4): ChromatographyInputDto, FlashInputDto, FluidPropertiesInputDto, MoleFractionDto
 
 ### Community 103 - "heat-exchanger.ts"
-Cohesion: 0.28
-Nodes (6): calcEffectiveness(), calculateHeatExchanger(), estimateShellDiameter(), FlowArrangement, HeatExchangerInput, HeatExchangerResult
+Cohesion: 0.17
+Nodes (12): calcEffectiveness(), calculateHeatExchanger(), estimateShellDiameter(), FlowArrangement, HeatExchangerInput, HeatExchangerResult, calculateStorageTank(), estimateRVP() (+4 more)
 
-### Community 104 - "EvaluationType"
-Cohesion: 0.67
-Nodes (3): EvaluationType, EXTERNAL, INTERNAL
+### Community 106 - "MailService"
+Cohesion: 0.24
+Nodes (4): nodemailer@^10.6.1, nodemailer, escapeHtml(), MailService
 
 ### Community 107 - "chromatography.ts"
-Cohesion: 0.19
-Nodes (18): clamp01(), createInletStream(), InletFeedParams, ResolvedWater, resolveWaterFractions(), ChromatographyResult, distributeGasPhase(), estimateGOR() (+10 more)
+Cohesion: 0.16
+Nodes (20): clamp01(), createInletStream(), ResolvedWater, resolveWaterFractions(), ChromatographyResult, distributeGasPhase(), estimateGOR(), generateChromatography() (+12 more)
 
 ## Knowledge Gaps
-- **19 isolated node(s):** `EXTERNAL`, `INTERNAL`, `ANALOG_IN`, `DIGITAL_IN`, `DIGITAL_OUT` (+14 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 688 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **46 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **19 isolated node(s):** `ADMIN`, `OPERATOR`, `FRIDAY`, `MONDAY`, `SATURDAY` (+14 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 778 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **69 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `@nestjs/common` connect `repositories.module.ts` to `package.json`, `trials.controller.ts`, `dependencies`, `evaluations.service.ts`, `treatments.service.ts`, `ThermalTreatmentInput`, `app.module.ts`, `treatment-options.service.ts`, `users.service.ts`, `thermal-analysis.service.ts`, `control.ts`, `main.ts`, `auth.service.ts`, `trials.service.ts`, `TestController`, `@nestjs/testing`, `evaluation-calculator.service.ts`, `simulation-runner.ts`, `equipment.controller.ts`, `SimulationService`, `Public`?**
-  _High betweenness centrality (0.263) - this node is a cross-community bridge._
-- **What connects `EXTERNAL`, `INTERNAL`, `ANALOG_IN` to the rest of the system?**
+- **Why does `@nestjs/common` connect `@nestjs/common` to `AppSettingsDto`, `devices.dto.ts`, `package.json`, `dependencies`, `treatments.service.ts`, `app.module.ts`, `Trial`, `users.service.ts`, `thermal-analysis.service.ts`, `control.ts`, `main.ts`, `trials.service.ts`, `TestController`, `auth.service.ts`, `@nestjs/testing`, `evaluation-response.dto.ts`, `treatment-options.service.ts`, `thermal-twin.service.ts`, `thermal-calculator.service.ts`, `ReportGeneratorService`, `PdfService`, `simulation-runner.ts`, `equipment.controller.ts`, `trials.controller.ts`, `ChromatographyInputDto`, `MailService`, `chromatography.ts`?**
+  _High betweenness centrality (0.228) - this node is a cross-community bridge._
+- **What connects `ADMIN`, `OPERATOR`, `FRIDAY` to the rest of the system?**
   _19 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `AppSettingsDto` be split into smaller, more focused modules?**
+  _Cohesion score 0.06313497822931785 - nodes in this community are weakly interconnected._
+- **Why does `@nestjs/swagger` connect `@nestjs/swagger` to `AppSettingsDto`, `devices.dto.ts`, `package.json`, `dependencies`, `treatments.service.ts`, `trials.controller.ts`, `app.module.ts`, `users.service.ts`, `typeorm`, `BaseResponseDto`, `thermal-analysis.service.ts`, `main.ts`, `ThermalTreatmentInputDto`, `trials.service.ts`, `TestController`, `auth.service.ts`, `@nestjs/testing`, `evaluation-response.dto.ts`, `treatment-options.service.ts`, `thermal-calculator.service.ts`, `@nestjs/common`, `auth/dto/index.ts`, `equipment.controller.ts`, `FaceLoginDto`, `trials.controller.ts`, `ChromatographyInputDto`, `LogoutResponseDto`?**
+  _High betweenness centrality (0.119) - this node is a cross-community bridge._
+- **Should `evaluations.module.ts` be split into smaller, more focused modules?**
+  _Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected._
+- **Why does `typeorm` connect `typeorm` to `AppSettingsDto`, `package.json`, `dependencies`, `treatments.service.ts`, `users.service.ts`, `control.ts`, `trials.service.ts`, `TestController`, `EvaluationTemplate`, `bcrypt`, `AddTrials1794021872972`, `SeedTrialAndDeviceData1794021872973`, `auth.service.ts`, `SeedTreatmentOptions1751181394026`, `evaluation-response.dto.ts`, `CreateUnaccentExtension1752379896329`, `AddThermalCalculationFields1759797734044`, `AddThermalCalculationsToEvaluations1763061460756`, `AddTemplateIdToEvaluations1763061460757`, `treatment-options.service.ts`, `thermal-calculator.service.ts`, `EvaluationCriteria`, `simulation-runner.ts`, `AddDevices1794006813002`, `Treatment`, `@nestjs/common`, `SecurityHardening1794200000000`, `PasswordSetupToken1794200000002`, `UserPermissionsAndSettings1794200000003`?**
+  _High betweenness centrality (0.082) - this node is a cross-community bridge._
 - **Should `UserResponseDto` be split into smaller, more focused modules?**
-  _Cohesion score 0.13105413105413105 - nodes in this community are weakly interconnected._
-- **Why does `@nestjs/swagger` connect `@nestjs/swagger` to `devices.dto.ts`, `package.json`, `trials.controller.ts`, `dependencies`, `QueryBaseDto`, `evaluations.service.ts`, `treatments.service.ts`, `ThermalTreatmentInput`, `treatment-options.service.ts`, `users.service.ts`, `typeorm`, `BaseResponseDto`, `thermal-analysis.service.ts`, `main.ts`, `auth.service.ts`, `trials.service.ts`, `TestController`, `users/entities/index.ts`, `generate-swagger.ts`, `evaluation-response.dto.ts`, `evaluation-calculator.service.ts`, `equipment.controller.ts`, `Public`?**
-  _High betweenness centrality (0.153) - this node is a cross-community bridge._
-- **Should `ThermalCalculatorService` be split into smaller, more focused modules?**
-  _Cohesion score 0.07982583454281568 - nodes in this community are weakly interconnected._
-- **Why does `typeorm` connect `typeorm` to `package.json`, `trials.controller.ts`, `dependencies`, `evaluations.service.ts`, `treatments.service.ts`, `treatment-options.service.ts`, `users.service.ts`, `control.ts`, `auth.service.ts`, `trials.service.ts`, `TestController`, `EvaluationTemplate`, `users/entities/index.ts`, `AddTrials1794021872972`, `SeedTrialAndDeviceData1794021872973`, `SeedTreatmentOptions1751181394026`, `CreateUnaccentExtension1752379896329`, `AddThermalCalculationFields1759797734044`, `AddThermalCalculationsToEvaluations1763061460756`, `AddTemplateIdToEvaluations1763061460757`, `EvaluationCriteria`, `simulation-runner.ts`, `AddDevices1794006813002`?**
-  _High betweenness centrality (0.081) - this node is a cross-community bridge._
-- **Should `package.json` be split into smaller, more focused modules?**
-  _Cohesion score 0.05939716312056738 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1349206349206349 - nodes in this community are weakly interconnected._

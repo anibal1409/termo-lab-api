@@ -28,6 +28,7 @@ import {
   LogoutResponseDto,
   RegisterDto,
   RegisterResponseDto,
+  SetPasswordDto,
 } from './dto';
 import { JwtAuthGuard } from './guards';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -77,6 +78,15 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<RegisterResponseDto> {
     return this.authService.register(registerDto, res);
+  }
+
+  @Public()
+  @Post('set-password')
+  @ApiOperation({
+    summary: 'Definir contraseña con el enlace recibido por correo',
+  })
+  setPassword(@Body() dto: SetPasswordDto): Promise<{ message: string }> {
+    return this.authService.setPassword(dto);
   }
 
   @Public()

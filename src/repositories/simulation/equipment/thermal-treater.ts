@@ -11,8 +11,9 @@
 
 import {
   API12L_HORIZONTAL_SIZES,
-  ThermalCalculatorService,
-} from '../../evaluations/services/thermal-calculator.service';
+  api12lFirebox,
+} from '../../evaluations/services/api12l.tables';
+import { ThermalCalculatorService } from '../../evaluations/services/thermal-calculator.service';
 import {
   checkCriteria,
   CriterionResult,
@@ -117,11 +118,10 @@ const BBL_TO_M3 = 0.158987;
 const ATM_KPA = 101.325;
 const FT_S_TO_M_S = 0.3048;
 
-/** Tabla 4.2 API-12L (horizontales), misma fuente que ThermalCalculatorService. */
+/** Tabla 2 API-12L (horizontales), misma fuente que ThermalCalculatorService. */
 const NOMINAL_HEAT_TABLE = API12L_HORIZONTAL_SIZES.map((row) => ({
   d: row.diameter,
   l: row.length,
-  maxHeat: row.maxHeat,
 }));
 
 const thermalCalculator = new ThermalCalculatorService();
@@ -175,7 +175,7 @@ export function calculateThermalTreater(
   const retWaterActual = Qwater > 0 ? (VwaterActual / Qwater) * 1440 : 999;
 
   const deltaT = input.treatmentTemperature - input.inletTemperature;
-  const nominalCapacity = lookupNominalHeat_BTUh(D_ft, L_ft);
+  const nominalCapacity = lookupNominalHeat_BTUh(D_ft);
 
   // BSW salida % — mejor con más ΔT y retención; más emulsionada de entrada → peor
   const emulIn =
@@ -260,10 +260,11 @@ export function calculateThermalTreater(
   const Qheat = apiResults.processHeatDuty;
   const Qloss = apiResults.heatLosses;
   const Qburner = (Qheat + Qloss) / eta;
-  const capacityOk = Qburner <= nominalCapacity * 1.05;
+  // Apéndice E: Tabla 3 se compara con Q + pérdidas (sin η; η solo fija el combustible)
+  const capacityOk = Qheat + Qloss <= nominalCapacity;
   if (!capacityOk) {
     warnings.push(
-      `Duty quemador (${r(Qburner / 1e6, 2)} MMBTU/h) > nominal volumétrico (${r(nominalCapacity / 1e6, 2)} MMBTU/h)`,
+      `Calor requerido (${r((Qheat + Qloss) / 1e6, 2)} MMBTU/h) > rating Tabla 3 API-12L (${r(nominalCapacity / 1e6, 2)} MMBTU/h)`,
     );
   }
   if (Qburner > 5e6) {
@@ -284,10 +285,11 @@ export function calculateThermalTreater(
     },
     {
       criterion: 'Capacidad térmica nominal',
-      value: Qburner,
-      limit: `≤ ${nominalCapacity} BTU/h (tabla D×L)`,
+      value: Qheat + Qloss,
+      limit: `≤ ${nominalCapacity} BTU/h (Tabla 3 API-12L)`,
       marginPercent:
-        ((nominalCapacity - Qburner) / Math.max(nominalCapacity, 1)) * 100,
+        ((nominalCapacity - (Qheat + Qloss)) / Math.max(nominalCapacity, 1)) *
+        100,
       passes: capacityOk,
     },
     {
@@ -377,21 +379,9 @@ export function calculateThermalTreater(
   };
 }
 
-export function lookupNominalHeat_BTUh(D_ft: number, L_ft: number): number {
-  let best = NOMINAL_HEAT_TABLE[0];
-  let bestDist = Infinity;
-  for (const row of NOMINAL_HEAT_TABLE) {
-    const dist = Math.abs(row.d - D_ft) + 0.25 * Math.abs(row.l - L_ft);
-    if (dist < bestDist) {
-      bestDist = dist;
-      best = row;
-    }
-  }
-  // Escala suave por volumen relativo al punto de tabla
-  const vTable = 0.1399 * best.d * best.d * best.l;
-  const vActual = 0.1399 * D_ft * D_ft * L_ft;
-  const scale = vTable > 0 ? vActual / vTable : 1;
-  return best.maxHeat * Math.max(0.5, Math.min(1.5, scale));
+/** Heat duty de Tabla 3 API-12L para el diámetro (horizontal); 0 si no hay rating. */
+export function lookupNominalHeat_BTUh(D_ft: number): number {
+  return api12lFirebox(D_ft, 'horizontal')?.duty ?? 0;
 }
 
 function estimateFlashGas(

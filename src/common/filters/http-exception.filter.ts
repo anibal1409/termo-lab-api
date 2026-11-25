@@ -50,6 +50,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = exception.message || 'Http Exception';
         error = exception.name || 'Http Exception';
       }
+    } else if (
+      exception instanceof Error &&
+      (exception as any).status >= 400 &&
+      (exception as any).status < 500 &&
+      (exception as any).expose
+    ) {
+      // Errores de cliente de Express/body-parser (JSON mal formado, body muy grande)
+      status = (exception as any).status;
+      message = exception.message;
+      error = exception.name || 'Bad Request';
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = isDevelopment

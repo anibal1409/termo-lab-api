@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsNumber, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsEmail,
+  IsNumber,
+} from 'class-validator';
 
 export class FaceLoginDto {
+  @ApiProperty({ example: 'operador@termolab.com' })
+  @IsEmail()
+  email: string;
+
   @ApiProperty({
     description: 'Vector de embedding facial (128-d) generado por face-api.js',
     type: [Number],

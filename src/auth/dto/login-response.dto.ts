@@ -25,4 +25,9 @@ export class LoginResponseDto extends AuthResponseDto {
 
   @ApiProperty({ example: '2023-12-31T23:59:59Z' })
   expiresAt: string;
+
+  @ApiProperty({
+    description: 'true si debe enrolar su rostro antes de continuar',
+  })
+  mustEnrollFace: boolean;
 }

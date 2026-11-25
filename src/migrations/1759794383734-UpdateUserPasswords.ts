@@ -1,10 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { seedPassword } from '../common/utlis/seed-password';
 
 export class UpdateUserPasswords1759794383734 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Hash de la contraseña "12345678"
-    const newPassword = await bcrypt.hash('12345678', 10);
+    const adminPassword = await bcrypt.hash(seedPassword('admin'), 10);
+    const operatorPassword = await bcrypt.hash(seedPassword('operator'), 10);
 
     // Actualizar contraseña para admin@termolab.com
     await queryRunner.query(
@@ -13,7 +14,7 @@ export class UpdateUserPasswords1759794383734 implements MigrationInterface {
             SET "password" = $1 
             WHERE "email" = 'admin@termolab.com'
         `,
-      [newPassword],
+      [adminPassword],
     );
 
     // Actualizar contraseña para operador@termolab.com
@@ -23,11 +24,11 @@ export class UpdateUserPasswords1759794383734 implements MigrationInterface {
             SET "password" = $1 
             WHERE "email" = 'operador@termolab.com'
         `,
-      [newPassword],
+      [operatorPassword],
     );
 
     console.log(
-      '✅ Contraseñas actualizadas para admin@termolab.com y operador@termolab.com a "12345678"',
+      '✅ Contraseñas actualizadas para admin@termolab.com y operador@termolab.com',
     );
   }
 

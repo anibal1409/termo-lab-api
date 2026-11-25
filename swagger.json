@@ -130,6 +130,31 @@
         ]
       }
     },
+    "/auth/set-password": {
+      "post": {
+        "operationId": "AuthController_setPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Definir contraseña con el enlace recibido por correo",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/auth/face-login": {
       "post": {
         "description": "Autentica al usuario comparando el embedding facial enviado desde el navegador",
@@ -268,7 +293,7 @@
         },
         "responses": {
           "201": {
-            "description": "Usuario creado exitosamente. La contraseña temporal se devuelve una sola vez.",
+            "description": "Usuario creado. Se envía por correo un enlace (24 h, un solo uso) para definir su contraseña.",
             "content": {
               "application/json": {
                 "schema": {
@@ -363,6 +388,41 @@
           }
         },
         "summary": "Obtiene usuarios activos de forma paginada",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users/{id}/invite": {
+      "post": {
+        "description": "Genera un enlace nuevo (24 h) e invalida el anterior.",
+        "operationId": "UsersController_resendInvite",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Requiere rol administrador"
+          }
+        },
+        "summary": "Reenviar enlace para definir contraseña",
         "tags": [
           "users"
         ]
@@ -2034,7 +2094,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Object"
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
               },
               "examples": {
                 "example1": {
@@ -2127,6 +2187,16 @@
         "description": "Genera recomendaciones de dimensiones según las tablas API-12L",
         "operationId": "ThermalCalculationsController_recommendDimensions",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Recomendaciones de dimensiones generadas",
@@ -2179,6 +2249,16 @@
         "description": "Evalúa cada criterio API 12L con valor, límite y margen. Si no cumple, sugiere el cambio mínimo en variables de diseño.",
         "operationId": "ThermalCalculationsController_diagnose",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Diagnóstico con criterios y sugerencias"
@@ -2205,6 +2285,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Barras del tornado ordenadas por impacto"
@@ -2221,6 +2311,16 @@
         "description": "Ejecuta N corridas con propiedades del crudo muestreadas de distribuciones. Devuelve probabilidad de cumplir por criterio y percentiles.",
         "operationId": "ThermalCalculationsController_monteCarlo",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MonteCarloInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Resultado de la simulación Monte Carlo"
@@ -2236,14 +2336,28 @@
       "post": {
         "description": "Genera un reporte completo según el formato del Paso 9 del documento, incluyendo tabla de resultados, resumen ejecutivo y datos para gráficas",
         "operationId": "ReportsController_generateEvaluationReport",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "pdf → application/pdf (equivale a Accept: application/pdf)",
+            "schema": {
+              "enum": [
+                "json",
+                "pdf"
+              ],
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "required": true,
           "description": "Datos de entrada del tratador térmico",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Object"
+                "$ref": "#/components/schemas/ReportRequestDto"
               },
               "examples": {
                 "example1": {
@@ -2268,8 +2382,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Reporte de evaluación generado exitosamente",
+          "201": {
+            "description": "Reporte de evaluación generado exitosamente (JSON, o PDF con ?format=pdf / Accept: application/pdf)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2279,7 +2393,10 @@
                       "type": "object"
                     },
                     "resultsTable": {
-                      "type": "array"
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
                     },
                     "executiveSummary": {
                       "type": "object"
@@ -2289,11 +2406,23 @@
                     }
                   }
                 }
+              },
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           },
           "400": {
             "description": "Datos de entrada inválidos"
+          },
+          "404": {
+            "description": "Evaluación/diseño no encontrado"
+          },
+          "422": {
+            "description": "Datos guardados incompletos"
           }
         },
         "summary": "Generar reporte completo de evaluación",
@@ -2307,6 +2436,16 @@
         "description": "Genera la tabla de resultados según el formato del Paso 9 del documento",
         "operationId": "ReportsController_generateResultsTable",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Tabla de resultados generada exitosamente",
@@ -2347,6 +2486,16 @@
         "description": "Genera un resumen ejecutivo del reporte de evaluación",
         "operationId": "ReportsController_generateExecutiveSummary",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Resumen ejecutivo generado exitosamente",
@@ -2393,6 +2542,16 @@
         "description": "Genera datos para las gráficas de simulación según Figuras 4-1, 4-2, 4-3 del documento",
         "operationId": "ReportsController_generateSimulationCharts",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Datos para gráficas generados exitosamente",
@@ -2426,10 +2585,34 @@
       "post": {
         "description": "Genera un reporte detallado del cumplimiento con la norma API-12L",
         "operationId": "ReportsController_generateComplianceReport",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "format",
+            "required": false,
+            "in": "query",
+            "description": "pdf → application/pdf (equivale a Accept: application/pdf)",
+            "schema": {
+              "enum": [
+                "json",
+                "pdf"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
-            "description": "Reporte de cumplimiento generado exitosamente",
+          "201": {
+            "description": "Reporte de cumplimiento generado exitosamente (JSON, o PDF con ?format=pdf / Accept: application/pdf)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2464,8 +2647,20 @@
                     }
                   }
                 }
+              },
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
+          },
+          "404": {
+            "description": "Evaluación/diseño no encontrado"
+          },
+          "422": {
+            "description": "Datos guardados incompletos"
           }
         },
         "summary": "Generar reporte de cumplimiento API-12L",
@@ -3215,6 +3410,95 @@
         ]
       }
     },
+    "/settings": {
+      "get": {
+        "operationId": "SettingsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Leer settings globales",
+        "tags": [
+          "Settings"
+        ]
+      },
+      "put": {
+        "operationId": "SettingsController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar settings (parcial, solo admin)",
+        "tags": [
+          "Settings"
+        ]
+      }
+    },
+    "/settings/reset": {
+      "post": {
+        "operationId": "SettingsController_reset",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettingsResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restaurar defaults de fábrica (solo admin)",
+        "tags": [
+          "Settings"
+        ]
+      }
+    },
     "/trials": {
       "get": {
         "operationId": "TrialsController_findAll",
@@ -3247,6 +3531,16 @@
       "post": {
         "operationId": "TrialsController_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTrialDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -3317,6 +3611,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTrialDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -3353,7 +3657,7 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Ensayo eliminado"
           }
         },
         "security": [
@@ -3416,6 +3720,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StopTrialDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -3452,6 +3766,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddSampleDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -3490,7 +3814,17 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FlightRecorderRow"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3519,7 +3853,15 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3528,6 +3870,99 @@
           }
         ],
         "summary": "Exportar ensayo a CSV",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/report.json": {
+      "get": {
+        "description": "Mismo contenido que report.pdf, tipado. sha256 coincide con el X-Report-SHA256 del PDF.",
+        "operationId": "TrialsController_reportJson",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrialReportDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ensayo inexistente"
+          },
+          "409": {
+            "description": "Ensayo en draft (sin corrida)"
+          },
+          "422": {
+            "description": "Faltan datos mínimos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Informe técnico del ensayo (JSON)",
+        "tags": [
+          "Trials"
+        ]
+      }
+    },
+    "/trials/{id}/report.pdf": {
+      "get": {
+        "description": "Identidad, geometría, canales DAQ, resumen del flight recorder, muestras y calibración del gemelo. El header X-Report-SHA256 y el pie llevan el hash del contenido.",
+        "operationId": "TrialsController_reportPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ensayo inexistente"
+          },
+          "409": {
+            "description": "Ensayo en draft (sin corrida)"
+          },
+          "422": {
+            "description": "Faltan datos mínimos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Informe técnico PDF del ensayo",
         "tags": [
           "Trials"
         ]
@@ -3547,9 +3982,29 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulateTwinDto"
+              }
+            }
+          }
+        },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TwinPointDto"
+                  }
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3577,9 +4032,26 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalibrateTwinDto"
+              }
+            }
+          }
+        },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibrationResultDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3608,7 +4080,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibrationStatusDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -3882,7 +4361,21 @@
     "schemas": {
       "LoginDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@termolab.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
       },
       "UserDataDto": {
         "type": "object",
@@ -3932,6 +4425,10 @@
           "expiresAt": {
             "type": "string",
             "example": "2023-12-31T23:59:59Z"
+          },
+          "mustEnrollFace": {
+            "type": "boolean",
+            "description": "true si debe enrolar su rostro antes de continuar"
           }
         },
         "required": [
@@ -3939,12 +4436,31 @@
           "message",
           "accessToken",
           "user",
-          "expiresAt"
+          "expiresAt",
+          "mustEnrollFace"
         ]
       },
       "RegisterDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "María González"
+          },
+          "email": {
+            "type": "string",
+            "example": "maria@termolab.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "password"
+        ]
       },
       "RegisterResponseDto": {
         "type": "object",
@@ -3978,9 +4494,30 @@
           "expiresAt"
         ]
       },
+      "SetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token recibido por correo (fragmento #token=)"
+          },
+          "password": {
+            "type": "string",
+            "description": "Nueva contraseña (8 a 128 caracteres)"
+          }
+        },
+        "required": [
+          "token",
+          "password"
+        ]
+      },
       "FaceLoginDto": {
         "type": "object",
         "properties": {
+          "email": {
+            "type": "string",
+            "example": "operador@termolab.com"
+          },
           "embedding": {
             "description": "Vector de embedding facial (128-d) generado por face-api.js",
             "example": [
@@ -3995,6 +4532,7 @@
           }
         },
         "required": [
+          "email",
           "embedding"
         ]
       },
@@ -4060,6 +4598,18 @@
             "type": "string",
             "description": "Correo electrónico único",
             "example": "maria.gonzalez@example.com"
+          },
+          "allowFiretube": {
+            "type": "boolean",
+            "description": "Puede operar firetube (por defecto: true si es admin)"
+          },
+          "allowFlightRecorder": {
+            "type": "boolean",
+            "description": "Puede descargar flight recorder (por defecto: true si es admin)"
+          },
+          "enrollOnFirstLogin": {
+            "type": "boolean",
+            "description": "Exigir enrolamiento facial en el primer login (por defecto true)"
           }
         },
         "required": [
@@ -4130,10 +4680,23 @@
             "description": "Fecha del último inicio de sesión",
             "example": "2023-10-30T14:30:00Z"
           },
-          "temporaryPassword": {
-            "type": "string",
-            "description": "Contraseña temporal generada (solo en creación; no se vuelve a devolver)",
-            "example": "a1b2c3d4e5f67890"
+          "inviteSent": {
+            "type": "boolean",
+            "description": "Solo en creación/reenvío: si se envió el correo para definir contraseña",
+            "example": true
+          },
+          "allowFiretube": {
+            "type": "boolean"
+          },
+          "allowFlightRecorder": {
+            "type": "boolean"
+          },
+          "enrollOnFirstLogin": {
+            "type": "boolean"
+          },
+          "faceEnrolled": {
+            "type": "boolean",
+            "description": "Derivado: tiene rostro enrolado"
           }
         },
         "required": [
@@ -4143,7 +4706,11 @@
           "name",
           "birthDate",
           "role",
-          "email"
+          "email",
+          "allowFiretube",
+          "allowFlightRecorder",
+          "enrollOnFirstLogin",
+          "faceEnrolled"
         ]
       },
       "PaginationDataDto": {
@@ -4245,6 +4812,18 @@
             "type": "string",
             "description": "Correo electrónico único",
             "example": "maria.gonzalez@example.com"
+          },
+          "allowFiretube": {
+            "type": "boolean",
+            "description": "Puede operar firetube (por defecto: true si es admin)"
+          },
+          "allowFlightRecorder": {
+            "type": "boolean",
+            "description": "Puede descargar flight recorder (por defecto: true si es admin)"
+          },
+          "enrollOnFirstLogin": {
+            "type": "boolean",
+            "description": "Exigir enrolamiento facial en el primer login (por defecto true)"
           }
         }
       },
@@ -5578,9 +6157,162 @@
           "createdAt"
         ]
       },
-      "Object": {
+      "GasCompositionDto": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "methane": {
+            "type": "number"
+          },
+          "ethane": {
+            "type": "number"
+          },
+          "propane": {
+            "type": "number"
+          },
+          "butane": {
+            "type": "number"
+          },
+          "pentane": {
+            "type": "number"
+          },
+          "hexane": {
+            "type": "number"
+          },
+          "heptane": {
+            "type": "number"
+          },
+          "octane": {
+            "type": "number"
+          },
+          "nonane": {
+            "type": "number"
+          },
+          "decane": {
+            "type": "number"
+          },
+          "co2": {
+            "type": "number"
+          },
+          "nitrogen": {
+            "type": "number"
+          },
+          "h2s": {
+            "type": "number"
+          }
+        }
+      },
+      "ThermalTreatmentInputDto": {
+        "type": "object",
+        "properties": {
+          "diameter": {
+            "type": "number"
+          },
+          "length": {
+            "type": "number"
+          },
+          "totalFlow": {
+            "type": "number"
+          },
+          "waterFraction": {
+            "type": "number"
+          },
+          "apiGravity": {
+            "type": "number"
+          },
+          "inletTemperature": {
+            "type": "number"
+          },
+          "ambientTemperature": {
+            "type": "number"
+          },
+          "operatingPressure": {
+            "type": "number"
+          },
+          "freeWaterRemovalPercentage": {
+            "type": "number"
+          },
+          "waterDropSize": {
+            "type": "number"
+          },
+          "waterSpecificGravity": {
+            "type": "number"
+          },
+          "oilSpecificHeat": {
+            "type": "number"
+          },
+          "waterSpecificHeat": {
+            "type": "number"
+          },
+          "treatmentTemperature": {
+            "type": "number"
+          },
+          "oilDensity": {
+            "type": "number"
+          },
+          "waterDensity": {
+            "type": "number"
+          },
+          "oilViscosity": {
+            "type": "number"
+          },
+          "factorK": {
+            "type": "number"
+          },
+          "lowLowWaterLevel": {
+            "type": "number"
+          },
+          "waterOilInterfaceLevel": {
+            "type": "number"
+          },
+          "highHighOilLevel": {
+            "type": "number"
+          },
+          "oilRetentionTime": {
+            "type": "number"
+          },
+          "waterRetentionTime": {
+            "type": "number"
+          },
+          "windSpeed": {
+            "type": "number"
+          },
+          "insulated": {
+            "type": "boolean",
+            "description": "Recipiente aislado: pérdidas = 10 % de las del desnudo (API-12L Apéndice D: 5–10 %)"
+          },
+          "maxTotalFlow": {
+            "type": "number"
+          },
+          "maxWaterFraction": {
+            "type": "number"
+          },
+          "gasFlowRate": {
+            "type": "number"
+          },
+          "maxGasFlowRate": {
+            "type": "number"
+          },
+          "vesselOrientation": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "vertical"
+            ]
+          },
+          "gasComposition": {
+            "$ref": "#/components/schemas/GasCompositionDto"
+          }
+        },
+        "required": [
+          "diameter",
+          "length",
+          "totalFlow",
+          "waterFraction",
+          "apiGravity",
+          "inletTemperature",
+          "ambientTemperature",
+          "operatingPressure"
+        ]
       },
       "ThermalCalculationResults": {
         "type": "object",
@@ -5974,6 +6706,321 @@
           "optimizationRecommendations",
           "simulationData"
         ]
+      },
+      "DistributionDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "mean": {
+            "type": "number"
+          },
+          "stddev": {
+            "type": "number"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "DistributionsDto": {
+        "type": "object",
+        "properties": {
+          "apiGravity": {
+            "$ref": "#/components/schemas/DistributionDto"
+          },
+          "waterFraction": {
+            "$ref": "#/components/schemas/DistributionDto"
+          },
+          "oilViscosity": {
+            "$ref": "#/components/schemas/DistributionDto"
+          },
+          "waterDropSize": {
+            "$ref": "#/components/schemas/DistributionDto"
+          }
+        }
+      },
+      "MonteCarloInputDto": {
+        "type": "object",
+        "properties": {
+          "diameter": {
+            "type": "number"
+          },
+          "length": {
+            "type": "number"
+          },
+          "totalFlow": {
+            "type": "number"
+          },
+          "waterFraction": {
+            "type": "number"
+          },
+          "apiGravity": {
+            "type": "number"
+          },
+          "inletTemperature": {
+            "type": "number"
+          },
+          "ambientTemperature": {
+            "type": "number"
+          },
+          "operatingPressure": {
+            "type": "number"
+          },
+          "freeWaterRemovalPercentage": {
+            "type": "number"
+          },
+          "waterDropSize": {
+            "type": "number"
+          },
+          "waterSpecificGravity": {
+            "type": "number"
+          },
+          "oilSpecificHeat": {
+            "type": "number"
+          },
+          "waterSpecificHeat": {
+            "type": "number"
+          },
+          "treatmentTemperature": {
+            "type": "number"
+          },
+          "oilDensity": {
+            "type": "number"
+          },
+          "waterDensity": {
+            "type": "number"
+          },
+          "oilViscosity": {
+            "type": "number"
+          },
+          "factorK": {
+            "type": "number"
+          },
+          "lowLowWaterLevel": {
+            "type": "number"
+          },
+          "waterOilInterfaceLevel": {
+            "type": "number"
+          },
+          "highHighOilLevel": {
+            "type": "number"
+          },
+          "oilRetentionTime": {
+            "type": "number"
+          },
+          "waterRetentionTime": {
+            "type": "number"
+          },
+          "windSpeed": {
+            "type": "number"
+          },
+          "insulated": {
+            "type": "boolean",
+            "description": "Recipiente aislado: pérdidas = 10 % de las del desnudo (API-12L Apéndice D: 5–10 %)"
+          },
+          "maxTotalFlow": {
+            "type": "number"
+          },
+          "maxWaterFraction": {
+            "type": "number"
+          },
+          "gasFlowRate": {
+            "type": "number"
+          },
+          "maxGasFlowRate": {
+            "type": "number"
+          },
+          "vesselOrientation": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "vertical"
+            ]
+          },
+          "gasComposition": {
+            "$ref": "#/components/schemas/GasCompositionDto"
+          },
+          "base": {
+            "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+          },
+          "runs": {
+            "type": "number"
+          },
+          "seed": {
+            "type": "number"
+          },
+          "distributions": {
+            "$ref": "#/components/schemas/DistributionsDto"
+          }
+        }
+      },
+      "ReportRequestDto": {
+        "type": "object",
+        "properties": {
+          "diameter": {
+            "type": "number"
+          },
+          "length": {
+            "type": "number"
+          },
+          "totalFlow": {
+            "type": "number"
+          },
+          "waterFraction": {
+            "type": "number"
+          },
+          "apiGravity": {
+            "type": "number"
+          },
+          "inletTemperature": {
+            "type": "number"
+          },
+          "ambientTemperature": {
+            "type": "number"
+          },
+          "operatingPressure": {
+            "type": "number"
+          },
+          "freeWaterRemovalPercentage": {
+            "type": "number"
+          },
+          "waterDropSize": {
+            "type": "number"
+          },
+          "waterSpecificGravity": {
+            "type": "number"
+          },
+          "oilSpecificHeat": {
+            "type": "number"
+          },
+          "waterSpecificHeat": {
+            "type": "number"
+          },
+          "treatmentTemperature": {
+            "type": "number"
+          },
+          "oilDensity": {
+            "type": "number"
+          },
+          "waterDensity": {
+            "type": "number"
+          },
+          "oilViscosity": {
+            "type": "number"
+          },
+          "factorK": {
+            "type": "number"
+          },
+          "lowLowWaterLevel": {
+            "type": "number"
+          },
+          "waterOilInterfaceLevel": {
+            "type": "number"
+          },
+          "highHighOilLevel": {
+            "type": "number"
+          },
+          "oilRetentionTime": {
+            "type": "number"
+          },
+          "waterRetentionTime": {
+            "type": "number"
+          },
+          "windSpeed": {
+            "type": "number"
+          },
+          "insulated": {
+            "type": "boolean",
+            "description": "Recipiente aislado: pérdidas = 10 % de las del desnudo (API-12L Apéndice D: 5–10 %)"
+          },
+          "maxTotalFlow": {
+            "type": "number"
+          },
+          "maxWaterFraction": {
+            "type": "number"
+          },
+          "gasFlowRate": {
+            "type": "number"
+          },
+          "maxGasFlowRate": {
+            "type": "number"
+          },
+          "vesselOrientation": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "vertical"
+            ]
+          },
+          "gasComposition": {
+            "$ref": "#/components/schemas/GasCompositionDto"
+          },
+          "evaluationId": {
+            "type": "number",
+            "description": "Evaluación propia a informar",
+            "nullable": true
+          },
+          "treatmentId": {
+            "type": "number",
+            "description": "Diseño (tratamiento) propio a informar",
+            "nullable": true
+          },
+          "thermalInput": {
+            "description": "Entrada térmica del front (respaldo si la evaluación no tiene datos guardados); se valida al resolver",
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ThermalTreatmentInputDto"
+              }
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "Código de auditoría (se imprime en el PDF)",
+            "nullable": true
+          },
+          "score": {
+            "type": "number",
+            "description": "Ignorado: el servidor recalcula",
+            "nullable": true
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Ignorado: el servidor recalcula",
+            "nullable": true
+          },
+          "thermalResults": {
+            "type": "object",
+            "description": "Ignorado: el servidor recalcula",
+            "nullable": true
+          },
+          "criteria": {
+            "description": "Ignorado",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "evaluationType": {
+            "type": "string",
+            "description": "Ignorado",
+            "nullable": true
+          },
+          "comments": {
+            "type": "string",
+            "description": "Ignorado",
+            "nullable": true
+          }
+        }
       },
       "DeviceChannel": {
         "type": "object",
@@ -6771,6 +7818,163 @@
           }
         }
       },
+      "AppSettingsResponseDto": {
+        "type": "object",
+        "properties": {
+          "safetyFactorPct": {
+            "type": "number",
+            "description": "Factor de seguridad de diseño (%)",
+            "default": 15
+          },
+          "bswLimitPct": {
+            "type": "number",
+            "description": "Límite BSW de crudo tratado (%)",
+            "default": 0.5
+          },
+          "calcMode": {
+            "type": "string",
+            "enum": [
+              "api12l",
+              "stewart"
+            ],
+            "default": "api12l"
+          },
+          "defaultApiGravity": {
+            "type": "number",
+            "description": "°API por defecto"
+          },
+          "defaultWaterFractionPct": {
+            "type": "number",
+            "description": "% agua por defecto"
+          },
+          "defaultCpOilBtu": {
+            "type": "number",
+            "description": "cp crudo BTU/(lb·°F)"
+          },
+          "defaultCpWaterBtu": {
+            "type": "number",
+            "description": "cp agua BTU/(lb·°F)"
+          },
+          "twinRmseExcellentMax": {
+            "type": "number",
+            "description": "RMSE gemelo \"excelente\" máx (°F)"
+          },
+          "twinRmseAcceptableMax": {
+            "type": "number",
+            "description": "RMSE gemelo \"aceptable\" máx (°F)"
+          },
+          "sampleBswConformMax": {
+            "type": "number",
+            "description": "BSW conforme máx en muestras (%)"
+          },
+          "sampleOiwConformMaxPpm": {
+            "type": "number",
+            "description": "Aceite en agua conforme máx (ppm)"
+          },
+          "requireBiometricsForFiretube": {
+            "type": "boolean",
+            "description": "Exigir rostro enrolado para operar firetube"
+          },
+          "requireBiometricsRoles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "operator"
+              ]
+            }
+          },
+          "version": {
+            "type": "number",
+            "description": "Versión (se incrementa en cada cambio)"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedById": {
+            "type": "number",
+            "description": "Usuario que hizo el último cambio"
+          }
+        },
+        "required": [
+          "safetyFactorPct",
+          "bswLimitPct",
+          "calcMode",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "UpdateAppSettingsDto": {
+        "type": "object",
+        "properties": {
+          "safetyFactorPct": {
+            "type": "number",
+            "description": "Factor de seguridad de diseño (%)",
+            "default": 15
+          },
+          "bswLimitPct": {
+            "type": "number",
+            "description": "Límite BSW de crudo tratado (%)",
+            "default": 0.5
+          },
+          "calcMode": {
+            "type": "string",
+            "enum": [
+              "api12l",
+              "stewart"
+            ],
+            "default": "api12l"
+          },
+          "defaultApiGravity": {
+            "type": "number",
+            "description": "°API por defecto"
+          },
+          "defaultWaterFractionPct": {
+            "type": "number",
+            "description": "% agua por defecto"
+          },
+          "defaultCpOilBtu": {
+            "type": "number",
+            "description": "cp crudo BTU/(lb·°F)"
+          },
+          "defaultCpWaterBtu": {
+            "type": "number",
+            "description": "cp agua BTU/(lb·°F)"
+          },
+          "twinRmseExcellentMax": {
+            "type": "number",
+            "description": "RMSE gemelo \"excelente\" máx (°F)"
+          },
+          "twinRmseAcceptableMax": {
+            "type": "number",
+            "description": "RMSE gemelo \"aceptable\" máx (°F)"
+          },
+          "sampleBswConformMax": {
+            "type": "number",
+            "description": "BSW conforme máx en muestras (%)"
+          },
+          "sampleOiwConformMaxPpm": {
+            "type": "number",
+            "description": "Aceite en agua conforme máx (ppm)"
+          },
+          "requireBiometricsForFiretube": {
+            "type": "boolean",
+            "description": "Exigir rostro enrolado para operar firetube"
+          },
+          "requireBiometricsRoles": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "admin",
+                "operator"
+              ]
+            }
+          }
+        }
+      },
       "Trial": {
         "type": "object",
         "properties": {
@@ -6900,6 +8104,163 @@
           "state"
         ]
       },
+      "CreateTrialDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ensayo Morichal 18°API"
+          },
+          "evaluationId": {
+            "type": "number",
+            "description": "Evaluación asociada"
+          },
+          "pilotDiameter": {
+            "type": "number",
+            "description": "Diámetro del piloto (ft)",
+            "example": 1.5
+          },
+          "pilotLength": {
+            "type": "number",
+            "description": "Longitud del piloto (ft)",
+            "example": 3
+          },
+          "heaterPower": {
+            "type": "number",
+            "description": "Potencia del calentador (BTU/h)",
+            "example": 5000
+          },
+          "bathTempChannelId": {
+            "type": "number"
+          },
+          "ambientTempChannelId": {
+            "type": "number"
+          },
+          "heaterChannelId": {
+            "type": "number"
+          },
+          "levelChannelIds": {
+            "description": "Canales de nivel",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pidLoopId": {
+            "type": "number"
+          },
+          "ruleIds": {
+            "description": "Reglas de seguridad",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "pilotDiameter",
+          "pilotLength",
+          "heaterPower"
+        ]
+      },
+      "UpdateTrialDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Ensayo Morichal 18°API"
+          },
+          "evaluationId": {
+            "type": "number",
+            "description": "Evaluación asociada"
+          },
+          "pilotDiameter": {
+            "type": "number",
+            "description": "Diámetro del piloto (ft)",
+            "example": 1.5
+          },
+          "pilotLength": {
+            "type": "number",
+            "description": "Longitud del piloto (ft)",
+            "example": 3
+          },
+          "heaterPower": {
+            "type": "number",
+            "description": "Potencia del calentador (BTU/h)",
+            "example": 5000
+          },
+          "bathTempChannelId": {
+            "type": "number"
+          },
+          "ambientTempChannelId": {
+            "type": "number"
+          },
+          "heaterChannelId": {
+            "type": "number"
+          },
+          "levelChannelIds": {
+            "description": "Canales de nivel",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pidLoopId": {
+            "type": "number"
+          },
+          "ruleIds": {
+            "description": "Reglas de seguridad",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "StopTrialDto": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "aborted"
+            ]
+          }
+        }
+      },
+      "AddSampleDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "example": "BSW salida"
+          },
+          "value": {
+            "type": "number",
+            "example": 0.4
+          },
+          "unit": {
+            "type": "string",
+            "example": "%"
+          },
+          "at": {
+            "type": "string",
+            "description": "ISO 8601; por defecto, ahora"
+          }
+        },
+        "required": [
+          "label",
+          "value"
+        ]
+      },
       "TrialSample": {
         "type": "object",
         "properties": {
@@ -6924,6 +8285,10 @@
           "at": {
             "format": "date-time",
             "type": "string"
+          },
+          "createdById": {
+            "type": "number",
+            "description": "Usuario que registró la muestra"
           }
         },
         "required": [
@@ -6932,6 +8297,434 @@
           "label",
           "value",
           "at"
+        ]
+      },
+      "FlightRecorderRow": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "reading",
+              "command"
+            ]
+          },
+          "channelId": {
+            "type": "number"
+          },
+          "value": {
+            "type": "number"
+          },
+          "command": {
+            "type": "string"
+          },
+          "response": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "at",
+          "kind"
+        ]
+      },
+      "TrialReportIdentityDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "running",
+              "completed",
+              "aborted"
+            ]
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "durationMin": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "state",
+          "startedAt",
+          "durationMin"
+        ]
+      },
+      "TrialReportGeometryDto": {
+        "type": "object",
+        "properties": {
+          "pilotDiameter": {
+            "type": "number",
+            "description": "ft"
+          },
+          "pilotLength": {
+            "type": "number",
+            "description": "ft"
+          },
+          "heaterPower": {
+            "type": "number",
+            "description": "BTU/h"
+          }
+        },
+        "required": [
+          "pilotDiameter",
+          "pilotLength",
+          "heaterPower"
+        ]
+      },
+      "TrialReportChannelsDto": {
+        "type": "object",
+        "properties": {
+          "bathTempChannelId": {
+            "type": "number",
+            "nullable": true
+          },
+          "ambientTempChannelId": {
+            "type": "number",
+            "nullable": true
+          },
+          "heaterChannelId": {
+            "type": "number",
+            "nullable": true
+          },
+          "levelChannelIds": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "pidLoopId": {
+            "type": "number",
+            "nullable": true
+          },
+          "ruleIds": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": [
+          "levelChannelIds",
+          "ruleIds"
+        ]
+      },
+      "TrialReportChannelStatDto": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "number"
+          },
+          "readings": {
+            "type": "number"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          },
+          "avg": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "channelId",
+          "readings",
+          "min",
+          "max",
+          "avg"
+        ]
+      },
+      "TrialReportFlightRecorderDto": {
+        "type": "object",
+        "properties": {
+          "readings": {
+            "type": "number"
+          },
+          "commands": {
+            "type": "number"
+          },
+          "perChannel": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrialReportChannelStatDto"
+            }
+          }
+        },
+        "required": [
+          "readings",
+          "commands",
+          "perChannel"
+        ]
+      },
+      "TrialReportSampleDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string",
+            "nullable": true
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "value",
+          "at"
+        ]
+      },
+      "TrialReportCalibrationDto": {
+        "type": "object",
+        "properties": {
+          "calibratedEta": {
+            "type": "number",
+            "nullable": true
+          },
+          "calibratedUA": {
+            "type": "number",
+            "nullable": true
+          },
+          "calibrationRmse": {
+            "type": "number",
+            "nullable": true
+          }
+        }
+      },
+      "TrialReportDto": {
+        "type": "object",
+        "properties": {
+          "trial": {
+            "$ref": "#/components/schemas/TrialReportIdentityDto"
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/TrialReportGeometryDto"
+          },
+          "channels": {
+            "$ref": "#/components/schemas/TrialReportChannelsDto"
+          },
+          "flightRecorder": {
+            "$ref": "#/components/schemas/TrialReportFlightRecorderDto"
+          },
+          "samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrialReportSampleDto"
+            }
+          },
+          "calibration": {
+            "$ref": "#/components/schemas/TrialReportCalibrationDto"
+          },
+          "calibrationRating": {
+            "type": "string",
+            "enum": [
+              "Sin calibrar",
+              "Excelente",
+              "Aceptable",
+              "Fuera de tolerancia"
+            ],
+            "description": "Según twinRmse*Max de /settings"
+          },
+          "sha256": {
+            "type": "string",
+            "description": "SHA-256 del contenido (idéntico al X-Report-SHA256 del PDF)"
+          }
+        },
+        "required": [
+          "trial",
+          "geometry",
+          "channels",
+          "flightRecorder",
+          "samples",
+          "calibration",
+          "calibrationRating",
+          "sha256"
+        ]
+      },
+      "TimeSeriesPointDto": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "number",
+            "description": "Segundos desde startedAt"
+          },
+          "value": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "t",
+          "value"
+        ]
+      },
+      "SimulateTwinDto": {
+        "type": "object",
+        "properties": {
+          "realTempSeries": {
+            "description": "Temperatura real del baño (°F); por defecto, lecturas del canal",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointDto"
+            }
+          },
+          "ambientSeries": {
+            "description": "Temperatura ambiente (°F)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointDto"
+            }
+          },
+          "heaterSeries": {
+            "description": "Estado del calentador (0/1)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointDto"
+            }
+          },
+          "eta": {
+            "type": "number",
+            "description": "Eficiencia (0–1)"
+          },
+          "ua": {
+            "type": "number",
+            "description": "UA (BTU/h·°F)"
+          },
+          "cp": {
+            "type": "number",
+            "description": "cp del fluido (BTU/lb·°F)"
+          }
+        }
+      },
+      "TwinPointDto": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "type": "number"
+          },
+          "real": {
+            "type": "number"
+          },
+          "simulated": {
+            "type": "number"
+          },
+          "error": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "t",
+          "real",
+          "simulated",
+          "error"
+        ]
+      },
+      "CalibrateTwinDto": {
+        "type": "object",
+        "properties": {
+          "realTemp": {
+            "description": "Temperatura real del baño (°F)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointDto"
+            }
+          },
+          "ambientTemp": {
+            "description": "Temperatura ambiente (°F)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointDto"
+            }
+          },
+          "heaterState": {
+            "description": "Estado del calentador (0/1)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesPointDto"
+            }
+          },
+          "cp": {
+            "type": "number",
+            "description": "cp del fluido (BTU/lb·°F)"
+          }
+        }
+      },
+      "CalibrationResultDto": {
+        "type": "object",
+        "properties": {
+          "eta": {
+            "type": "number"
+          },
+          "ua": {
+            "type": "number"
+          },
+          "rmse": {
+            "type": "number"
+          },
+          "points": {
+            "type": "number",
+            "description": "Puntos usados en el ajuste"
+          }
+        },
+        "required": [
+          "eta",
+          "ua",
+          "rmse",
+          "points"
+        ]
+      },
+      "CalibrationStatusDto": {
+        "type": "object",
+        "properties": {
+          "eta": {
+            "type": "number"
+          },
+          "ua": {
+            "type": "number"
+          },
+          "rmse": {
+            "type": "number"
+          },
+          "calibratedTrials": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "calibratedTrials"
         ]
       },
       "MoleFractionDto": {

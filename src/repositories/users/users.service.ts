@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { FindManyOptions, Not, Raw, Repository } from 'typeorm';
 
 import {
@@ -7,12 +7,15 @@ import {
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { PaginationDto, QueryBaseDto } from '../../common/pagination/dto';
 import { pagination } from '../../common/pagination/pagination';
 import { CrudRepository } from '../../common/use-case';
+import { MailService } from '../../common/mail';
 import { normalizeText } from '../../common/utlis/string.utils';
 import {
   ChangePasswordDto,
@@ -21,7 +24,10 @@ import {
   UpdateUserDto,
   UserResponseDto,
 } from './dto';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
+
+/** Vigencia del enlace para definir contraseña. */
+const PASSWORD_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 const ALLOWED_SORT = new Set([
   'id',
@@ -35,19 +41,49 @@ const ALLOWED_SORT = new Set([
 
 @Injectable()
 export class UsersService implements CrudRepository<User> {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly mail: MailService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
-    const temporaryPassword = randomBytes(8).toString('hex');
+    // Contraseña aleatoria que nadie conoce; el usuario define la suya con el enlace
+    const isAdmin = createUserDto.role === UserRole.ADMIN;
     const newUser = this.usersRepository.create({
       ...createUserDto,
-      password: temporaryPassword,
+      allowFiretube: createUserDto.allowFiretube ?? isAdmin,
+      allowFlightRecorder: createUserDto.allowFlightRecorder ?? isAdmin,
+      enrollOnFirstLogin: createUserDto.enrollOnFirstLogin ?? true,
+      password: randomBytes(32).toString('hex'),
     });
     const createdUser = await this.usersRepository.save(newUser);
-    return new UserResponseDto(createdUser, temporaryPassword);
+    const inviteSent = await this.sendPasswordSetup(createdUser);
+    return new UserResponseDto(createdUser, inviteSent);
+  }
+
+  /** Reenvía el enlace (p. ej. si venció). Invalida el enlace anterior. */
+  async resendInvite(id: number): Promise<UserResponseDto> {
+    const user = await this.findValid(id);
+    const inviteSent = await this.sendPasswordSetup(user);
+    return new UserResponseDto(user, inviteSent);
+  }
+
+  private async sendPasswordSetup(user: User): Promise<boolean> {
+    const token = randomBytes(32).toString('base64url');
+    await this.usersRepository.update(user.id, {
+      passwordTokenHash: createHash('sha256').update(token).digest('hex'),
+      passwordTokenExpires: new Date(Date.now() + PASSWORD_TOKEN_TTL_MS),
+    });
+    try {
+      await this.mail.sendSetPassword(user.email, user.name, token);
+      return true;
+    } catch (err) {
+      // El usuario queda creado; el admin puede reenviar con POST /users/:id/invite
+      this.logger.error(`No se pudo enviar el correo a ${user.email}: ${err}`);
+      return false;
+    }
   }
 
   async findAll(excludeUserId?: number): Promise<UserResponseDto[]> {
@@ -137,18 +173,55 @@ export class UsersService implements CrudRepository<User> {
   async update(
     id: number,
     updateUserDto: UpdateUserDto,
+    actorId?: number,
   ): Promise<UserResponseDto> {
     const userToUpdate = await this.findValid(id);
+    const demoting =
+      userToUpdate.role === UserRole.ADMIN &&
+      updateUserDto.role != null &&
+      updateUserDto.role !== UserRole.ADMIN;
+    if (demoting) {
+      if (id === actorId) {
+        throw new ForbiddenException(
+          'No puede quitarse su propio rol de administrador',
+        );
+      }
+      await this.assertNotLastAdmin();
+    }
+    if (
+      updateUserDto.role != null &&
+      updateUserDto.role !== userToUpdate.role
+    ) {
+      // Cambio de rol: se cierran sus sesiones para que vuelva a autenticarse
+      userToUpdate.tokensValidAfter = new Date();
+    }
     Object.assign(userToUpdate, updateUserDto);
     const updatedUser = await this.usersRepository.save(userToUpdate);
     return new UserResponseDto(updatedUser);
   }
 
-  async remove(id: number): Promise<{ message: string }> {
+  async remove(id: number, actorId?: number): Promise<{ message: string }> {
+    if (id === actorId) {
+      throw new ForbiddenException('No puede eliminar su propia cuenta');
+    }
     const userToDelete = await this.findValid(id);
+    if (userToDelete.role === UserRole.ADMIN) await this.assertNotLastAdmin();
     userToDelete.deleted = true;
+    userToDelete.tokensValidAfter = new Date();
     await this.usersRepository.save(userToDelete);
     return { message: `Usuario con ID ${id} marcado como eliminado` };
+  }
+
+  /** Evita dejar el sistema sin administradores activos. */
+  private async assertNotLastAdmin(): Promise<void> {
+    const admins = await this.usersRepository.count({
+      where: { role: UserRole.ADMIN, deleted: false },
+    });
+    if (admins <= 1) {
+      throw new ForbiddenException(
+        'Debe quedar al menos un administrador activo',
+      );
+    }
   }
 
   async findByEmail(email: string): Promise<User | undefined> {
@@ -189,7 +262,11 @@ export class UsersService implements CrudRepository<User> {
 
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
     const hashed = await bcrypt.hash(dto.newPassword, saltRounds);
-    await this.usersRepository.update(userId, { password: hashed });
+    // Cierra todas las sesiones abiertas con la contraseña anterior
+    await this.usersRepository.update(userId, {
+      password: hashed,
+      tokensValidAfter: new Date(),
+    });
     return { message: 'Contraseña actualizada exitosamente' };
   }
 }

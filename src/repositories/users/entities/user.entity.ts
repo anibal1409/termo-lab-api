@@ -93,6 +93,36 @@ export class User extends IdEntity {
   @Column({ type: 'float', array: true, nullable: true, select: false })
   faceEmbedding?: number[];
 
+  /** Puede operar el quemador/firetube (escribir salidas, comandos, PID). */
+  @ApiProperty({ description: 'Puede operar firetube / duty del quemador' })
+  @Column({ type: 'boolean', default: false })
+  allowFiretube: boolean;
+
+  /** Puede descargar flight recorder / telemetría de ensayos. */
+  @ApiProperty({ description: 'Puede descargar flight recorder / telemetría' })
+  @Column({ type: 'boolean', default: false })
+  allowFlightRecorder: boolean;
+
+  @ApiProperty({ description: 'Exigir enrolamiento facial en el primer login' })
+  @Column({ type: 'boolean', default: true })
+  enrollOnFirstLogin: boolean;
+
+  /** Derivado de faceEmbedding; se mantiene al enrolar/desenrolar para no cargar el vector. */
+  @ApiProperty({ description: 'Tiene rostro enrolado' })
+  @Column({ type: 'boolean', default: false })
+  faceEnrolled: boolean;
+
+  /** Tokens emitidos antes de esta fecha son inválidos (logout, cambio de contraseña). */
+  @Column({ type: 'timestamptz', nullable: true, select: false })
+  tokensValidAfter?: Date | null;
+
+  /** SHA-256 del token de un solo uso para definir contraseña (alta / reenvío). */
+  @Column({ type: 'varchar', length: 64, nullable: true, select: false })
+  passwordTokenHash?: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true, select: false })
+  passwordTokenExpires?: Date | null;
+
   /**
    * Genera y hashea una contraseña aleatoria antes de insertar.
    */

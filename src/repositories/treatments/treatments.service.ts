@@ -1,4 +1,7 @@
-import { api12lWindK } from '../evaluations/services/thermal-calculator.service';
+import {
+  api12lSizes,
+  api12lWindK,
+} from '../evaluations/services/api12l.tables';
 import { Repository } from 'typeorm';
 
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -618,20 +621,19 @@ export class TreatmentsService implements CrudRepository<Treatment> {
       return [];
     }
 
-    // Filtrar por volumen interno
-    const filtered = candidates.filter((option) => {
-      try {
-        const internalVolume = this.calculateInternalVolume(
-          option.diameter,
-          option.length,
-        );
-        return internalVolume >= requiredVolume;
-      } catch {
-        return false;
-      }
+    // Volúmenes de retención por fase según Tabla E-1 de API-12L (Apéndice E);
+    // tamaños fuera de tabla: volumen interno del cilindro contra la suma.
+    return candidates.filter((option) => {
+      const e1 = api12lSizes(
+        option.type === 'vertical' ? 'vertical' : 'horizontal',
+      ).find(
+        (s) => s.diameter === +option.diameter && s.length === +option.length,
+      );
+      return e1
+        ? e1.oilBbl >= oilRetentionVolume && e1.waterBbl >= waterRetentionVolume
+        : this.calculateInternalVolume(+option.diameter, +option.length) >=
+            requiredVolume;
     });
-
-    return filtered;
   }
 
   /**

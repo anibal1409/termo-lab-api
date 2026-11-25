@@ -1,3 +1,4 @@
+import { AdminGuard } from '../../auth/guards';
 import {
   Body,
   Controller,
@@ -8,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -176,6 +178,7 @@ export class TreatmentsController {
    * Obtiene todos los tratamientos de un usuario específico
    */
   @Get('user/:userId/all')
+  @UseGuards(AdminGuard) // datos de otro usuario: solo admin
   @ApiOperation({ summary: 'Obtener todos los tratamientos de un usuario' })
   @ApiParam({
     name: 'userId',
@@ -197,6 +200,7 @@ export class TreatmentsController {
    * Obtiene tratamientos paginados de un usuario específico
    */
   @Get('user/:userId')
+  @UseGuards(AdminGuard) // datos de otro usuario: solo admin
   @ApiOperation({ summary: 'Obtener tratamientos paginados de un usuario' })
   @ApiParam({
     name: 'userId',

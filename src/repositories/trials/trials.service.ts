@@ -1,50 +1,27 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, Repository } from 'typeorm';
 
-import { Trial, TrialSample, TrialState } from './entities';
+import { Trial, TrialSample } from './entities';
 import {
   ChannelReading,
   DeviceCommandLog,
 } from '../devices/entities/device.entity';
 
-// ── DTOs ────────────────────────────────────────────────────
+import {
+  AddSampleDto,
+  CreateTrialDto,
+  FlightRecorderRow,
+  UpdateTrialDto,
+} from './trials.dto';
 
-export interface CreateTrialDto {
-  name: string;
-  evaluationId?: number;
-  pilotDiameter: number;
-  pilotLength: number;
-  heaterPower: number;
-  bathTempChannelId?: number;
-  ambientTempChannelId?: number;
-  heaterChannelId?: number;
-  levelChannelIds?: string[];
-  pidLoopId?: number;
-  ruleIds?: string[];
-  notes?: string;
-}
-
-export interface AddSampleDto {
-  label: string;
-  value: number;
-  unit?: string;
-  at?: string; // ISO date, defaults to now
-}
-
-export interface FlightRecorderRow {
-  at: Date;
-  kind: 'reading' | 'command';
-  channelId?: number;
-  value?: number;
-  command?: string;
-  response?: string;
-  source?: string;
-}
+export * from './trials.dto';
 
 // ── Service ─────────────────────────────────────────────────
 
@@ -80,7 +57,7 @@ export class TrialsService {
     return this.trialRepo.save(this.trialRepo.create(dto));
   }
 
-  async update(id: number, dto: Partial<CreateTrialDto>): Promise<Trial> {
+  async update(id: number, dto: UpdateTrialDto): Promise<Trial> {
     const trial = await this.findOne(id);
     if (trial.state === 'running')
       throw new BadRequestException('No se puede editar un ensayo en curso');
@@ -125,15 +102,32 @@ export class TrialsService {
 
   // ── Samples ─────────────────────────────────────────────
 
-  async addSample(trialId: number, dto: AddSampleDto): Promise<TrialSample> {
-    await this.findOne(trialId);
+  async addSample(
+    trialId: number,
+    dto: AddSampleDto,
+    userId: number,
+  ): Promise<TrialSample> {
+    const trial = await this.findOne(trialId);
+    // Muestras solo durante el ensayo: no se alteran ensayos cerrados
+    if (trial.state !== 'running') {
+      throw new BadRequestException(
+        'Solo se registran muestras en ensayos en curso',
+      );
+    }
+    const at = dto.at ? new Date(dto.at) : new Date();
+    if ((trial.startedAt && at < trial.startedAt) || at > new Date()) {
+      throw new BadRequestException(
+        'La fecha de la muestra debe estar dentro del ensayo en curso',
+      );
+    }
     return this.sampleRepo.save(
       this.sampleRepo.create({
         trialId,
+        createdById: userId,
         label: dto.label,
         value: dto.value,
         unit: dto.unit,
-        at: dto.at ? new Date(dto.at) : new Date(),
+        at,
       }),
     );
   }
@@ -223,6 +217,105 @@ export class TrialsService {
       }
     }
     return lines.join('\n');
+  }
+
+  // ── Informe técnico ─────────────────────────────────────
+
+  /**
+   * Datos del informe de ensayo (base del PDF y de su hash).
+   * 409 si el ensayo nunca corrió; 422 si faltan datos mínimos.
+   */
+  async reportData(id: number) {
+    const trial = await this.findOne(id);
+    if (trial.state === 'draft') {
+      throw new ConflictException('El ensayo no se ha ejecutado (draft)');
+    }
+    if (!trial.startedAt || !trial.pilotDiameter || !trial.pilotLength) {
+      throw new UnprocessableEntityException(
+        'Faltan datos mínimos: inicio del ensayo o geometría del piloto',
+      );
+    }
+    const rows = await this.flightRecorder(id);
+
+    // Resumen por canal (lecturas) y conteo de comandos
+    const stats = new Map<
+      number,
+      { n: number; min: number; max: number; sum: number }
+    >();
+    let commands = 0;
+    for (const r of rows) {
+      if (r.kind === 'command') {
+        commands++;
+        continue;
+      }
+      if (r.channelId == null || r.value == null) continue;
+      const s = stats.get(r.channelId) ?? {
+        n: 0,
+        min: Infinity,
+        max: -Infinity,
+        sum: 0,
+      };
+      s.n++;
+      s.min = Math.min(s.min, r.value);
+      s.max = Math.max(s.max, r.value);
+      s.sum += r.value;
+      stats.set(r.channelId, s);
+    }
+    const end = trial.endedAt ?? new Date();
+
+    return {
+      trial: {
+        id: trial.id,
+        name: trial.name,
+        state: trial.state,
+        startedAt: trial.startedAt,
+        endedAt: trial.endedAt ?? null,
+        durationMin: +(
+          (end.getTime() - trial.startedAt.getTime()) /
+          60000
+        ).toFixed(2),
+        notes: trial.notes ?? null,
+      },
+      geometry: {
+        pilotDiameter: trial.pilotDiameter,
+        pilotLength: trial.pilotLength,
+        heaterPower: trial.heaterPower,
+      },
+      channels: {
+        bathTempChannelId: trial.bathTempChannelId ?? null,
+        ambientTempChannelId: trial.ambientTempChannelId ?? null,
+        heaterChannelId: trial.heaterChannelId ?? null,
+        levelChannelIds: trial.levelChannelIds ?? [],
+        pidLoopId: trial.pidLoopId ?? null,
+        ruleIds: trial.ruleIds ?? [],
+      },
+      flightRecorder: {
+        readings: rows.length - commands,
+        commands,
+        perChannel: [...stats.entries()]
+          .sort(([a], [b]) => a - b)
+          .map(([channelId, s]) => ({
+            channelId,
+            readings: s.n,
+            min: s.min,
+            max: s.max,
+            avg: +(s.sum / s.n).toFixed(4),
+          })),
+      },
+      samples: [...(trial.samples ?? [])]
+        .sort((a, b) => a.at.getTime() - b.at.getTime() || a.id - b.id)
+        .map((s) => ({
+          label: s.label,
+          value: s.value,
+          unit: s.unit ?? null,
+          at: s.at,
+        })),
+      calibration: {
+        calibratedEta: trial.calibratedEta ?? null,
+        calibratedUA: trial.calibratedUA ?? null,
+        calibrationRmse: trial.calibrationRmse ?? null,
+      },
+    };
   }
 
   // ── Calibration data (for thermal twin) ─────────────────

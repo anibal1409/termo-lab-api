@@ -21,6 +21,11 @@ import {
   MonteCarloResult,
 } from '../services/thermal-analysis.service';
 
+import {
+  MonteCarloInputDto,
+  ThermalTreatmentInputDto,
+} from '../dto/thermal-input.dto';
+
 @ApiTags('Thermal Calculations')
 @Controller('thermal-calculations')
 export class ThermalCalculationsController {
@@ -42,7 +47,7 @@ export class ThermalCalculationsController {
       'Calcula todos los parámetros térmicos según la metodología del módulo de evaluación y norma API-12L',
   })
   @ApiBody({
-    type: Object,
+    type: ThermalTreatmentInputDto,
     description:
       'Datos de entrada del tratador térmico según Tabla 4-1 del PDF',
     examples: {
@@ -75,7 +80,7 @@ export class ThermalCalculationsController {
     description: 'Datos de entrada inválidos o incompletos',
   })
   calculateThermalResults(
-    @Body() input: ThermalTreatmentInput,
+    @Body() input: ThermalTreatmentInputDto,
   ): ThermalCalculationResults {
     return this.thermalCalculatorService.calculateThermalResults(input);
   }
@@ -200,7 +205,7 @@ export class ThermalCalculationsController {
       },
     },
   })
-  recommendDimensions(@Body() input: ThermalTreatmentInput): {
+  recommendDimensions(@Body() input: ThermalTreatmentInputDto): {
     recommendedDiameter: number;
     recommendedLength: number;
     recommendedPressure: number;
@@ -232,7 +237,7 @@ export class ThermalCalculationsController {
       'Evalúa cada criterio API 12L con valor, límite y margen. Si no cumple, sugiere el cambio mínimo en variables de diseño.',
   })
   @ApiOkResponse({ description: 'Diagnóstico con criterios y sugerencias' })
-  diagnose(@Body() input: ThermalTreatmentInput): DiagnoseResult {
+  diagnose(@Body() input: ThermalTreatmentInputDto): DiagnoseResult {
     return this.analysisService.diagnose(input);
   }
 
@@ -249,10 +254,15 @@ export class ThermalCalculationsController {
   })
   @ApiOkResponse({ description: 'Barras del tornado ordenadas por impacto' })
   sensitivity(
-    @Body() input: ThermalTreatmentInput,
+    @Body() input: ThermalTreatmentInputDto,
     @Query('delta') delta?: string,
   ): SensitivityResult {
-    return this.analysisService.sensitivity(input, delta ? +delta : 10);
+    const d = Number(delta ?? 10);
+    // δ fuera de (0, 90] daría dimensiones negativas o nulas
+    return this.analysisService.sensitivity(
+      input,
+      Number.isFinite(d) ? Math.min(90, Math.max(0.1, d)) : 10,
+    );
   }
 
   @Post('monte-carlo')
@@ -262,14 +272,15 @@ export class ThermalCalculationsController {
       'Ejecuta N corridas con propiedades del crudo muestreadas de distribuciones. Devuelve probabilidad de cumplir por criterio y percentiles.',
   })
   @ApiOkResponse({ description: 'Resultado de la simulación Monte Carlo' })
-  monteCarlo(
-    @Body() input: MonteCarloInput & Record<string, any>,
-  ): MonteCarloResult {
-    // Accept flat body (same shape as diagnose + runs/seed) or nested { base, runs, seed }
-    if (!input.base && input.diameter != null) {
-      const { runs, seed, distributions, ...rest } = input as any;
-      input = { base: rest, runs, seed, distributions };
-    }
-    return this.analysisService.monteCarlo(input);
+  monteCarlo(@Body() input: MonteCarloInputDto): MonteCarloResult {
+    // Acepta cuerpo plano (como diagnose + runs/seed) o anidado { base, runs, seed }
+    const { base, runs, seed, distributions, ...flat } = input;
+    const mc: MonteCarloInput = {
+      base: base ?? (flat as ThermalTreatmentInput),
+      runs,
+      seed,
+      distributions,
+    };
+    return this.analysisService.monteCarlo(mc);
   }
 }

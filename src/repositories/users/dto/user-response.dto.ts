@@ -41,12 +41,18 @@ export class UserResponseDto extends BaseResponseDto {
 
   @ApiPropertyOptional({
     description:
-      'Contraseña temporal generada (solo en creación; no se vuelve a devolver)',
-    example: 'a1b2c3d4e5f67890',
+      'Solo en creación/reenvío: si se envió el correo para definir contraseña',
+    example: true,
   })
-  temporaryPassword?: string;
+  inviteSent?: boolean;
 
-  constructor(user: User, temporaryPassword?: string) {
+  @ApiProperty() allowFiretube: boolean;
+  @ApiProperty() allowFlightRecorder: boolean;
+  @ApiProperty() enrollOnFirstLogin: boolean;
+  @ApiProperty({ description: 'Derivado: tiene rostro enrolado' })
+  faceEnrolled: boolean;
+
+  constructor(user: User, inviteSent?: boolean) {
     super(user);
     Object.assign(this, {
       name: user?.name || '',
@@ -54,7 +60,11 @@ export class UserResponseDto extends BaseResponseDto {
       role: user?.role || UserRole.OPERATOR,
       email: user?.email || '',
       lastLogin: user?.lastLogin ? new Date(user?.lastLogin) : null,
-      ...(temporaryPassword ? { temporaryPassword } : {}),
+      allowFiretube: !!user?.allowFiretube,
+      allowFlightRecorder: !!user?.allowFlightRecorder,
+      enrollOnFirstLogin: user?.enrollOnFirstLogin ?? true,
+      faceEnrolled: !!user?.faceEnrolled,
+      ...(inviteSent != null ? { inviteSent } : {}),
     });
   }
 }

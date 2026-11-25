@@ -1,6 +1,23 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
+import {
+  API12L_INSULATED_LOSS_FACTOR,
+  API12L_MAX_OIL_VISCOSITY_CP,
+  api12lFirebox,
+  api12lSizes,
+  api12lWindK,
+  Orientation,
+} from './api12l.tables';
+
+// Re-export: otros módulos importaban estas tablas desde aquí
+export {
+  API12L_HORIZONTAL_SIZES,
+  API12L_VERTICAL_SIZES,
+  api12lFirebox,
+  api12lWindK,
+} from './api12l.tables';
+
 /**
  * @description Interfaz para datos de entrada del tratador térmico
  */
@@ -32,6 +49,7 @@ export interface ThermalTreatmentInput {
   oilRetentionTime?: number; // Tiempo de retención del petróleo en minutos
   waterRetentionTime?: number; // Tiempo de retención del agua en minutos
   windSpeed?: number; // Velocidad del viento en MPH
+  insulated?: boolean; // Recipiente aislado (Apéndice D: pérdida ≈ 5–10 % del desnudo)
 
   // Variables de operación extendidas
   maxTotalFlow?: number; // Caudal total máximo en BPD
@@ -388,54 +406,6 @@ export class ThermalCalculationResults {
  * @description Servicio para cálculos térmicos según metodología del PDF
  * Implementa todas las fórmulas de la Tabla 4-2 y metodología de cálculo
  */
-/** Tabla API-12L de K (BTU/h·pie²·°F por pie de D×L) vs viento (MPH), interpolada linealmente. */
-const API12L_WIND_K: [number, number][] = [
-  [0, 9.3],
-  [5, 9.8],
-  [10, 13.2],
-  [15, 15.7],
-  [20, 20.0],
-];
-
-export function api12lWindK(windSpeed: number): number {
-  const t = API12L_WIND_K;
-  if (windSpeed <= t[0][0]) return t[0][1];
-  for (let i = 1; i < t.length; i++) {
-    const [x2, y2] = t[i];
-    if (windSpeed <= x2) {
-      const [x1, y1] = t[i - 1];
-      return y1 + ((y2 - y1) * (windSpeed - x1)) / (x2 - x1);
-    }
-  }
-  return t[t.length - 1][1];
-}
-
-/** Tabla 4.2 API-12L: tratadores horizontales (D, L en pies; presión psig; calor BTU/h). */
-export const API12L_HORIZONTAL_SIZES = [
-  { diameter: 3, length: 10, pressure: 50, maxHeat: 100000 },
-  { diameter: 3, length: 12, pressure: 50, maxHeat: 120000 },
-  { diameter: 3, length: 15, pressure: 50, maxHeat: 150000 },
-  { diameter: 4, length: 10, pressure: 50, maxHeat: 200000 },
-  { diameter: 4, length: 12, pressure: 50, maxHeat: 240000 },
-  { diameter: 4, length: 15, pressure: 50, maxHeat: 300000 },
-  { diameter: 6, length: 10, pressure: 50, maxHeat: 400000 },
-  { diameter: 6, length: 15, pressure: 50, maxHeat: 600000 },
-  { diameter: 6, length: 20, pressure: 50, maxHeat: 800000 },
-  { diameter: 8, length: 15, pressure: 50, maxHeat: 800000 },
-  { diameter: 8, length: 20, pressure: 50, maxHeat: 1000000 },
-  { diameter: 8, length: 25, pressure: 50, maxHeat: 1250000 },
-  { diameter: 8, length: 30, pressure: 50, maxHeat: 1500000 },
-  { diameter: 10, length: 20, pressure: 50, maxHeat: 1500000 },
-  { diameter: 10, length: 30, pressure: 50, maxHeat: 2250000 },
-  { diameter: 10, length: 40, pressure: 50, maxHeat: 3000000 },
-  { diameter: 10, length: 50, pressure: 50, maxHeat: 3750000 },
-  { diameter: 10, length: 60, pressure: 50, maxHeat: 4500000 },
-  { diameter: 12, length: 30, pressure: 50, maxHeat: 3000000 },
-  { diameter: 12, length: 40, pressure: 50, maxHeat: 4000000 },
-  { diameter: 12, length: 50, pressure: 50, maxHeat: 5000000 },
-  { diameter: 12, length: 60, pressure: 50, maxHeat: 6000000 },
-];
-
 @Injectable()
 export class ThermalCalculatorService {
   private readonly GAS_CONSTANT = 10.7316; // Constante de los gases
@@ -830,6 +800,7 @@ export class ThermalCalculatorService {
       treatmentTemperature, // T2 por defecto
       input.ambientTemperature,
       results.windSpeed,
+      input.insulated,
     );
 
     // 35. Calcular calor absorbido por el proceso
@@ -850,9 +821,20 @@ export class ThermalCalculatorService {
     // 36. Seleccionar dimensiones recomendadas según API-12L
     const vesselOrientation = input.vesselOrientation || 'horizontal';
     const dimensionalRecommendation = this.selectOptimalDimensions(
-      results.totalHeatRequired,
-      results.oilRetentionVolume,
-      results.waterRetentionVolume,
+      results.processHeatDuty,
+      results.dryOilFlowRate,
+      results.waterFlowRate,
+      input.oilRetentionTime ?? 60,
+      input.waterRetentionTime ?? 30,
+      (d, l) =>
+        this.calculateHeatLosses(
+          d,
+          l,
+          treatmentTemperature,
+          input.ambientTemperature,
+          results.windSpeed,
+          input.insulated,
+        ),
       vesselOrientation,
     );
     results.recommendedDiameter = dimensionalRecommendation.diameter;
@@ -862,7 +844,8 @@ export class ThermalCalculatorService {
 
     // 37. Calcular clasificación de cámara de combustión
     const fireboxData = this.calculateFireboxClassification(
-      results.totalHeatRequired,
+      input.diameter,
+      vesselOrientation,
     );
     results.minimumFireboxArea = fireboxData.area;
     results.minimumHeatCapacity = fireboxData.capacity;
@@ -1542,6 +1525,13 @@ export class ThermalCalculatorService {
       pressureCompliant = false;
     }
 
+    // Apéndice D: viscosidad máx. ≈ 150 SSU (25–30 cP) a T de tratamiento. Solo advierte.
+    if ((input.oilViscosity ?? 0) > API12L_MAX_OIL_VISCOSITY_CP) {
+      warnings.push(
+        `Viscosidad del crudo ${input.oilViscosity} cP > ${API12L_MAX_OIL_VISCOSITY_CP} cP (≈150 SSU) recomendado por API-12L a temperatura de tratamiento`,
+      );
+    }
+
     // Cámara de combustión: densidad de flujo 10.000 BTU/h·pie² (Tabla 3)
     if (results.totalHeatRequired > results.minimumHeatCapacity) {
       warnings.push(
@@ -1588,9 +1578,16 @@ export class ThermalCalculatorService {
     treatmentTemp: number,
     ambientTemp: number,
     windSpeed: number,
+    insulated = false,
   ): number {
+    // Apéndice D: Ql = K·D·L·(T2 − Ta); aislado ≈ 10 % del desnudo
+    const factor = insulated ? API12L_INSULATED_LOSS_FACTOR : 1;
     return (
-      api12lWindK(windSpeed) * diameter * length * (treatmentTemp - ambientTemp)
+      api12lWindK(windSpeed) *
+      diameter *
+      length *
+      (treatmentTemp - ambientTemp) *
+      factor
     );
   }
 
@@ -1613,131 +1610,61 @@ export class ThermalCalculatorService {
   }
 
   /**
-   * Selecciona dimensiones óptimas según Tablas 4.1 y 4.2 de API-12L
-   * Diferencia entre tratadores horizontales y verticales según documento
+   * Selección según Apéndice E de API-12L:
+   * Vo = Wo·Ro/1440 y Vw = Ww·Rw/1440 contra volúmenes de Tabla E-1, y
+   * Q proceso + pérdidas del tamaño candidato ≤ heat duty de Tabla 3 de su diámetro.
+   * Entre los que cumplen, el de menor volumen total.
    */
   private selectOptimalDimensions(
-    totalHeat: number,
-    oilVolume: number,
-    waterVolume: number,
-    orientation: 'horizontal' | 'vertical' = 'horizontal',
+    processHeat: number,
+    oilFlowBpd: number,
+    waterFlowBpd: number,
+    oilRetentionMin: number,
+    waterRetentionMin: number,
+    heatLossFor: (diameter: number, length: number) => number,
+    orientation: Orientation = 'horizontal',
   ): { diameter: number; length: number; pressure: number; fits: boolean } {
-    // Tabla 4.1: Dimensiones para tratadores verticales
-    const verticalDimensions = [
-      { diameter: 3, length: 10, pressure: 50, maxHeat: 100000 },
-      { diameter: 3, length: 12, pressure: 50, maxHeat: 120000 },
-      { diameter: 3, length: 15, pressure: 50, maxHeat: 150000 },
-      { diameter: 4, length: 10, pressure: 50, maxHeat: 200000 },
-      { diameter: 4, length: 12, pressure: 50, maxHeat: 240000 },
-      { diameter: 4, length: 20, pressure: 50, maxHeat: 400000 },
-      { diameter: 4, length: 27.5, pressure: 50, maxHeat: 550000 },
-      { diameter: 6, length: 12, pressure: 50, maxHeat: 480000 },
-      { diameter: 6, length: 20, pressure: 50, maxHeat: 800000 },
-      { diameter: 6, length: 27.5, pressure: 50, maxHeat: 1100000 },
-      { diameter: 8, length: 20, pressure: 40, maxHeat: 1000000 },
-      { diameter: 8, length: 27.5, pressure: 40, maxHeat: 1375000 },
-      { diameter: 10, length: 20, pressure: 40, maxHeat: 1500000 },
-      { diameter: 10, length: 27.5, pressure: 40, maxHeat: 2062500 },
-    ];
+    const oilReq = (oilFlowBpd * oilRetentionMin) / 1440;
+    const waterReq = (waterFlowBpd * waterRetentionMin) / 1440;
+    const sizes = api12lSizes(orientation);
 
-    // Seleccionar la tabla según la orientación
-    const dimensions =
-      orientation === 'vertical' ? verticalDimensions : API12L_HORIZONTAL_SIZES;
+    const fitting = sizes
+      .filter((s) => {
+        const duty = api12lFirebox(s.diameter, orientation)?.duty ?? 0;
+        return (
+          s.oilBbl >= oilReq &&
+          s.waterBbl >= waterReq &&
+          processHeat + heatLossFor(s.diameter, s.length) <= duty
+        );
+      })
+      .sort((a, b) => a.oilBbl + a.waterBbl - (b.oilBbl + b.waterBbl));
 
-    // Encontrar la configuración más adecuada
-    // oilVolume/waterVolume están en pie³; calculateVolume también en pie³
-    const suitableConfigs = dimensions.filter(
-      (config) =>
-        config.maxHeat >= totalHeat &&
-        this.calculateVolume(config.diameter, config.length) >=
-          oilVolume + waterVolume,
-    );
-
-    if (suitableConfigs.length === 0) {
-      // Si no hay configuración adecuada, usar la más grande
-      const largest = dimensions[dimensions.length - 1];
-      return {
-        diameter: largest.diameter,
-        length: largest.length,
-        pressure: largest.pressure,
-        fits: false,
-      };
-    }
-
-    // Seleccionar la configuración más eficiente (menor diámetro que cumpla)
-    const selected = suitableConfigs.reduce((prev, current) =>
-      current.diameter < prev.diameter ? current : prev,
-    );
-
+    const selected = fitting[0] ?? sizes[sizes.length - 1];
     return {
       diameter: selected.diameter,
       length: selected.length,
       pressure: selected.pressure,
-      fits: true,
+      fits: fitting.length > 0,
     };
   }
 
-  /**
-   * Calcula volumen de un cilindro
-   */
-  private calculateVolume(diameter: number, length: number): number {
-    return Math.PI * Math.pow(diameter / 2, 2) * length;
-  }
-
-  /**
-   * Calcula clasificación de cámara de combustión según Tabla 3
-   */
-  private calculateFireboxClassification(totalHeat: number): {
-    area: number;
-    capacity: number;
-    classification: string;
-  } {
-    // Tabla 3: Clasificaciones típicas de cámaras de combustión
-    const fireboxConfigs = [
-      { diameter: 3, area: 10, capacity: 100000, classification: 'Pequeña' },
-      { diameter: 4, area: 25, capacity: 250000, classification: 'Mediana' },
-      { diameter: 6, area: 50, capacity: 500000, classification: 'Grande' },
-      {
-        diameter: 8,
-        area: 100,
-        capacity: 1000000,
-        classification: 'Extra Grande',
-      },
-      {
-        diameter: 10,
-        area: 125,
-        capacity: 1250000,
-        classification: 'Industrial',
-      },
-      {
-        diameter: 12,
-        area: 320,
-        capacity: 3200000,
-        classification: 'Industrial Grande',
-      },
-    ];
-
-    const suitableConfigs = fireboxConfigs.filter(
-      (config) => config.capacity >= totalHeat,
-    );
-
-    if (suitableConfigs.length === 0) {
-      const largest = fireboxConfigs[fireboxConfigs.length - 1];
+  /** Tabla 3: firebox del recipiente evaluado (por diámetro exterior y orientación). */
+  private calculateFireboxClassification(
+    diameter: number,
+    orientation: Orientation,
+  ): { area: number; capacity: number; classification: string } {
+    const row = api12lFirebox(diameter, orientation);
+    if (!row) {
       return {
-        area: largest.area,
-        capacity: largest.capacity,
-        classification: largest.classification,
+        area: 0,
+        capacity: 0,
+        classification: `Sin rating en Tabla 3 (${orientation} ${diameter} ft)`,
       };
     }
-
-    const selected = suitableConfigs.reduce((prev, current) =>
-      current.capacity < prev.capacity ? current : prev,
-    );
-
     return {
-      area: selected.area,
-      capacity: selected.capacity,
-      classification: selected.classification,
+      area: row.area,
+      capacity: row.duty,
+      classification: `Tabla 3 · ${orientation} ${row.diameter} ft`,
     };
   }
 

@@ -14,26 +14,38 @@ import {
   ApiBearerAuth,
   ApiOkResponse,
   ApiOperation,
+  ApiProduces,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 
-import { JwtAuthGuard } from '../../auth/guards';
+import { JwtAuthGuard, PermissionGuard } from '../../auth/guards';
 import { AdminGuard } from '../../auth/guards/admin.guard';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { User } from '../users/entities';
 import {
   TrialsService,
   CreateTrialDto,
   AddSampleDto,
+  StopTrialDto,
+  UpdateTrialDto,
   FlightRecorderRow,
+  SimulateTwinDto,
+  CalibrateTwinDto,
+  TwinPointDto,
+  CalibrationResultDto,
+  CalibrationStatusDto,
+  TrialReportDto,
 } from './trials.service';
 import { Trial, TrialSample } from './entities';
+import { createHash } from 'crypto';
+
+import { canonicalJson, PdfService } from '../../common/pdf';
+import { SettingsService } from '../settings/settings.service';
 import {
   ThermalTwinService,
   TwinParams,
-  TwinPoint,
-  CalibrationResult,
-  TimeSeries,
-  pilotMass,
 } from '../evaluations/services/thermal-twin.service';
 
 @ApiTags('Trials')
@@ -44,6 +56,8 @@ export class TrialsController {
   constructor(
     private readonly trialsService: TrialsService,
     private readonly twinService: ThermalTwinService,
+    private readonly settings: SettingsService,
+    private readonly pdf: PdfService,
   ) {}
 
   @Get()
@@ -74,7 +88,7 @@ export class TrialsController {
   @ApiOkResponse({ type: Trial })
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: Partial<CreateTrialDto>,
+    @Body() dto: UpdateTrialDto,
   ): Promise<Trial> {
     return this.trialsService.update(id, dto);
   }
@@ -82,6 +96,7 @@ export class TrialsController {
   @Delete(':id')
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Eliminar ensayo' })
+  @ApiOkResponse({ description: 'Ensayo eliminado' })
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.trialsService.remove(id);
   }
@@ -102,7 +117,7 @@ export class TrialsController {
   @ApiOkResponse({ type: Trial })
   stop(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { state?: 'completed' | 'aborted' },
+    @Body() body: StopTrialDto,
   ): Promise<Trial> {
     return this.trialsService.stop(id, body.state);
   }
@@ -115,14 +130,17 @@ export class TrialsController {
   addSample(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AddSampleDto,
+    @CurrentUser() user: User,
   ): Promise<TrialSample> {
-    return this.trialsService.addSample(id, dto);
+    return this.trialsService.addSample(id, dto, user.id);
   }
 
   // ── Flight recorder ─────────────────────────────────────
 
   @Get(':id/flight-recorder')
+  @UseGuards(PermissionGuard('allowFlightRecorder'))
   @ApiOperation({ summary: 'Reproducir ensayo (lecturas y comandos)' })
+  @ApiOkResponse({ type: [FlightRecorderRow] })
   flightRecorder(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<FlightRecorderRow[]> {
@@ -130,7 +148,10 @@ export class TrialsController {
   }
 
   @Get(':id/export')
+  @UseGuards(PermissionGuard('allowFlightRecorder'))
   @ApiOperation({ summary: 'Exportar ensayo a CSV' })
+  @ApiProduces('text/csv')
+  @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
   async exportCsv(
     @Param('id', ParseIntPipe) id: number,
     @Res() res: Response,
@@ -144,6 +165,145 @@ export class TrialsController {
     res.send(csv);
   }
 
+  /** Datos del informe + calificación del gemelo según /settings. */
+  private async ratedReport(id: number) {
+    const data = await this.trialsService.reportData(id);
+    const settings = await this.settings.get();
+    const rmse = data.calibration.calibrationRmse;
+    const rating =
+      rmse == null
+        ? 'Sin calibrar'
+        : rmse <= (settings.twinRmseExcellentMax ?? 1)
+          ? 'Excelente'
+          : rmse <= (settings.twinRmseAcceptableMax ?? 3)
+            ? 'Aceptable'
+            : 'Fuera de tolerancia';
+    return { data, rating };
+  }
+
+  @Get(':id/report.json')
+  @ApiOperation({
+    summary: 'Informe técnico del ensayo (JSON)',
+    description:
+      'Mismo contenido que report.pdf, tipado. sha256 coincide con el X-Report-SHA256 del PDF.',
+  })
+  @ApiOkResponse({ type: TrialReportDto })
+  @ApiResponse({ status: 404, description: 'Ensayo inexistente' })
+  @ApiResponse({ status: 409, description: 'Ensayo en draft (sin corrida)' })
+  @ApiResponse({ status: 422, description: 'Faltan datos mínimos' })
+  async reportJson(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<TrialReportDto> {
+    const { data, rating } = await this.ratedReport(id);
+    const sha256 = createHash('sha256')
+      .update(canonicalJson(data))
+      .digest('hex');
+    return { ...data, calibrationRating: rating, sha256 };
+  }
+
+  @Get(':id/report.pdf')
+  @ApiOperation({
+    summary: 'Informe técnico PDF del ensayo',
+    description:
+      'Identidad, geometría, canales DAQ, resumen del flight recorder, muestras y calibración del gemelo. El header X-Report-SHA256 y el pie llevan el hash del contenido.',
+  })
+  @ApiProduces('application/pdf')
+  @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
+  @ApiResponse({ status: 404, description: 'Ensayo inexistente' })
+  @ApiResponse({ status: 409, description: 'Ensayo en draft (sin corrida)' })
+  @ApiResponse({ status: 422, description: 'Faltan datos mínimos' })
+  async reportPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ): Promise<void> {
+    const { data, rating } = await this.ratedReport(id);
+    const rmse = data.calibration.calibrationRmse;
+    const { trial, geometry, channels, flightRecorder: fr } = data;
+
+    const { buffer, sha256 } = await this.pdf.render(
+      `Informe técnico de ensayo #${trial.id}`,
+      `${trial.name} · Generado ${new Date().toISOString()} · Metodología API-12L`,
+      [
+        {
+          heading: 'Identidad',
+          fields: [
+            ['ID', trial.id],
+            ['Nombre', trial.name],
+            ['Estado', trial.state],
+            ['Inicio', trial.startedAt],
+            ['Fin', trial.endedAt],
+            ['Duración (min)', trial.durationMin],
+            ['Notas', trial.notes],
+          ],
+        },
+        {
+          heading: 'Geometría del piloto',
+          fields: [
+            ['Diámetro (ft)', geometry.pilotDiameter],
+            ['Longitud (ft)', geometry.pilotLength],
+            ['Potencia calentador (BTU/h)', geometry.heaterPower],
+          ],
+        },
+        {
+          heading: 'Canales DAQ',
+          fields: [
+            ['Temperatura baño', channels.bathTempChannelId],
+            ['Temperatura ambiente', channels.ambientTempChannelId],
+            ['Calentador', channels.heaterChannelId],
+            ['Nivel', channels.levelChannelIds.join(', ')],
+            ['Lazo PID', channels.pidLoopId],
+            ['Reglas', channels.ruleIds.join(', ')],
+          ],
+        },
+        {
+          heading: 'Flight recorder',
+          fields: [
+            ['Lecturas', fr.readings],
+            ['Comandos', fr.commands],
+          ],
+          table: {
+            headers: ['Canal', 'Lecturas', 'Mín', 'Máx', 'Prom'],
+            rows: fr.perChannel.map((c) => [
+              c.channelId,
+              c.readings,
+              c.min,
+              c.max,
+              c.avg,
+            ]),
+          },
+        },
+        {
+          heading: 'Muestras',
+          table: {
+            headers: ['Fecha', 'Etiqueta', 'Valor', 'Unidad'],
+            rows: data.samples.map((s) => [s.at, s.label, s.value, s.unit]),
+          },
+        },
+        {
+          heading: 'Calibración del gemelo térmico',
+          fields: [
+            ['Eficiencia η', data.calibration.calibratedEta],
+            ['UA (BTU/h·°F)', data.calibration.calibratedUA],
+            ['RMSE (°F)', rmse],
+            ['Calificación', rating],
+          ],
+        },
+        {
+          heading: 'Trazabilidad',
+          text: 'El SHA-256 al pie de cada página se calcula sobre el contenido de este informe (JSON canónico) y se repite en el header X-Report-SHA256: cualquier alteración de los datos cambia el hash.',
+        },
+      ],
+      data,
+    );
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="trial-${id}-api12l.pdf"`,
+    );
+    res.setHeader('X-Report-SHA256', sha256);
+    res.send(buffer);
+  }
+
   // ── Thermal twin (Phase 4) ──────────────────────────────
 
   @Post(':id/twin/simulate')
@@ -151,18 +311,11 @@ export class TrialsController {
     summary: 'Simular gemelo térmico',
     description: 'Ejecuta el modelo transitorio con los datos del ensayo.',
   })
+  @ApiOkResponse({ type: [TwinPointDto] })
   async simulate(
     @Param('id', ParseIntPipe) id: number,
-    @Body()
-    body: {
-      eta?: number;
-      ua?: number;
-      cp?: number;
-      heaterSeries?: TimeSeries[];
-      ambientSeries?: TimeSeries[];
-      realTempSeries?: TimeSeries[];
-    },
-  ): Promise<TwinPoint[]> {
+    @Body() body: SimulateTwinDto,
+  ): Promise<TwinPointDto[]> {
     const trial = await this.trialsService.findOne(id);
 
     // Auto-load from channel readings when series not provided
@@ -227,16 +380,11 @@ export class TrialsController {
     summary: 'Calibrar η y UA con datos del ensayo',
     description: 'Ajusta por mínimos cuadrados y guarda en el ensayo.',
   })
+  @ApiOkResponse({ type: CalibrationResultDto })
   async calibrateTwin(
     @Param('id', ParseIntPipe) id: number,
-    @Body()
-    body: {
-      cp?: number;
-      realTemp?: TimeSeries[];
-      ambientTemp?: TimeSeries[];
-      heaterState?: TimeSeries[];
-    },
-  ): Promise<CalibrationResult> {
+    @Body() body: CalibrateTwinDto,
+  ): Promise<CalibrationResultDto> {
     const trial = await this.trialsService.findOne(id);
     const from = trial.startedAt;
     const to = trial.endedAt ?? new Date();
@@ -292,12 +440,10 @@ export class TrialsController {
 
   @Get(':id/twin/calibration')
   @ApiOperation({ summary: 'Estado de calibración del ensayo' })
-  async calibrationStatus(@Param('id', ParseIntPipe) id: number): Promise<{
-    eta?: number;
-    ua?: number;
-    rmse?: number;
-    calibratedTrials: number;
-  }> {
+  @ApiOkResponse({ type: CalibrationStatusDto })
+  async calibrationStatus(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<CalibrationStatusDto> {
     const trial = await this.trialsService.findOne(id);
     const defaults = await this.trialsService.getCalibrationDefaults(
       trial.pilotDiameter,

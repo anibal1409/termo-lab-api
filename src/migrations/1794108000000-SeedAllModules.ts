@@ -1,4 +1,7 @@
+import * as bcrypt from 'bcrypt';
 import { MigrationInterface, QueryRunner } from 'typeorm';
+
+import { seedPassword } from '../common/utlis/seed-password';
 
 /**
  * Seed masiva para todos los módulos con datos de campo realistas.
@@ -10,20 +13,21 @@ export class SeedAllModules1794108000000 implements MigrationInterface {
     // ══════════════════════════════════════════════════════════
     // 1. USUARIOS adicionales
     // ══════════════════════════════════════════════════════════
-    // Passwords = bcrypt("12345678") — misma que los existentes
-    const existingUser = await queryRunner.query(
-      `SELECT password FROM users WHERE id = 1`,
-    );
-    const hash = existingUser[0].password;
+    // Contraseñas por rol desde SEED_*_PASSWORD (obligatorias en producción)
+    const adminHash = await bcrypt.hash(seedPassword('admin'), 10);
+    const operatorHash = await bcrypt.hash(seedPassword('operator'), 10);
 
-    const newUsers = await queryRunner.query(`
+    const newUsers = await queryRunner.query(
+      `
       INSERT INTO users (name, email, password, role, "birthDate") VALUES
-        ('Ing. María González', 'maria.gonzalez@termolab.com', '${hash}', 'admin', '1990-03-15'),
-        ('Ing. Carlos Pérez', 'carlos.perez@termolab.com', '${hash}', 'operator', '1988-07-22'),
-        ('Ing. Ana Rodríguez', 'ana.rodriguez@termolab.com', '${hash}', 'operator', '1992-11-08'),
-        ('Ing. Luis Martínez', 'luis.martinez@termolab.com', '${hash}', 'operator', '1985-01-30')
+        ('Ing. María González', 'maria.gonzalez@termolab.com', $1, 'admin', '1990-03-15'),
+        ('Ing. Carlos Pérez', 'carlos.perez@termolab.com', $2, 'operator', '1988-07-22'),
+        ('Ing. Ana Rodríguez', 'ana.rodriguez@termolab.com', $2, 'operator', '1992-11-08'),
+        ('Ing. Luis Martínez', 'luis.martinez@termolab.com', $2, 'operator', '1985-01-30')
       RETURNING id
-    `);
+    `,
+      [adminHash, operatorHash],
+    );
     const mariaId = newUsers[0].id;
     const carlosId = newUsers[1].id;
 

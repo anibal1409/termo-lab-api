@@ -5,9 +5,11 @@ import {
   IsNotEmpty,
   IsString,
   MinLength,
+  IsBoolean,
+  IsOptional,
 } from 'class-validator';
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import { UserRole } from '../entities/user.entity';
 
@@ -63,4 +65,27 @@ export class CreateUserDto {
   })
   @IsEmail({}, { message: 'El correo electrónico no es válido.' })
   email: string;
+
+  @ApiPropertyOptional({
+    description: 'Puede operar firetube (por defecto: true si es admin)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowFiretube?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Puede descargar flight recorder (por defecto: true si es admin)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  allowFlightRecorder?: boolean;
+
+  @ApiPropertyOptional({
+    description:
+      'Exigir enrolamiento facial en el primer login (por defecto true)',
+  })
+  @IsOptional()
+  @IsBoolean()
+  enrollOnFirstLogin?: boolean;
 }

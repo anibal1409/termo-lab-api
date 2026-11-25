@@ -1,3 +1,4 @@
+import { PdfService } from '../../common/pdf';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -42,6 +43,7 @@ import {
     ReportsController,
   ],
   providers: [
+    PdfService,
     EvaluationsService,
     EvaluationCalculatorService,
     ThermalCalculatorService,

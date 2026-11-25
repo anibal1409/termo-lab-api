@@ -1,3 +1,5 @@
+import { PdfService } from '../../common/pdf';
+import { SettingsModule } from '../settings/settings.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -12,6 +14,7 @@ import {
 
 @Module({
   imports: [
+    SettingsModule,
     TypeOrmModule.forFeature([
       ...TRIAL_ENTITIES,
       ChannelReading,
@@ -19,7 +22,7 @@ import {
     ]),
   ],
   controllers: [TrialsController],
-  providers: [TrialsService, ThermalTwinService],
+  providers: [PdfService, TrialsService, ThermalTwinService],
   exports: [TrialsService, ThermalTwinService],
 })
 export class TrialsModule {}

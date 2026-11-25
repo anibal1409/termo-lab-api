@@ -74,7 +74,7 @@ function validateEnv(config: Record<string, unknown>) {
           ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'swagger-ui'),
             serveRoot: '/api-docs',
-            exclude: ['/api*'],
+            exclude: ['/api/{*path}'], // sintaxis Express 5 (path-to-regexp v8)
           }),
         ]
       : []),

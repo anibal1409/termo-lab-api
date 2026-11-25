@@ -62,8 +62,22 @@ export class Trial extends IdEntity {
     description: 'IDs de canales de nivel (HC-SR04)',
     type: [Number],
   })
-  @Column({ type: 'simple-array', nullable: true })
-  levelChannelIds?: string[];
+  @Column({
+    type: 'simple-array',
+    nullable: true,
+    // simple-array guarda texto; la API expone números
+    transformer: {
+      to: (v?: number[]) => v?.map(String),
+      from: (v?: string[] | string) =>
+        (Array.isArray(v)
+          ? v
+          : String(v ?? '')
+              .split(',')
+              .filter(Boolean)
+        ).map(Number),
+    },
+  })
+  levelChannelIds?: number[];
 
   // ── Automatización vinculada ──────────────────────────────
 
@@ -75,8 +89,22 @@ export class Trial extends IdEntity {
     description: 'IDs de reglas de seguridad del ensayo',
     type: [Number],
   })
-  @Column({ type: 'simple-array', nullable: true })
-  ruleIds?: string[];
+  @Column({
+    type: 'simple-array',
+    nullable: true,
+    // simple-array guarda texto; la API expone números
+    transformer: {
+      to: (v?: number[]) => v?.map(String),
+      from: (v?: string[] | string) =>
+        (Array.isArray(v)
+          ? v
+          : String(v ?? '')
+              .split(',')
+              .filter(Boolean)
+        ).map(Number),
+    },
+  })
+  ruleIds?: number[];
 
   // ── Estado ────────────────────────────────────────────────
 
@@ -146,6 +174,10 @@ export class TrialSample {
   @ApiProperty()
   @CreateDateColumn({ type: 'timestamptz' })
   at: Date;
+
+  @ApiPropertyOptional({ description: 'Usuario que registró la muestra' })
+  @Column({ type: 'integer', nullable: true })
+  createdById?: number;
 }
 
 export const TRIAL_ENTITIES = [Trial, TrialSample];

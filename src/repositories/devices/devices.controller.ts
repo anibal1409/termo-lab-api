@@ -22,7 +22,7 @@ import {
 } from '@nestjs/swagger';
 
 import { CurrentUser } from '../../auth/decorators';
-import { AdminGuard } from '../../auth/guards';
+import { AdminGuard, PermissionGuard } from '../../auth/guards';
 import {
   CreateChannelDto,
   CreateDeviceDto,
@@ -121,6 +121,7 @@ export class DevicesController {
   }
 
   @Post(':id/command')
+  @UseGuards(PermissionGuard('allowFiretube'))
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Envía un comando crudo (diagnóstico)' })
   command(
@@ -169,6 +170,7 @@ export class DevicesController {
   }
 
   @Post('channels/:channelId/write')
+  @UseGuards(PermissionGuard('allowFiretube'))
   @UseGuards(AdminGuard)
   @ApiOperation({
     summary: 'Escribe una salida (digital 0/1, pwm 0-255, servo 0-180)',
@@ -236,6 +238,7 @@ export class DevicesController {
   }
 
   @Post('pids')
+  @UseGuards(PermissionGuard('allowFiretube'))
   @ApiOkResponse({ type: PidLoop })
   @UseGuards(AdminGuard)
   @ApiOperation({
@@ -246,6 +249,7 @@ export class DevicesController {
   }
 
   @Patch('pids/:pidId')
+  @UseGuards(PermissionGuard('allowFiretube'))
   @ApiOkResponse({ type: PidLoop })
   @UseGuards(AdminGuard)
   @ApiOperation({ summary: 'Cambia consigna, ganancias o activa/desactiva' })
@@ -254,6 +258,7 @@ export class DevicesController {
   }
 
   @Delete('pids/:pidId')
+  @UseGuards(PermissionGuard('allowFiretube'))
   @UseGuards(AdminGuard)
   removePid(@Id('pidId') id: number) {
     return this.devices.removePid(id);

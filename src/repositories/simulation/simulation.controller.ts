@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBody, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Public } from '../../auth/decorators';
 import { SimulationService } from './simulation.service';
 import {
   ChromatographyInputDto,
@@ -18,17 +17,16 @@ export class SimulationController {
     private readonly runner: RunnerService,
   ) {}
 
-  @Public()
   @Get('components')
   @ApiOperation({
     summary: 'Listar componentes disponibles',
-    description: 'Devuelve la base de datos de componentes puros (C1-C36+, H2O, N2, CO2, H2S) con propiedades críticas.',
+    description:
+      'Devuelve la base de datos de componentes puros (C1-C36+, H2O, N2, CO2, H2S) con propiedades críticas.',
   })
   getComponents() {
     return this.service.getComponents();
   }
 
-  @Public()
   @Post('chromatography')
   @ApiOperation({
     summary: 'Generar o cargar cromatografía + caudales',
@@ -46,14 +44,16 @@ export class SimulationController {
     return this.service.chromatographyWithRates(dto);
   }
 
-  @Public()
   @Post('flash')
   @ApiOperation({
     summary: 'Flash PT (separación de fases)',
-    description: 'Calcula equilibrio vapor-líquido a T y P dados usando Peng-Robinson o SRK con Rachford-Rice.',
+    description:
+      'Calcula equilibrio vapor-líquido a T y P dados usando Peng-Robinson o SRK con Rachford-Rice.',
   })
   @ApiBody({ type: FlashInputDto })
-  @ApiOkResponse({ description: 'Resultado del flash con composiciones por fase y Ki' })
+  @ApiOkResponse({
+    description: 'Resultado del flash con composiciones por fase y Ki',
+  })
   flash(@Body() dto: FlashInputDto) {
     return this.service.flash(
       dto.apiGravity,
@@ -66,14 +66,16 @@ export class SimulationController {
     );
   }
 
-  @Public()
   @Post('fluid-properties')
   @ApiOperation({
     summary: 'Propiedades del fluido',
-    description: 'Calcula densidad, viscosidad, factor Z y propiedades PVT del crudo a condiciones dadas.',
+    description:
+      'Calcula densidad, viscosidad, factor Z y propiedades PVT del crudo a condiciones dadas.',
   })
   @ApiBody({ type: FluidPropertiesInputDto })
-  @ApiOkResponse({ description: 'Propiedades termodinámicas completas del fluido' })
+  @ApiOkResponse({
+    description: 'Propiedades termodinámicas completas del fluido',
+  })
   fluidProperties(@Body() dto: FluidPropertiesInputDto) {
     return this.service.fluidProperties(
       dto.apiGravity,
@@ -84,7 +86,6 @@ export class SimulationController {
     );
   }
 
-  @Public()
   @Post('run')
   @ApiOperation({
     summary: 'Ejecutar pipeline de simulación',
@@ -94,16 +95,19 @@ export class SimulationController {
       'Tratador: BSW<1%, capacidad nominal, API 12L. designForCompliance=true = rediseño bidireccional.',
   })
   @ApiBody({ type: RunPipelineDto })
-  @ApiOkResponse({ description: 'Resultado completo del pipeline con streams intermedios y reporte por equipo' })
+  @ApiOkResponse({
+    description:
+      'Resultado completo del pipeline con streams intermedios y reporte por equipo',
+  })
   runPipeline(@Body() dto: RunPipelineDto) {
     return this.runner.run(dto);
   }
 
-  @Public()
   @Get('treatments')
   @ApiOperation({
     summary: 'Listar tratadores guardados disponibles para simulación',
-    description: 'Devuelve tratadores térmicos guardados en BD con sus dimensiones, para usar como treatmentId en pasos del pipeline.',
+    description:
+      'Devuelve tratadores térmicos guardados en BD con sus dimensiones, para usar como treatmentId en pasos del pipeline.',
   })
   getTreatments() {
     return this.runner.getAvailableTreatments();

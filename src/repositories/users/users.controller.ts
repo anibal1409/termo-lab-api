@@ -41,12 +41,24 @@ export class UsersController {
   @ApiBody({ type: CreateUserDto, description: 'Datos para crear un usuario' })
   @ApiCreatedResponse({
     description:
-      'Usuario creado exitosamente. La contraseña temporal se devuelve una sola vez.',
+      'Usuario creado. Se envía por correo un enlace (24 h, un solo uso) para definir su contraseña.',
     type: UserResponseDto,
   })
   @ApiBadRequestResponse({ description: 'Datos inválidos' })
   async create(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
     return this.usersService.create(createUserDto);
+  }
+
+  @Post(':id/invite')
+  @ApiOperation({
+    summary: 'Reenviar enlace para definir contraseña',
+    description: 'Genera un enlace nuevo (24 h) e invalida el anterior.',
+  })
+  @ApiOkResponse({ type: UserResponseDto })
+  resendInvite(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<UserResponseDto> {
+    return this.usersService.resendInvite(id);
   }
 
   @Get('all')
@@ -101,8 +113,9 @@ export class UsersController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() actor: User,
   ): Promise<UserResponseDto> {
-    return this.usersService.update(id, updateUserDto);
+    return this.usersService.update(id, updateUserDto, actor.id);
   }
 
   @Delete(':id')
@@ -118,7 +131,8 @@ export class UsersController {
   @ApiNotFoundResponse({ description: 'Usuario no encontrado' })
   async remove(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() actor: User,
   ): Promise<{ message: string }> {
-    return this.usersService.remove(id);
+    return this.usersService.remove(id, actor.id);
   }
 }

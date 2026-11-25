@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { MigrationInterface, QueryRunner } from 'typeorm';
+import { seedPassword } from '../common/utlis/seed-password';
 
 import { User, UserRole } from '../repositories/users/entities';
 
@@ -16,7 +17,7 @@ export class SeedAdminAndOperatorUsers1751178224375
     adminUser.email = 'admin@termolab.com';
     adminUser.role = UserRole.ADMIN;
     adminUser.birthDate = new Date('1980-01-01');
-    adminUser.password = await bcrypt.hash('12345678', saltRounds);
+    adminUser.password = await bcrypt.hash(seedPassword('admin'), saltRounds);
     adminUser.lastLogin = new Date();
 
     // Crear usuario operador
@@ -25,7 +26,10 @@ export class SeedAdminAndOperatorUsers1751178224375
     operatorUser.email = 'operador@termolab.com';
     operatorUser.role = UserRole.OPERATOR;
     operatorUser.birthDate = new Date('1990-01-01');
-    operatorUser.password = await bcrypt.hash('12345678', saltRounds);
+    operatorUser.password = await bcrypt.hash(
+      seedPassword('operator'),
+      saltRounds,
+    );
     operatorUser.lastLogin = new Date();
 
     await userRepository.save([adminUser, operatorUser]);

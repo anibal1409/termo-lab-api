@@ -10,6 +10,8 @@ import {
   Min,
   Max,
   ValidateNested,
+  ArrayMaxSize,
+  ArrayMinSize,
 } from 'class-validator';
 import { MoleFractionDto } from './simulation.dto';
 
@@ -161,7 +163,10 @@ export class PipelineStepDto {
 }
 
 export class RunPipelineDto {
-  @ApiProperty({ description: 'Alimentación de entrada', type: PipelineFeedDto })
+  @ApiProperty({
+    description: 'Alimentación de entrada',
+    type: PipelineFeedDto,
+  })
   @ValidateNested()
   @Type(() => PipelineFeedDto)
   feed: PipelineFeedDto;
@@ -171,6 +176,8 @@ export class RunPipelineDto {
     type: [PipelineStepDto],
   })
   @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(20) // endpoint público: acota el cómputo por petición
   @ValidateNested({ each: true })
   @Type(() => PipelineStepDto)
   steps: PipelineStepDto[];
