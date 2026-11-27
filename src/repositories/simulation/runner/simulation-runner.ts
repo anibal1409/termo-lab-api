@@ -141,14 +141,23 @@ function redesignSteps(
       cfg.retentionTime = Math.max(cfg.retentionTime ?? req, req) * 1.25;
     }
     if (step.type === 'thermal-treater') {
-      cfg.oilRetentionTime = Math.max(cfg.oilRetentionTime ?? 60, 60) * 1.15;
-      cfg.waterRetentionTime = Math.max(cfg.waterRetentionTime ?? 30, 30) * 1.15;
+      // Ap. D: retención crudo 30–100 min, agua 15–30 min (°C en treatmentTemperature)
+      cfg.oilRetentionTime = Math.min(
+        100,
+        Math.max(cfg.oilRetentionTime ?? 60, 60) * 1.1,
+      );
+      cfg.waterRetentionTime = Math.min(
+        30,
+        Math.max(cfg.waterRetentionTime ?? 30, 30),
+      );
       if (eq.separation?.bswMeetsSpec === false) {
         cfg.treatmentTemperature = Math.min(
-          (cfg.treatmentTemperature ?? 140) + 10,
-          180,
+          (cfg.treatmentTemperature ?? 82) + 5,
+          95,
         );
       }
+      // Si falla capacidad Tabla 3, bajar ΔT empeora BSW; subir retención ya aplica.
+      // No forzar geometría: el autodimensionado elige Tabla E-1 + Tabla 3.
     }
     if (step.type === 'storage-tank') {
       delete cfg.diameter;
@@ -191,7 +200,7 @@ function mergeStreamIntoConfig(
         emulsifiedWaterFraction:
           cfg.emulsifiedWaterFraction ?? s.emulsifiedWaterFraction,
         inletTemperature: cfg.inletTemperature ?? s.temperature,
-        treatmentTemperature: cfg.treatmentTemperature ?? 140,
+        treatmentTemperature: cfg.treatmentTemperature ?? 82,
         ambientTemperature: cfg.ambientTemperature ?? 30,
         operatingPressure: cfg.operatingPressure ?? s.pressure,
         gasFlowRate: cfg.gasFlowRate ?? s.gasFlow_MMSCFD,

@@ -1,45 +1,49 @@
-import {
-  calculateThermalTreater,
-  FILL_OIL,
-  FILL_WATER,
-} from './thermal-treater';
+import { calculateThermalTreater } from './thermal-treater';
 import { runPipeline } from '../runner/simulation-runner';
 import { calculateHeatExchanger } from './heat-exchanger';
+import { API12L_HORIZONTAL_SIZES } from '../../evaluations/services/api12l.tables';
 
 describe('calculateThermalTreater', () => {
   const base = {
     totalFlow: 5000,
     apiGravity: 22,
     waterFraction: 0.09,
-    inletTemperature: 80,
-    treatmentTemperature: 140,
-    ambientTemperature: 30,
-    operatingPressure: 500,
+    inletTemperature: 33,
+    treatmentTemperature: 82,
+    ambientTemperature: 25,
+    operatingPressure: 446,
   };
 
-  it('autodimensiona con el mismo fill 40/30 que usa al verificar retención', () => {
+  it('autodimensiona con volúmenes Tabla E-1 (Ap. D: R = 1440·V/W)', () => {
     const result = calculateThermalTreater(base);
+    const row = API12L_HORIZONTAL_SIZES.find(
+      (s) =>
+        s.diameter === result.dimensions.diameter_ft &&
+        s.length === result.dimensions.length_ft,
+    );
+    expect(row).toBeTruthy();
     const Qoil = base.totalFlow * (1 - base.waterFraction);
-    const Voil = result.dimensions.volume_bbl * FILL_OIL;
-    const retOil = (Voil / Qoil) * 1440;
+    const retOil = ((row!.oilBbl / Qoil) * 1440);
     expect(result.retention.oilRetention_min).toBeCloseTo(retOil, 0);
     expect(result.retention.oilAdequate).toBe(true);
     expect(result.retention.waterAdequate).toBe(true);
-    expect(FILL_OIL).toBe(0.4);
-    expect(FILL_WATER).toBe(0.3);
+    expect(result.retention.oilRetentionRequired_min).toBe(60);
+    expect(result.retention.waterRetentionRequired_min).toBe(30);
   });
 
-  it('incluye criteria[] API 12L + BSW<1% + capacidad nominal', () => {
+  it('incluye criteria[] API 12L + BSW<1% + capacidad / flujo §5.3', () => {
     const result = calculateThermalTreater({
       ...base,
       diameter: 8,
-      length: 32,
+      length: 30,
     });
     expect(Array.isArray(result.criteria)).toBe(true);
     expect(result.criteria.length).toBeGreaterThanOrEqual(6);
     expect(result.criteria.some((c) => c.criterion.includes('BSW'))).toBe(true);
+    expect(result.criteria.some((c) => c.criterion.includes('§5.3'))).toBe(true);
     expect(result.separation.bswSpec_pct).toBe(1);
     expect(result.thermal.nominalCapacity_BTUh).toBeGreaterThan(0);
+    expect(result.thermal.totalHeatRequired_BTUh).toBeGreaterThan(0);
     expect(result.settling.source).toContain('Stewart');
     expect(result.settling.stewartRange_um?.avg).toBe(
       result.settling.dropDiameter_um,

@@ -11,7 +11,10 @@
 
 import {
   API12L_HORIZONTAL_SIZES,
+  API12L_MAX_HEAT_FLUX,
+  API12L_MAX_OIL_VISCOSITY_CP,
   api12lFirebox,
+  api12lWindK,
 } from '../../evaluations/services/api12l.tables';
 import { ThermalCalculatorService } from '../../evaluations/services/thermal-calculator.service';
 import {
@@ -69,9 +72,15 @@ export interface ThermalTreaterResult {
     burnerCapacity_BTUh: number;
     /** Capacidad térmica nominal de tabla API 12L / volumetría (BTU/h) */
     nominalCapacity_BTUh: number;
+    /** Q proceso + pérdidas (Apéndice D), BTU/h */
+    totalHeatRequired_BTUh: number;
+    /** Flujo de calor firetube BTU/h·ft² (límite 5.3: 10 000) */
+    heatFlux_BTUh_ft2: number;
     burnerEfficiency: number;
     deltaT: number;
     capacityAdequate: boolean;
+    /** Unidades en paralelo si Q total supera el máximo Tabla 3 */
+    unitsNeeded: number;
   };
   separation: {
     oilOutFlow_BPD: number;
@@ -118,12 +127,6 @@ const BBL_TO_M3 = 0.158987;
 const ATM_KPA = 101.325;
 const FT_S_TO_M_S = 0.3048;
 
-/** Tabla 2 API-12L (horizontales), misma fuente que ThermalCalculatorService. */
-const NOMINAL_HEAT_TABLE = API12L_HORIZONTAL_SIZES.map((row) => ({
-  d: row.diameter,
-  l: row.length,
-}));
-
 const thermalCalculator = new ThermalCalculatorService();
 
 export function calculateThermalTreater(
@@ -132,36 +135,87 @@ export function calculateThermalTreater(
   const warnings: string[] = [];
 
   const sg = 141.5 / (input.apiGravity + 131.5);
-  const retOil = input.oilRetentionTime ?? 60;
-  const retWater = input.waterRetentionTime ?? 30;
+  // Apéndice D / Ejemplo E: retención típica 30–100 min crudo, 15–30 min agua
+  const retOil = clamp(input.oilRetentionTime ?? 60, 30, 100);
+  const retWater = clamp(input.waterRetentionTime ?? 30, 15, 30);
+  if (input.oilRetentionTime != null && input.oilRetentionTime !== retOil) {
+    warnings.push(
+      `Retención de crudo ajustada a rango API 12L Ap. D (30–100 min): ${retOil} min`,
+    );
+  }
+  if (input.waterRetentionTime != null && input.waterRetentionTime !== retWater) {
+    warnings.push(
+      `Retención de agua ajustada a rango API 12L Ap. D (15–30 min): ${retWater} min`,
+    );
+  }
   const windSpeed = input.windSpeed ?? 10;
-  const eta = input.burnerEfficiency ?? 0.8;
+  const eta = input.burnerEfficiency ?? 0.7; // Ap. H / ej. 5.4 usa η≈0.70
 
   const Qoil = input.totalFlow * (1 - input.waterFraction);
   const Qwater = input.totalFlow * input.waterFraction;
+  const VoilReq = (Qoil * retOil) / 1440; // Ap. D: V = W·R/1440
+  const VwaterReq = (Qwater * retWater) / 1440;
+
+  const toF = (c: number) => (c * 9) / 5 + 32;
+  const T2_F = toF(input.treatmentTemperature);
+  const Ta_F = toF(input.ambientTemperature);
+  const heatLossFor = (d: number, l: number) =>
+    api12lWindK(windSpeed) * d * l * (T2_F - Ta_F);
+
+  // Estimación preliminar de Q proceso (Ap. D) para filtrar Tabla 3 al autodimensionar
+  const processHeatEst = estimateProcessHeat_BTUh(
+    Qoil,
+    Qwater,
+    sg,
+    toF(input.inletTemperature),
+    T2_F,
+  );
 
   let D_ft: number;
   let L_ft: number;
+  let oilBblTable: number;
+  let waterBblTable: number;
   const autoDimensioned = !(input.diameter && input.length);
 
   if (input.diameter && input.length) {
     D_ft = input.diameter;
     L_ft = input.length;
+    const match =
+      API12L_HORIZONTAL_SIZES.find(
+        (s) => s.diameter === D_ft && s.length === L_ft,
+      ) ?? null;
+    oilBblTable = match?.oilBbl ?? 0.1399 * D_ft * D_ft * L_ft * FILL_OIL;
+    waterBblTable = match?.waterBbl ?? 0.1399 * D_ft * D_ft * L_ft * FILL_WATER;
   } else {
-    const VoilReq = (Qoil * retOil) / 1440;
-    const VwaterReq = (Qwater * retWater) / 1440;
-    const Vtotal = Math.max(VoilReq / FILL_OIL, VwaterReq / FILL_WATER);
+    // Apéndice E: menor tamaño Tabla E-1 con Vo/Vw y Q+Ql ≤ Tabla 3
+    const fitting = [...API12L_HORIZONTAL_SIZES]
+      .filter((s) => {
+        const duty = api12lFirebox(s.diameter, 'horizontal')?.duty ?? 0;
+        return (
+          s.oilBbl >= VoilReq &&
+          s.waterBbl >= VwaterReq &&
+          processHeatEst + heatLossFor(s.diameter, s.length) <= duty
+        );
+      })
+      .sort((a, b) => a.oilBbl + a.waterBbl - (b.oilBbl + b.waterBbl));
 
-    // Menor tamaño estándar API-12L (Tabla 4.2) con volumen suficiente
-    const vol = (row: { d: number; l: number }) =>
-      0.1399 * row.d * row.d * row.l;
+    const byRetention = [...API12L_HORIZONTAL_SIZES]
+      .filter((s) => s.oilBbl >= VoilReq && s.waterBbl >= VwaterReq)
+      .sort((a, b) => a.oilBbl + a.waterBbl - (b.oilBbl + b.waterBbl));
+
     const std =
-      [...NOMINAL_HEAT_TABLE]
-        .sort((a, b) => vol(a) - vol(b))
-        .find((row) => vol(row) >= Vtotal) ??
-      NOMINAL_HEAT_TABLE[NOMINAL_HEAT_TABLE.length - 1];
-    D_ft = input.diameter ?? std.d;
-    L_ft = input.length ?? std.l;
+      fitting[0] ??
+      byRetention[0] ??
+      API12L_HORIZONTAL_SIZES[API12L_HORIZONTAL_SIZES.length - 1];
+    D_ft = input.diameter ?? std.diameter;
+    L_ft = input.length ?? std.length;
+    oilBblTable = std.oilBbl;
+    waterBblTable = std.waterBbl;
+    if (!fitting.length) {
+      warnings.push(
+        'Ningún tamaño Tabla E-1 + Tabla 3 cubre retención y calor; se usa el mayor disponible (valorar varias unidades)',
+      );
+    }
   }
 
   const D_m = D_ft * FT_TO_M;
@@ -169,13 +223,14 @@ export function calculateThermalTreater(
   const Vbbl = 0.1399 * D_ft * D_ft * L_ft;
   const Vm3 = Vbbl * BBL_TO_M3;
 
-  const VoilActual = Vbbl * FILL_OIL;
-  const VwaterActual = Vbbl * FILL_WATER;
-  const retOilActual = Qoil > 0 ? (VoilActual / Qoil) * 1440 : 999;
-  const retWaterActual = Qwater > 0 ? (VwaterActual / Qwater) * 1440 : 999;
+  // Retención real con volúmenes de Tabla E-1 (Ap. D: R = 1440·V/W)
+  const retOilActual = Qoil > 0 ? (oilBblTable / Qoil) * 1440 : 999;
+  const retWaterActual = Qwater > 0 ? (waterBblTable / Qwater) * 1440 : 999;
 
   const deltaT = input.treatmentTemperature - input.inletTemperature;
-  const nominalCapacity = lookupNominalHeat_BTUh(D_ft);
+  const firebox = api12lFirebox(D_ft, 'horizontal');
+  const nominalCapacity = firebox?.duty ?? 0;
+  const fireboxArea = firebox?.area ?? 0;
 
   // BSW salida % — mejor con más ΔT y retención; más emulsionada de entrada → peor
   const emulIn =
@@ -238,7 +293,6 @@ export function calculateThermalTreater(
     warnings.push('Presión baja: mayor pérdida evaporativa');
   }
 
-  const toF = (c: number) => (c * 9) / 5 + 32;
   const toPsig = (kPaAbs: number) => Math.max(0, (kPaAbs - ATM_KPA) * 0.145038);
   const apiResults = thermalCalculator.calculateThermalResults({
     diameter: D_ft,
@@ -255,24 +309,72 @@ export function calculateThermalTreater(
     windSpeed,
     gasFlowRate: input.gasFlowRate ?? gasFlash,
     waterDropSize: drop_um,
+    oilViscosity: mu,
   });
-  // Calor según API-12L: Q = (mo·cpo + mw·cpw)·ΔT; pérdidas = K(viento)·D·L·(T2−T3)
+  // Ap. D: Q = (Wo·Co + Ww·Cw)·(T2−T1); Ql = K·D·L·(T2−Ta)
   const Qheat = apiResults.processHeatDuty;
   const Qloss = apiResults.heatLosses;
-  const Qburner = (Qheat + Qloss) / eta;
-  // Apéndice E: Tabla 3 se compara con Q + pérdidas (sin η; η solo fija el combustible)
-  const capacityOk = Qheat + Qloss <= nominalCapacity;
+  const Qtotal = Qheat + Qloss;
+  const Qburner = Qtotal / eta;
+  // Ap. E / Tabla 3: Q+Ql ≤ rating; si no alcanza, N unidades en paralelo
+  const unitsNeeded =
+    nominalCapacity > 0 ? Math.max(1, Math.ceil(Qtotal / nominalCapacity)) : 1;
+  const capacityOk = Qtotal <= nominalCapacity;
+  const heatFlux =
+    fireboxArea > 0 ? (capacityOk ? Qtotal : nominalCapacity) / fireboxArea : 0;
+  const fluxOk = fireboxArea <= 0 || heatFlux <= API12L_MAX_HEAT_FLUX + 1e-6;
+  const viscosityOk = mu <= API12L_MAX_OIL_VISCOSITY_CP;
+
   if (!capacityOk) {
     warnings.push(
-      `Calor requerido (${r((Qheat + Qloss) / 1e6, 2)} MMBTU/h) > rating Tabla 3 API-12L (${r(nominalCapacity / 1e6, 2)} MMBTU/h)`,
+      `Calor requerido (${r(Qtotal / 1e6, 2)} MMBTU/h) > rating Tabla 3 (${r(nominalCapacity / 1e6, 2)} MMBTU/h) → ${unitsNeeded} unidades en paralelo`,
     );
   }
-  if (Qburner > 5e6) {
+  if (!fluxOk) {
     warnings.push(
-      `Capacidad del quemador (${r(Qburner / 1e6, 2)} MMBTU/h) es alta; considerar múltiples unidades`,
+      `Flujo de calor firetube ${r(heatFlux, 0)} BTU/h·ft² > ${API12L_MAX_HEAT_FLUX} (API 12L §5.3)`,
     );
   }
-  const apiCriteria = checkCriteria(apiResults);
+  if (!viscosityOk) {
+    warnings.push(
+      `Viscosidad ${r(mu, 1)} cP > ${API12L_MAX_OIL_VISCOSITY_CP} cP a T de tratamiento (Ap. D ≈150 SSU)`,
+    );
+  }
+
+  // Alinear criterios genéricos del calculador con Ap. D / Tabla E-1 (evita R≠1440·V_E1/W).
+  const dehydration = apiResults.dehydrationPercentage;
+  const apiCriteria = checkCriteria(apiResults)
+    .map((c): CriterionResult => {
+      if (c.criterion === 'Tiempo de retención') {
+        return {
+          criterion: 'Tiempo de retención crudo (Ap. D / Tabla E-1)',
+          value: retOilActual,
+          limit: `≥ ${retOil} min (típico 30–100; ej. E = 60)`,
+          marginPercent: ((retOilActual - retOil) / retOil) * 100,
+          passes: oilOk,
+        };
+      }
+      if (c.criterion === 'Eficiencia de separación') {
+        // API 12L no define η_sep%; se reporta deshidratación del proceso.
+        return {
+          criterion: 'Deshidratación del proceso',
+          value: dehydration,
+          limit: '≥ 85 %',
+          marginPercent: ((dehydration - 85) / 85) * 100,
+          passes: Number.isFinite(dehydration) && dehydration >= 85,
+        };
+      }
+      return c;
+    })
+    // Evitar duplicar "Deshidratación" si ya la reescribimos desde eficiencia
+    .filter((c, i, arr) =>
+      c.criterion !== 'Deshidratación'
+        ? true
+        : !arr.some(
+            (x, j) => j < i && x.criterion === 'Deshidratación del proceso',
+          ),
+    );
+
   const simCriteria: CriterionResult[] = [
     ...apiCriteria,
     {
@@ -284,33 +386,53 @@ export function calculateThermalTreater(
       passes: bswOk,
     },
     {
-      criterion: 'Capacidad térmica nominal',
-      value: Qheat + Qloss,
-      limit: `≤ ${nominalCapacity} BTU/h (Tabla 3 API-12L)`,
+      criterion: 'Capacidad firebox Tabla 3 (Ap. E)',
+      value: Qtotal,
+      limit: `≤ ${nominalCapacity} BTU/h`,
       marginPercent:
-        ((nominalCapacity - (Qheat + Qloss)) / Math.max(nominalCapacity, 1)) *
-        100,
+        ((nominalCapacity - Qtotal) / Math.max(nominalCapacity, 1)) * 100,
       passes: capacityOk,
     },
     {
-      criterion: 'Retención aceite (sim)',
-      value: retOilActual,
-      limit: `≥ ${retOil} min`,
-      marginPercent: ((retOilActual - retOil) / retOil) * 100,
-      passes: oilOk,
+      criterion: 'Flujo calor firetube §5.3',
+      value: heatFlux,
+      limit: `≤ ${API12L_MAX_HEAT_FLUX} BTU/h·ft²`,
+      marginPercent:
+        ((API12L_MAX_HEAT_FLUX - heatFlux) / API12L_MAX_HEAT_FLUX) * 100,
+      passes: fluxOk,
     },
     {
-      criterion: 'Retención agua (sim)',
+      criterion: 'Viscosidad crudo Ap. D',
+      value: mu,
+      limit: `≤ ${API12L_MAX_OIL_VISCOSITY_CP} cP (aviso si falla)`,
+      marginPercent:
+        ((API12L_MAX_OIL_VISCOSITY_CP - mu) / API12L_MAX_OIL_VISCOSITY_CP) * 100,
+      passes: viscosityOk,
+    },
+    {
+      criterion: 'Retención agua Tabla E-1 (Ap. D)',
       value: retWaterActual,
       limit: `≥ ${retWater} min`,
       marginPercent: ((retWaterActual - retWater) / retWater) * 100,
       passes: waterOk,
     },
   ];
-  const apiCompliant = apiCriteria.every((c) => c.passes);
-  for (const c of simCriteria.filter((x) => !x.passes)) {
+
+  // Cumplimiento normativo API 12L del tratador (viscosidad solo advierte, como en el calculador).
+  const hardFail = simCriteria.filter(
+    (c) =>
+      !c.passes &&
+      c.criterion !== 'Viscosidad crudo Ap. D',
+  );
+  const apiCompliant = hardFail.length === 0;
+  for (const c of hardFail) {
     warnings.push(
       `Criterio · ${c.criterion}: ${typeof c.value === 'number' ? r(c.value, 2) : c.value} (límite ${c.limit})`,
+    );
+  }
+  if (!viscosityOk) {
+    warnings.push(
+      `Aviso · Viscosidad ${r(mu, 1)} cP > ${API12L_MAX_OIL_VISCOSITY_CP} cP (Ap. D)`,
     );
   }
 
@@ -329,9 +451,12 @@ export function calculateThermalTreater(
       heatLoss_BTUh: r(Qloss, 0),
       burnerCapacity_BTUh: r(Qburner, 0),
       nominalCapacity_BTUh: r(nominalCapacity, 0),
+      totalHeatRequired_BTUh: r(Qtotal, 0),
+      heatFlux_BTUh_ft2: r(heatFlux, 0),
       burnerEfficiency: eta,
       deltaT,
       capacityAdequate: capacityOk,
+      unitsNeeded,
     },
     separation: {
       oilOutFlow_BPD: r(Qoil * (1 - outWaterFrac), 1),
@@ -374,7 +499,7 @@ export function calculateThermalTreater(
       pressure_psi: r(input.operatingPressure * 0.145038, 1),
     },
     criteria: simCriteria,
-    compliance: oilOk && waterOk && apiCompliant && bswOk && capacityOk,
+    compliance: apiCompliant,
     warnings,
   };
 }
@@ -382,6 +507,26 @@ export function calculateThermalTreater(
 /** Heat duty de Tabla 3 API-12L para el diámetro (horizontal); 0 si no hay rating. */
 export function lookupNominalHeat_BTUh(D_ft: number): number {
   return api12lFirebox(D_ft, 'horizontal')?.duty ?? 0;
+}
+
+/**
+ * Estimación Ap. D / fórmula simplificada 35 °API:
+ * Q ≈ W·(6.44 + 8.14·X)·(T2−T1), ajustada por SG del crudo.
+ */
+function estimateProcessHeat_BTUh(
+  oilBpd: number,
+  waterBpd: number,
+  oilSg: number,
+  t1F: number,
+  t2F: number,
+): number {
+  const dT = Math.max(0, t2F - t1F);
+  const W = oilBpd + waterBpd;
+  if (!(W > 0) || dT <= 0) return 0;
+  const X = waterBpd / W;
+  // Base 35 °API (sg≈0.85); escala masa de crudo por SG relativo
+  const sgFactor = oilSg / 0.85;
+  return W * (6.44 * sgFactor + 8.14 * X) * dT;
 }
 
 function estimateFlashGas(
@@ -399,6 +544,11 @@ function estimateFlashGas(
 function clamp01(v: number): number {
   if (!Number.isFinite(v)) return 0;
   return Math.max(0, Math.min(1, v));
+}
+
+function clamp(v: number, lo: number, hi: number): number {
+  if (!Number.isFinite(v)) return lo;
+  return Math.max(lo, Math.min(hi, v));
 }
 
 function r(v: number, d: number): number {
