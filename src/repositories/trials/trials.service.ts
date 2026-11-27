@@ -6,20 +6,10 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Trial, TrialSample } from './entities';
-import {
-  ChannelReading,
-  DeviceCommandLog,
-} from '../devices/entities/device.entity';
-
-import {
-  AddSampleDto,
-  CreateTrialDto,
-  FlightRecorderRow,
-  UpdateTrialDto,
-} from './trials.dto';
+import { AddSampleDto, CreateTrialDto, UpdateTrialDto } from './trials.dto';
 
 export * from './trials.dto';
 
@@ -31,10 +21,6 @@ export class TrialsService {
     @InjectRepository(Trial) private readonly trialRepo: Repository<Trial>,
     @InjectRepository(TrialSample)
     private readonly sampleRepo: Repository<TrialSample>,
-    @InjectRepository(ChannelReading)
-    private readonly readingRepo: Repository<ChannelReading>,
-    @InjectRepository(DeviceCommandLog)
-    private readonly logRepo: Repository<DeviceCommandLog>,
   ) {}
 
   findAll(): Promise<Trial[]> {
@@ -132,90 +118,22 @@ export class TrialsService {
     );
   }
 
-  // ── Flight recorder ─────────────────────────────────────
-
-  async flightRecorder(id: number): Promise<FlightRecorderRow[]> {
-    const trial = await this.findOne(id);
-    if (!trial.startedAt) return [];
-    const from = trial.startedAt;
-    const to = trial.endedAt ?? new Date();
-
-    const channelIds = [
-      trial.bathTempChannelId,
-      trial.ambientTempChannelId,
-      trial.heaterChannelId,
-      ...(trial.levelChannelIds?.map(Number) ?? []),
-    ].filter((x): x is number => x != null && !isNaN(x));
-
-    const [readings, logs] = await Promise.all([
-      channelIds.length > 0
-        ? this.readingRepo
-            .createQueryBuilder('r')
-            .where('r.channelId IN (:...ids)', { ids: channelIds })
-            .andWhere('r.at BETWEEN :from AND :to', { from, to })
-            .orderBy('r.at', 'ASC')
-            .getMany()
-        : Promise.resolve([]),
-      this.logRepo.find({
-        where: { at: Between(from, to) },
-        order: { at: 'ASC' },
-      }),
-    ]);
-
-    const rows: FlightRecorderRow[] = [
-      ...readings.map((r) => ({
-        at: r.at,
-        kind: 'reading' as const,
-        channelId: r.channelId,
-        value: r.value,
-      })),
-      ...logs.map((l) => ({
-        at: l.at,
-        kind: 'command' as const,
-        channelId: l.channelId,
-        command: l.command,
-        response: l.response,
-        source: l.source,
-      })),
-    ];
-
-    rows.sort((a, b) => a.at.getTime() - b.at.getTime());
-    return rows;
-  }
-
-  // ── CSV export ──────────────────────────────────────────
+  // ── CSV export (muestras manuales) ──────────────────────
 
   async exportCsv(id: number): Promise<string> {
-    const rows = await this.flightRecorder(id);
     const trial = await this.findOne(id);
+    const csv = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const lines = [
       `# Ensayo: ${trial.name}`,
       `# Inicio: ${trial.startedAt?.toISOString() ?? ''}`,
       `# Fin: ${trial.endedAt?.toISOString() ?? ''}`,
-      'at,kind,channelId,value,command,response,source',
+      'at,label,value,unit',
+      ...[...(trial.samples ?? [])]
+        .sort((a, b) => a.at.getTime() - b.at.getTime())
+        .map((s) =>
+          [s.at.toISOString(), csv(s.label), s.value, csv(s.unit)].join(','),
+        ),
     ];
-    for (const r of rows) {
-      lines.push(
-        [
-          r.at.toISOString(),
-          r.kind,
-          r.channelId ?? '',
-          r.value ?? '',
-          r.command ?? '',
-          r.response ?? '',
-          r.source ?? '',
-        ].join(','),
-      );
-    }
-    // Manual samples
-    if (trial.samples?.length) {
-      lines.push('', '# Muestras manuales', 'at,label,value,unit');
-      for (const s of trial.samples) {
-        lines.push(
-          [s.at.toISOString(), s.label, s.value, s.unit ?? ''].join(','),
-        );
-      }
-    }
     return lines.join('\n');
   }
 
@@ -234,32 +152,6 @@ export class TrialsService {
       throw new UnprocessableEntityException(
         'Faltan datos mínimos: inicio del ensayo o geometría del piloto',
       );
-    }
-    const rows = await this.flightRecorder(id);
-
-    // Resumen por canal (lecturas) y conteo de comandos
-    const stats = new Map<
-      number,
-      { n: number; min: number; max: number; sum: number }
-    >();
-    let commands = 0;
-    for (const r of rows) {
-      if (r.kind === 'command') {
-        commands++;
-        continue;
-      }
-      if (r.channelId == null || r.value == null) continue;
-      const s = stats.get(r.channelId) ?? {
-        n: 0,
-        min: Infinity,
-        max: -Infinity,
-        sum: 0,
-      };
-      s.n++;
-      s.min = Math.min(s.min, r.value);
-      s.max = Math.max(s.max, r.value);
-      s.sum += r.value;
-      stats.set(r.channelId, s);
     }
     const end = trial.endedAt ?? new Date();
 
@@ -280,27 +172,6 @@ export class TrialsService {
         pilotDiameter: trial.pilotDiameter,
         pilotLength: trial.pilotLength,
         heaterPower: trial.heaterPower,
-      },
-      channels: {
-        bathTempChannelId: trial.bathTempChannelId ?? null,
-        ambientTempChannelId: trial.ambientTempChannelId ?? null,
-        heaterChannelId: trial.heaterChannelId ?? null,
-        levelChannelIds: trial.levelChannelIds ?? [],
-        pidLoopId: trial.pidLoopId ?? null,
-        ruleIds: trial.ruleIds ?? [],
-      },
-      flightRecorder: {
-        readings: rows.length - commands,
-        commands,
-        perChannel: [...stats.entries()]
-          .sort(([a], [b]) => a - b)
-          .map(([channelId, s]) => ({
-            channelId,
-            readings: s.n,
-            min: s.min,
-            max: s.max,
-            avg: +(s.sum / s.n).toFixed(4),
-          })),
       },
       samples: [...(trial.samples ?? [])]
         .sort((a, b) => a.at.getTime() - b.at.getTime() || a.id - b.id)
@@ -331,25 +202,6 @@ export class TrialsService {
     trial.calibratedUA = ua;
     trial.calibrationRmse = rmse;
     return this.trialRepo.save(trial);
-  }
-
-  async getChannelSeries(
-    channelId: number,
-    from: Date,
-    to: Date,
-  ): Promise<{ t: number; value: number }[]> {
-    const readings = await this.readingRepo
-      .createQueryBuilder('r')
-      .where('r.channelId = :id', { id: channelId })
-      .andWhere('r.at BETWEEN :from AND :to', { from, to })
-      .orderBy('r.at', 'ASC')
-      .getMany();
-    if (!readings.length) return [];
-    const t0 = readings[0].at.getTime() / 1000;
-    return readings.map((r) => ({
-      t: r.at.getTime() / 1000 - t0,
-      value: r.value,
-    }));
   }
 
   async getCalibrationDefaults(

@@ -6,10 +6,9 @@ import {
 import { TrialsService } from './trials.service';
 
 describe('TrialsService.reportData', () => {
-  const make = (trial: any, rows: any[] = []) => {
-    const svc = new TrialsService({} as any, {} as any, {} as any, {} as any);
+  const make = (trial: any) => {
+    const svc = new TrialsService({} as any, {} as any);
     jest.spyOn(svc, 'findOne').mockResolvedValue(trial);
-    jest.spyOn(svc, 'flightRecorder').mockResolvedValue(rows);
     return svc;
   };
   const base = {
@@ -35,20 +34,30 @@ describe('TrialsService.reportData', () => {
     ).rejects.toThrow(UnprocessableEntityException);
   });
 
-  it('resume el flight recorder por canal', async () => {
-    const at = new Date();
-    const data = await make({ ...base, state: 'completed' }, [
-      { at, kind: 'reading', channelId: 2, value: 10 },
-      { at, kind: 'reading', channelId: 2, value: 20 },
-      { at, kind: 'command', command: 'H1' },
-    ]).reportData(1);
+  it('informe con identidad, duración y muestras ordenadas', async () => {
+    const data = await make({
+      ...base,
+      state: 'completed',
+      samples: [
+        {
+          id: 2,
+          label: 'BSW',
+          value: 0.4,
+          unit: '%',
+          at: new Date('2026-01-01T00:40:00Z'),
+        },
+        {
+          id: 1,
+          label: 'BSW',
+          value: 0.9,
+          unit: '%',
+          at: new Date('2026-01-01T00:10:00Z'),
+        },
+      ],
+    }).reportData(1);
     expect(data.trial.durationMin).toBe(60);
-    expect(data.flightRecorder).toMatchObject({ readings: 2, commands: 1 });
-    expect(data.flightRecorder.perChannel[0]).toMatchObject({
-      channelId: 2,
-      min: 10,
-      max: 20,
-      avg: 15,
-    });
+    expect(data.samples.map((s) => s.value)).toEqual([0.9, 0.4]);
+    expect(data).not.toHaveProperty('flightRecorder');
+    expect(data).not.toHaveProperty('channels');
   });
 });

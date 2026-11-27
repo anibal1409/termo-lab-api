@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 
-import { JwtAuthGuard, PermissionGuard } from '../../auth/guards';
+import { JwtAuthGuard } from '../../auth/guards';
 import { AdminGuard } from '../../auth/guards/admin.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { User } from '../users/entities';
@@ -30,7 +30,6 @@ import {
   AddSampleDto,
   StopTrialDto,
   UpdateTrialDto,
-  FlightRecorderRow,
   SimulateTwinDto,
   CalibrateTwinDto,
   TwinPointDto,
@@ -135,21 +134,8 @@ export class TrialsController {
     return this.trialsService.addSample(id, dto, user.id);
   }
 
-  // ── Flight recorder ─────────────────────────────────────
-
-  @Get(':id/flight-recorder')
-  @UseGuards(PermissionGuard('allowFlightRecorder'))
-  @ApiOperation({ summary: 'Reproducir ensayo (lecturas y comandos)' })
-  @ApiOkResponse({ type: [FlightRecorderRow] })
-  flightRecorder(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<FlightRecorderRow[]> {
-    return this.trialsService.flightRecorder(id);
-  }
-
   @Get(':id/export')
-  @UseGuards(PermissionGuard('allowFlightRecorder'))
-  @ApiOperation({ summary: 'Exportar ensayo a CSV' })
+  @ApiOperation({ summary: 'Exportar muestras del ensayo a CSV' })
   @ApiProduces('text/csv')
   @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
   async exportCsv(
@@ -205,7 +191,7 @@ export class TrialsController {
   @ApiOperation({
     summary: 'Informe técnico PDF del ensayo',
     description:
-      'Identidad, geometría, canales DAQ, resumen del flight recorder, muestras y calibración del gemelo. El header X-Report-SHA256 y el pie llevan el hash del contenido.',
+      'Identidad, geometría del piloto, muestras y calibración del gemelo. El header X-Report-SHA256 y el pie llevan el hash del contenido.',
   })
   @ApiProduces('application/pdf')
   @ApiOkResponse({ schema: { type: 'string', format: 'binary' } })
@@ -218,7 +204,7 @@ export class TrialsController {
   ): Promise<void> {
     const { data, rating } = await this.ratedReport(id);
     const rmse = data.calibration.calibrationRmse;
-    const { trial, geometry, channels, flightRecorder: fr } = data;
+    const { trial, geometry } = data;
 
     const { buffer, sha256 } = await this.pdf.render(
       `Informe técnico de ensayo #${trial.id}`,
@@ -243,34 +229,6 @@ export class TrialsController {
             ['Longitud (ft)', geometry.pilotLength],
             ['Potencia calentador (BTU/h)', geometry.heaterPower],
           ],
-        },
-        {
-          heading: 'Canales DAQ',
-          fields: [
-            ['Temperatura baño', channels.bathTempChannelId],
-            ['Temperatura ambiente', channels.ambientTempChannelId],
-            ['Calentador', channels.heaterChannelId],
-            ['Nivel', channels.levelChannelIds.join(', ')],
-            ['Lazo PID', channels.pidLoopId],
-            ['Reglas', channels.ruleIds.join(', ')],
-          ],
-        },
-        {
-          heading: 'Flight recorder',
-          fields: [
-            ['Lecturas', fr.readings],
-            ['Comandos', fr.commands],
-          ],
-          table: {
-            headers: ['Canal', 'Lecturas', 'Mín', 'Máx', 'Prom'],
-            rows: fr.perChannel.map((c) => [
-              c.channelId,
-              c.readings,
-              c.min,
-              c.max,
-              c.avg,
-            ]),
-          },
         },
         {
           heading: 'Muestras',
@@ -309,7 +267,8 @@ export class TrialsController {
   @Post(':id/twin/simulate')
   @ApiOperation({
     summary: 'Simular gemelo térmico',
-    description: 'Ejecuta el modelo transitorio con los datos del ensayo.',
+    description:
+      'Ejecuta el modelo transitorio con las series enviadas (temperatura del baño, ambiente y calentador).',
   })
   @ApiOkResponse({ type: [TwinPointDto] })
   async simulate(
@@ -318,36 +277,7 @@ export class TrialsController {
   ): Promise<TwinPointDto[]> {
     const trial = await this.trialsService.findOne(id);
 
-    // Auto-load from channel readings when series not provided
-    const from = trial.startedAt;
-    const to = trial.endedAt ?? new Date();
-    const heaterSeries =
-      body.heaterSeries ??
-      (trial.heaterChannelId && from
-        ? await this.trialsService.getChannelSeries(
-            trial.heaterChannelId,
-            from,
-            to,
-          )
-        : []);
-    const ambientSeries =
-      body.ambientSeries ??
-      (trial.ambientTempChannelId && from
-        ? await this.trialsService.getChannelSeries(
-            trial.ambientTempChannelId,
-            from,
-            to,
-          )
-        : []);
-    const realTempSeries =
-      body.realTempSeries ??
-      (trial.bathTempChannelId && from
-        ? await this.trialsService.getChannelSeries(
-            trial.bathTempChannelId,
-            from,
-            to,
-          )
-        : []);
+    const { heaterSeries, ambientSeries, realTempSeries } = body;
 
     const defaults = await this.trialsService.getCalibrationDefaults(
       trial.pilotDiameter,
@@ -378,7 +308,8 @@ export class TrialsController {
   @UseGuards(AdminGuard)
   @ApiOperation({
     summary: 'Calibrar η y UA con datos del ensayo',
-    description: 'Ajusta por mínimos cuadrados y guarda en el ensayo.',
+    description:
+      'Ajusta por mínimos cuadrados con las series enviadas y guarda en el ensayo.',
   })
   @ApiOkResponse({ type: CalibrationResultDto })
   async calibrateTwin(
@@ -386,36 +317,7 @@ export class TrialsController {
     @Body() body: CalibrateTwinDto,
   ): Promise<CalibrationResultDto> {
     const trial = await this.trialsService.findOne(id);
-    const from = trial.startedAt;
-    const to = trial.endedAt ?? new Date();
-
-    const realTemp =
-      body.realTemp ??
-      (trial.bathTempChannelId && from
-        ? await this.trialsService.getChannelSeries(
-            trial.bathTempChannelId,
-            from,
-            to,
-          )
-        : []);
-    const ambientTemp =
-      body.ambientTemp ??
-      (trial.ambientTempChannelId && from
-        ? await this.trialsService.getChannelSeries(
-            trial.ambientTempChannelId,
-            from,
-            to,
-          )
-        : []);
-    const heaterState =
-      body.heaterState ??
-      (trial.heaterChannelId && from
-        ? await this.trialsService.getChannelSeries(
-            trial.heaterChannelId,
-            from,
-            to,
-          )
-        : []);
+    const { realTemp, ambientTemp, heaterState } = body;
 
     const mass = this.twinService.pilotMass(
       trial.pilotDiameter,

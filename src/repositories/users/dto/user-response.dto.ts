@@ -46,8 +46,6 @@ export class UserResponseDto extends BaseResponseDto {
   })
   inviteSent?: boolean;
 
-  @ApiProperty() allowFiretube: boolean;
-  @ApiProperty() allowFlightRecorder: boolean;
   @ApiProperty() enrollOnFirstLogin: boolean;
   @ApiProperty({ description: 'Derivado: tiene rostro enrolado' })
   faceEnrolled: boolean;
@@ -60,8 +58,6 @@ export class UserResponseDto extends BaseResponseDto {
       role: user?.role || UserRole.OPERATOR,
       email: user?.email || '',
       lastLogin: user?.lastLogin ? new Date(user?.lastLogin) : null,
-      allowFiretube: !!user?.allowFiretube,
-      allowFlightRecorder: !!user?.allowFlightRecorder,
       enrollOnFirstLogin: user?.enrollOnFirstLogin ?? true,
       faceEnrolled: !!user?.faceEnrolled,
       ...(inviteSent != null ? { inviteSent } : {}),

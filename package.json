@@ -42,7 +42,6 @@
     "@nestjs/serve-static": "^5.0.3",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/typeorm": "^11.0.0",
-    "@serialport/parser-readline": "^13.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.9",
     "@types/csurf": "^1.11.5",
@@ -63,7 +62,6 @@
     "pg": "^8.16.3",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
-    "serialport": "^13.0.0",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.25"
   },

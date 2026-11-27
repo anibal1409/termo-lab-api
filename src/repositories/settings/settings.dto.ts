@@ -1,16 +1,5 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
-import {
-  ArrayMaxSize,
-  IsArray,
-  IsBoolean,
-  IsIn,
-  IsNumber,
-  IsOptional,
-  Max,
-  Min,
-} from 'class-validator';
-
-import { UserRole } from '../users/entities/user.entity';
+import { IsIn, IsNumber, IsOptional, Max, Min } from 'class-validator';
 
 /** Settings institucionales. Lo que no venga en PUT conserva su valor. */
 export class AppSettingsDto {
@@ -87,21 +76,6 @@ export class AppSettingsDto {
   @IsNumber()
   @Min(0)
   sampleOiwConformMaxPpm?: number;
-
-  // ── Seguridad ──
-  @ApiPropertyOptional({
-    description: 'Exigir rostro enrolado para operar firetube',
-  })
-  @IsOptional()
-  @IsBoolean()
-  requireBiometricsForFiretube?: boolean;
-
-  @ApiPropertyOptional({ enum: UserRole, isArray: true })
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(2)
-  @IsIn(Object.values(UserRole), { each: true })
-  requireBiometricsRoles?: UserRole[];
 }
 
 /** PUT parcial: mismas validaciones, todo opcional. */
@@ -129,6 +103,4 @@ export const DEFAULT_SETTINGS: AppSettingsDto = {
   twinRmseAcceptableMax: 3.0,
   sampleBswConformMax: 0.5,
   sampleOiwConformMaxPpm: 50,
-  requireBiometricsForFiretube: false,
-  requireBiometricsRoles: [UserRole.ADMIN],
 };

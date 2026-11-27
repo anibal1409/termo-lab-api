@@ -93,16 +93,6 @@ export class User extends IdEntity {
   @Column({ type: 'float', array: true, nullable: true, select: false })
   faceEmbedding?: number[];
 
-  /** Puede operar el quemador/firetube (escribir salidas, comandos, PID). */
-  @ApiProperty({ description: 'Puede operar firetube / duty del quemador' })
-  @Column({ type: 'boolean', default: false })
-  allowFiretube: boolean;
-
-  /** Puede descargar flight recorder / telemetría de ensayos. */
-  @ApiProperty({ description: 'Puede descargar flight recorder / telemetría' })
-  @Column({ type: 'boolean', default: false })
-  allowFlightRecorder: boolean;
-
   @ApiProperty({ description: 'Exigir enrolamiento facial en el primer login' })
   @Column({ type: 'boolean', default: true })
   enrollOnFirstLogin: boolean;

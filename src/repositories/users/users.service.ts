@@ -50,11 +50,8 @@ export class UsersService implements CrudRepository<User> {
 
   async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
     // Contraseña aleatoria que nadie conoce; el usuario define la suya con el enlace
-    const isAdmin = createUserDto.role === UserRole.ADMIN;
     const newUser = this.usersRepository.create({
       ...createUserDto,
-      allowFiretube: createUserDto.allowFiretube ?? isAdmin,
-      allowFlightRecorder: createUserDto.allowFlightRecorder ?? isAdmin,
       enrollOnFirstLogin: createUserDto.enrollOnFirstLogin ?? true,
       password: randomBytes(32).toString('hex'),
     });

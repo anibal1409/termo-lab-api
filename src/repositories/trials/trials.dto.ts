@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsIn,
   IsInt,
@@ -57,38 +58,6 @@ export class CreateTrialDto {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  bathTempChannelId?: number;
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  ambientTempChannelId?: number;
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  heaterChannelId?: number;
-
-  @ApiPropertyOptional({ type: [Number], description: 'Canales de nivel' })
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(50)
-  @IsInt({ each: true })
-  levelChannelIds?: number[];
-
-  @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) pidLoopId?: number;
-
-  @ApiPropertyOptional({ type: [Number], description: 'Reglas de seguridad' })
-  @IsOptional()
-  @IsArray()
-  @ArrayMaxSize(50)
-  @IsInt({ each: true })
-  ruleIds?: number[];
-
-  @ApiPropertyOptional()
-  @IsOptional()
   @IsString()
   @MaxLength(5000)
   notes?: string;
@@ -126,18 +95,6 @@ export class AddSampleDto {
   at?: string;
 }
 
-// ── Flight recorder ─────────────────────────────────────────
-
-export class FlightRecorderRow {
-  @ApiProperty() at: Date;
-  @ApiProperty({ enum: ['reading', 'command'] }) kind: 'reading' | 'command';
-  @ApiPropertyOptional() channelId?: number;
-  @ApiPropertyOptional() value?: number;
-  @ApiPropertyOptional() command?: string;
-  @ApiPropertyOptional() response?: string;
-  @ApiPropertyOptional() source?: string;
-}
-
 // ── Gemelo térmico ──────────────────────────────────────────
 
 export class TimeSeriesPointDto {
@@ -148,12 +105,13 @@ export class TimeSeriesPointDto {
 }
 
 const series = (description: string) =>
-  ApiPropertyOptional({ type: [TimeSeriesPointDto], description });
+  ApiProperty({ type: [TimeSeriesPointDto], description });
 
+/** Series obligatorias: sin DAQ, el gemelo solo trabaja con datos enviados. */
 function SeriesValidators(): PropertyDecorator {
   return (target, key) => {
-    IsOptional()(target, key);
     IsArray()(target, key);
+    ArrayMinSize(2)(target, key);
     ArrayMaxSize(MAX_SERIES_POINTS)(target, key);
     ValidateNested({ each: true })(target, key);
     Type(() => TimeSeriesPointDto)(target, key);
@@ -161,17 +119,17 @@ function SeriesValidators(): PropertyDecorator {
 }
 
 export class SimulateTwinDto {
-  @series('Temperatura real del baño (°F); por defecto, lecturas del canal')
+  @series('Temperatura real del baño (°F)')
   @SeriesValidators()
-  realTempSeries?: TimeSeriesPointDto[];
+  realTempSeries: TimeSeriesPointDto[];
 
   @series('Temperatura ambiente (°F)')
   @SeriesValidators()
-  ambientSeries?: TimeSeriesPointDto[];
+  ambientSeries: TimeSeriesPointDto[];
 
   @series('Estado del calentador (0/1)')
   @SeriesValidators()
-  heaterSeries?: TimeSeriesPointDto[];
+  heaterSeries: TimeSeriesPointDto[];
 
   @ApiPropertyOptional({ description: 'Eficiencia (0–1)' })
   @IsOptional()
@@ -197,13 +155,13 @@ export class SimulateTwinDto {
 export class CalibrateTwinDto {
   @series('Temperatura real del baño (°F)')
   @SeriesValidators()
-  realTemp?: TimeSeriesPointDto[];
+  realTemp: TimeSeriesPointDto[];
   @series('Temperatura ambiente (°F)')
   @SeriesValidators()
-  ambientTemp?: TimeSeriesPointDto[];
+  ambientTemp: TimeSeriesPointDto[];
   @series('Estado del calentador (0/1)')
   @SeriesValidators()
-  heaterState?: TimeSeriesPointDto[];
+  heaterState: TimeSeriesPointDto[];
 
   @ApiPropertyOptional({ description: 'cp del fluido (BTU/lb·°F)' })
   @IsOptional()
@@ -253,30 +211,6 @@ class TrialReportGeometryDto {
   @ApiProperty({ description: 'BTU/h' }) heaterPower: number;
 }
 
-class TrialReportChannelsDto {
-  @ApiPropertyOptional({ nullable: true }) bathTempChannelId: number | null;
-  @ApiPropertyOptional({ nullable: true }) ambientTempChannelId: number | null;
-  @ApiPropertyOptional({ nullable: true }) heaterChannelId: number | null;
-  @ApiProperty({ type: [Number] }) levelChannelIds: number[];
-  @ApiPropertyOptional({ nullable: true }) pidLoopId: number | null;
-  @ApiProperty({ type: [Number] }) ruleIds: number[];
-}
-
-class TrialReportChannelStatDto {
-  @ApiProperty() channelId: number;
-  @ApiProperty() readings: number;
-  @ApiProperty() min: number;
-  @ApiProperty() max: number;
-  @ApiProperty() avg: number;
-}
-
-class TrialReportFlightRecorderDto {
-  @ApiProperty() readings: number;
-  @ApiProperty() commands: number;
-  @ApiProperty({ type: [TrialReportChannelStatDto] })
-  perChannel: TrialReportChannelStatDto[];
-}
-
 class TrialReportSampleDto {
   @ApiProperty() label: string;
   @ApiProperty() value: number;
@@ -294,10 +228,6 @@ export class TrialReportDto {
   @ApiProperty({ type: TrialReportIdentityDto }) trial: TrialReportIdentityDto;
   @ApiProperty({ type: TrialReportGeometryDto })
   geometry: TrialReportGeometryDto;
-  @ApiProperty({ type: TrialReportChannelsDto })
-  channels: TrialReportChannelsDto;
-  @ApiProperty({ type: TrialReportFlightRecorderDto })
-  flightRecorder: TrialReportFlightRecorderDto;
   @ApiProperty({ type: [TrialReportSampleDto] })
   samples: TrialReportSampleDto[];
   @ApiProperty({ type: TrialReportCalibrationDto })

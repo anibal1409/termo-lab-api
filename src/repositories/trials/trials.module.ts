@@ -7,20 +7,9 @@ import { TRIAL_ENTITIES } from './entities';
 import { TrialsController } from './trials.controller';
 import { TrialsService } from './trials.service';
 import { ThermalTwinService } from '../evaluations/services/thermal-twin.service';
-import {
-  ChannelReading,
-  DeviceCommandLog,
-} from '../devices/entities/device.entity';
 
 @Module({
-  imports: [
-    SettingsModule,
-    TypeOrmModule.forFeature([
-      ...TRIAL_ENTITIES,
-      ChannelReading,
-      DeviceCommandLog,
-    ]),
-  ],
+  imports: [SettingsModule, TypeOrmModule.forFeature([...TRIAL_ENTITIES])],
   controllers: [TrialsController],
   providers: [PdfService, TrialsService, ThermalTwinService],
   exports: [TrialsService, ThermalTwinService],

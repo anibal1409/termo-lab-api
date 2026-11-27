@@ -44,68 +44,6 @@ export class Trial extends IdEntity {
   @Column(double)
   heaterPower: number;
 
-  // ── Mapeo de canales ──────────────────────────────────────
-
-  @ApiPropertyOptional({ description: 'Canal de temperatura del baño' })
-  @Column({ nullable: true })
-  bathTempChannelId?: number;
-
-  @ApiPropertyOptional({ description: 'Canal de temperatura ambiente' })
-  @Column({ nullable: true })
-  ambientTempChannelId?: number;
-
-  @ApiPropertyOptional({ description: 'Canal de salida del calentador' })
-  @Column({ nullable: true })
-  heaterChannelId?: number;
-
-  @ApiPropertyOptional({
-    description: 'IDs de canales de nivel (HC-SR04)',
-    type: [Number],
-  })
-  @Column({
-    type: 'simple-array',
-    nullable: true,
-    // simple-array guarda texto; la API expone números
-    transformer: {
-      to: (v?: number[]) => v?.map(String),
-      from: (v?: string[] | string) =>
-        (Array.isArray(v)
-          ? v
-          : String(v ?? '')
-              .split(',')
-              .filter(Boolean)
-        ).map(Number),
-    },
-  })
-  levelChannelIds?: number[];
-
-  // ── Automatización vinculada ──────────────────────────────
-
-  @ApiPropertyOptional({ description: 'Lazo PID creado para este ensayo' })
-  @Column({ nullable: true })
-  pidLoopId?: number;
-
-  @ApiPropertyOptional({
-    description: 'IDs de reglas de seguridad del ensayo',
-    type: [Number],
-  })
-  @Column({
-    type: 'simple-array',
-    nullable: true,
-    // simple-array guarda texto; la API expone números
-    transformer: {
-      to: (v?: number[]) => v?.map(String),
-      from: (v?: string[] | string) =>
-        (Array.isArray(v)
-          ? v
-          : String(v ?? '')
-              .split(',')
-              .filter(Boolean)
-        ).map(Number),
-    },
-  })
-  ruleIds?: number[];
-
   // ── Estado ────────────────────────────────────────────────
 
   @ApiProperty({ enum: ['draft', 'running', 'completed', 'aborted'] })

@@ -11,7 +11,7 @@ import { AuditService } from './audit.service';
 const MUTATING = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 /** Lecturas que exponen datos sensibles o masivos: también se auditan. */
 const SENSITIVE_READ =
-  /\/(export|flight-recorder|report\.(pdf|json)|download)$|\/audit-logs|\/backups/;
+  /\/(export|report\.(pdf|json)|download)$|\/audit-logs|\/backups/;
 /** Ruido sin valor de auditoría. */
 const IGNORED = new Set(['/api', '/api/info', '/api/warning', '/api/health']);
 
