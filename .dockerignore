@@ -1,13 +1,10 @@
 node_modules
 dist
-coverage
-.git
-graphify-out
 generated
-*.pdf
-*.md
-!README.md
+backups
+graphify-out
+.git
 .env
 .env.*
 !.env.example
-!.env.railway.example
+*.log

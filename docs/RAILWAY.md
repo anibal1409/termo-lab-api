@@ -21,13 +21,14 @@ Usuario → Web (nginx, público) → /api → API (Nest, privado) → Postgres
 ## 2. Servicio API
 
 1. **Add Service** → **GitHub Repo** → `termo-lab-api`, rama `main`.
-2. Settings → usa `railway.json` del repo (build `npm ci && npm run build`, start `npm run start:prod`, health `/api/health`).
-3. Variables (Variables tab). Usa referencias Railway:
+2. Settings → usa `railway.json` del repo: builder **Dockerfile** (Node 22 + cliente PostgreSQL 18 para respaldos), health `/api/health`.
+3. **Volume** (obligatorio para respaldos): servicio API → Settings → Volumes → montar en `/data`. Sin volume, los respaldos se pierden en cada deploy.
+4. Variables (Variables tab). Usa referencias Railway:
 
 | Variable | Valor sugerido |
 |----------|----------------|
 | `NODE_ENV` | `production` |
-| `TRUST_PROXY` | `1` |
+| `TRUST_PROXY` | `2` *(edge de Railway + nginx; verificar, ver «Auditoría»)* |
 | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
 | `DB_SSL` | `true` |
 | `DB_SSL_REJECT_UNAUTHORIZED` | `false` |
@@ -46,10 +47,11 @@ Usuario → Web (nginx, público) → /api → API (Nest, privado) → Postgres
 | `REGISTER_ENABLED` | `false` |
 | `CSRF_ENABLED` | `false` |
 | `FACE_LOGIN_ENABLED` | `false` |
+| `BACKUP_DIR` | `/data/backups` *(ya es el default de la imagen)* |
 
 Plantilla completa: [`.env.railway.example`](../.env.railway.example).
 
-4. **No** generes dominio público para la API (opcional). El healthcheck de Railway llega a la API por la red interna del servicio.
+5. **No** generes dominio público para la API (opcional). El healthcheck de Railway llega a la API por la red interna del servicio.
 
 Al arrancar en `NODE_ENV=production`, TypeORM ejecuta migraciones (`migrationsRun`).
 
@@ -102,3 +104,42 @@ SMTP_FROM="TermoLab <no-reply@tudominio.com>"
 - Cookies `sameSite=strict` + `api: '/api'` en el front de producción: mismo origen vía nginx; no uses dos dominios públicos distintos sin cambiar auth.
 - `applyDatabaseEnv` mapea `DATABASE_URL` / `PG*` → `DB_*` al arrancar ([`src/common/config/apply-database-url.ts`](../src/common/config/apply-database-url.ts)).
 - Presupuesto: 3 servicios (Web + API + Postgres) en un mismo proyecto Railway.
+
+## Auditoría y respaldos
+
+### Auditoría (`/api/audit-logs`, solo admin)
+
+- Se registra automáticamente:
+  - toda acción que modifica datos (POST/PUT/PATCH/DELETE);
+  - logins (exitosos y fallidos), logout y definición de contraseña;
+  - descargas sensibles: export, flight recorder, informes, respaldos.
+- La tabla `audit_logs` es de **solo inserción**: un trigger rechaza UPDATE y DELETE.
+- Contraseñas, tokens y vectores faciales se guardan enmascarados (`[REDACTED]`).
+- **Verificar `TRUST_PROXY` tras el primer deploy:** hacer un login y mirar la columna `ip` del registro.
+  - Si muestra una IP privada (10.x, 100.64.x), sube `TRUST_PROXY` en 1.
+  - Si muestra tu IP pública, el valor es correcto.
+  - Con el valor equivocado, el límite de intentos de login queda compartido entre todos los usuarios.
+
+### Respaldos (`/api/backups`, solo admin)
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `POST` | `/api/backups` | Crear (`pg_dump` en formato custom, con SHA-256) |
+| `GET` | `/api/backups` | Listar |
+| `GET` | `/api/backups/:id/download` | Descargar (header `X-Backup-SHA256`) |
+| `POST` | `/api/backups/:id/restore` | Restaurar: body `{ password, confirm: "<id>" }` |
+| `DELETE` | `/api/backups/:id` | Eliminar |
+
+Garantías de la restauración:
+1. Exige la contraseña del admin y repetir el id.
+2. Verifica el SHA-256: un archivo alterado da 409.
+3. Crea antes un respaldo de seguridad automático (`kind: pre-restore`).
+4. Restaura en **una sola transacción**: si algo falla, la base queda como estaba.
+5. Aplica las migraciones pendientes y cierra todas las sesiones.
+6. **No toca la auditoría:** ni la tabla ni su trigger entran en los respaldos.
+
+Limitaciones:
+- Los respaldos viven en el Volume `/data`. Si se borra el Volume o el servicio, se pierden. Descarga copias periódicamente.
+- No hay respaldos automáticos programados ni política de retención; se crean desde el endpoint.
+- Una operación de respaldo o restauración a la vez por instancia (409 si hay otra en curso).
+- El contenedor corre como root para poder escribir en el Volume de Railway.

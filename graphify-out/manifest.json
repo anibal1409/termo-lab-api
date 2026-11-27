@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "data-source.ts": {
-    "mtime": 1794015263.083918,
-    "seen": 1794015495.2508194,
-    "ast_hash": "de8ba97df8463b3e52579e972aa7851c",
+    "mtime": 1795746050.86752,
+    "seen": 1795746064.5564303,
+    "ast_hash": "f00d19326f47a159f74c34904a289ca1",
     "semantic_hash": ""
   },
   "nest-cli.json": {
@@ -30,32 +30,32 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1795582427.9411561,
-    "seen": 1795583450.6275134,
-    "ast_hash": "e3896a01cd77ff3eae2087ee29bb014e",
+    "mtime": 1795746050.9698749,
+    "seen": 1795746064.5564537,
+    "ast_hash": "ad3a17ba3f8a007db93cc8eb52c91560",
     "semantic_hash": ""
   },
   "src/app.controller.spec.ts": {
-    "mtime": 1763071999.030535,
-    "seen": 1794006431.9501438,
-    "ast_hash": "4a1c0e1133dbda6f6e8f3e60d984eddf",
+    "mtime": 1795746050.9703724,
+    "seen": 1795746064.5564604,
+    "ast_hash": "b8fc33cf8b96bd3c006a75d6d3bd78a0",
     "semantic_hash": ""
   },
   "src/app.controller.ts": {
-    "mtime": 1794015261.171915,
-    "seen": 1794015495.2508285,
-    "ast_hash": "d0860a804f616631b6dc24c7191f736b",
+    "mtime": 1795746050.970627,
+    "seen": 1795746064.5564625,
+    "ast_hash": "9de02953b921123993910ad390c33762",
     "semantic_hash": ""
   },
   "src/app.module.ts": {
-    "mtime": 1795582890.627818,
-    "seen": 1795583450.6275198,
-    "ast_hash": "c095a49042e9f220571fb7296efa99a1",
+    "mtime": 1795746050.970862,
+    "seen": 1795746064.5564647,
+    "ast_hash": "2b0e9bca84a31516a6d6571b261492fa",
     "semantic_hash": ""
   },
   "src/app.service.ts": {
-    "mtime": 1795581701.1384041,
-    "seen": 1795583450.6275215,
+    "mtime": 1795746050.9711668,
+    "seen": 1795746064.5564673,
     "ast_hash": "afb11d95a78c5d40106bb8f7e334d8ae",
     "semantic_hash": ""
   },
@@ -66,8 +66,8 @@
     "semantic_hash": ""
   },
   "src/auth/auth.controller.ts": {
-    "mtime": 1795582085.0517664,
-    "seen": 1795583450.627525,
+    "mtime": 1795746050.971612,
+    "seen": 1795746064.556472,
     "ast_hash": "a3b924880c56890e898fab24943500a9",
     "semantic_hash": ""
   },
@@ -84,8 +84,8 @@
     "semantic_hash": ""
   },
   "src/auth/auth.service.ts": {
-    "mtime": 1795582349.2428393,
-    "seen": 1795583450.6275294,
+    "mtime": 1795746050.9720473,
+    "seen": 1795746064.5564785,
     "ast_hash": "e489a6ccd6a69c2774b5b6dbd1a3c12f",
     "semantic_hash": ""
   },
@@ -114,20 +114,20 @@
     "semantic_hash": ""
   },
   "src/auth/dto/index.ts": {
-    "mtime": 1795582085.0404143,
-    "seen": 1795583450.627539,
+    "mtime": 1795746050.9730136,
+    "seen": 1795746064.5564914,
     "ast_hash": "b3e851864ff60befbe9e5a882471f23c",
     "semantic_hash": ""
   },
   "src/auth/dto/login-response.dto.ts": {
-    "mtime": 1795582349.242569,
-    "seen": 1795583450.6275399,
+    "mtime": 1795746050.9731896,
+    "seen": 1795746064.5564935,
     "ast_hash": "861f2bf2a10e83091dcf4dfd80e612e5",
     "semantic_hash": ""
   },
   "src/auth/dto/login.dto.ts": {
-    "mtime": 1795583051.5799727,
-    "seen": 1795583450.6275415,
+    "mtime": 1795746050.973762,
+    "seen": 1795746064.5564954,
     "ast_hash": "9b8c8b27105fec8271fe0a1d0fc735b7",
     "semantic_hash": ""
   },
@@ -144,14 +144,14 @@
     "semantic_hash": ""
   },
   "src/auth/dto/register.dto.ts": {
-    "mtime": 1795583051.580149,
-    "seen": 1795583450.6275458,
+    "mtime": 1795746050.973951,
+    "seen": 1795746064.5565019,
     "ast_hash": "aaf7c2aa61809a2fea363b1482911901",
     "semantic_hash": ""
   },
   "src/auth/guards/index.ts": {
-    "mtime": 1795582402.0679908,
-    "seen": 1795583450.6275537,
+    "mtime": 1795746050.974621,
+    "seen": 1795746064.5565107,
     "ast_hash": "d2a2851b832036c6554aa4a3a4fa4f68",
     "semantic_hash": ""
   },
@@ -204,14 +204,14 @@
     "semantic_hash": ""
   },
   "src/common/filters/http-exception.filter.ts": {
-    "mtime": 1795582843.4462538,
-    "seen": 1795583450.6275723,
+    "mtime": 1795746050.9762864,
+    "seen": 1795746064.5565515,
     "ast_hash": "14766ad12593c618ab845ccce78aaddf",
     "semantic_hash": ""
   },
   "src/common/filters/index.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5988028,
+    "mtime": 1795746050.9766932,
+    "seen": 1795746064.5565531,
     "ast_hash": "7456effa9a224167106e59701aba068c",
     "semantic_hash": ""
   },
@@ -234,8 +234,8 @@
     "semantic_hash": ""
   },
   "src/common/pagination/dto/query-base.dto.ts": {
-    "mtime": 1795581012.8894024,
-    "seen": 1795583450.6275828,
+    "mtime": 1795746050.977586,
+    "seen": 1795746064.5565667,
     "ast_hash": "5ba4c584a4e65e2a7a70d65cbcf43818",
     "semantic_hash": ""
   },
@@ -294,14 +294,14 @@
     "semantic_hash": ""
   },
   "src/main.ts": {
-    "mtime": 1795582954.2385695,
-    "seen": 1795583450.6276014,
-    "ast_hash": "042a3f5aa7a0a8cb9a2c1e1a314c3a7e",
+    "mtime": 1795746050.9791481,
+    "seen": 1795746064.5565948,
+    "ast_hash": "e5cab0177744c638c4c169192ecfee0a",
     "semantic_hash": ""
   },
   "src/migrations/1751178224375-SeedAdminAndOperatorUsers.ts": {
-    "mtime": 1795581743.4913797,
-    "seen": 1795583450.6276026,
+    "mtime": 1795746050.9795868,
+    "seen": 1795746064.556597,
     "ast_hash": "029039d19db8d0720922288247abf7d6",
     "semantic_hash": ""
   },
@@ -336,8 +336,8 @@
     "semantic_hash": ""
   },
   "src/migrations/1759794383734-UpdateUserPasswords.ts": {
-    "mtime": 1795581743.5033438,
-    "seen": 1795583450.6276114,
+    "mtime": 1795746050.9799821,
+    "seen": 1795746064.5566087,
     "ast_hash": "12806525d569f10a11506b9f0d34f901",
     "semantic_hash": ""
   },
@@ -348,14 +348,14 @@
     "semantic_hash": ""
   },
   "src/migrations/1763061460756-AddThermalCalculationsToEvaluations.ts": {
-    "mtime": 1795581743.5074825,
-    "seen": 1795583450.627614,
+    "mtime": 1795746050.980389,
+    "seen": 1795746064.556613,
     "ast_hash": "a67d1969ce5664e0b6884c46ec7cfcfa",
     "semantic_hash": ""
   },
   "src/migrations/1763061460757-AddTemplateIdToEvaluations.ts": {
-    "mtime": 1795581743.5084105,
-    "seen": 1795583450.6276152,
+    "mtime": 1795746050.980602,
+    "seen": 1795746064.5566146,
     "ast_hash": "d1bd6e1350832734470dbf9c61e69cd3",
     "semantic_hash": ""
   },
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "src/repositories/devices/devices.controller.ts": {
-    "mtime": 1795582402.089054,
-    "seen": 1795583450.6276395,
+    "mtime": 1795746050.9837286,
+    "seen": 1795746064.5566595,
     "ast_hash": "1c4d1d981c8ccbcf1995e717a18e1cd4",
     "semantic_hash": ""
   },
@@ -402,8 +402,8 @@
     "semantic_hash": ""
   },
   "src/repositories/devices/devices.module.ts": {
-    "mtime": 1795582415.4019783,
-    "seen": 1795583450.6276426,
+    "mtime": 1795746050.9840987,
+    "seen": 1795746064.5566635,
     "ast_hash": "1a96ed3b5609a32a2817a66b0f63e359",
     "semantic_hash": ""
   },
@@ -414,8 +414,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/controllers/evaluations.controller.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5988822,
+    "mtime": 1795746050.9844706,
+    "seen": 1795746064.556677,
     "ast_hash": "e9de857a401c0ff7b1ea2a2bf4c9b061",
     "semantic_hash": ""
   },
@@ -426,14 +426,14 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/controllers/reports.controller.ts": {
-    "mtime": 1795583208.8323925,
-    "seen": 1795583450.627654,
+    "mtime": 1795746050.9849195,
+    "seen": 1795746064.556684,
     "ast_hash": "ced01069a88991d8d2d4b55e3e8f18c5",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/controllers/thermal-calculations.controller.ts": {
-    "mtime": 1795583041.4629025,
-    "seen": 1795583450.6276555,
+    "mtime": 1795746050.9854884,
+    "seen": 1795746064.5566878,
     "ast_hash": "a329faf6f942d44d7f06fc2774e3ed72",
     "semantic_hash": ""
   },
@@ -444,8 +444,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/dto/create-evaluation.dto.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5988913,
+    "mtime": 1795746050.986124,
+    "seen": 1795746064.5566964,
     "ast_hash": "fcb4675b45c2126562b8e54e448e1020",
     "semantic_hash": ""
   },
@@ -540,8 +540,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/evaluations.module.ts": {
-    "mtime": 1795582629.1227975,
-    "seen": 1795583450.6276846,
+    "mtime": 1795746050.986647,
+    "seen": 1795746064.5567503,
     "ast_hash": "32310d5739c49dce5a8031dcc8a1fbc3",
     "semantic_hash": ""
   },
@@ -558,8 +558,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/evaluation-calculator.service.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5989227,
+    "mtime": 1795746050.9874554,
+    "seen": 1795746064.5567641,
     "ast_hash": "dd5d64cabcc0bf4f6774d3932861923e",
     "semantic_hash": ""
   },
@@ -576,8 +576,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/index.ts": {
-    "mtime": 1794021788.2972462,
-    "seen": 1794022586.6573932,
+    "mtime": 1795746050.9878745,
+    "seen": 1795746064.5567703,
     "ast_hash": "be7eae22249af90df140986b4d842885",
     "semantic_hash": ""
   },
@@ -588,8 +588,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-calculator.service.ts": {
-    "mtime": 1795742785.9808502,
-    "seen": 1795742815.3094106,
+    "mtime": 1795746050.9898026,
+    "seen": 1795746064.5567806,
     "ast_hash": "cbfc76b04026da50c2d053acb5155a35",
     "semantic_hash": ""
   },
@@ -600,9 +600,9 @@
     "semantic_hash": ""
   },
   "src/repositories/repositories.module.ts": {
-    "mtime": 1795582389.8338728,
-    "seen": 1795583450.6277232,
-    "ast_hash": "e83b68c83fadab13fe6cb27671bfef73",
+    "mtime": 1795746270.5425904,
+    "seen": 1795746785.5975316,
+    "ast_hash": "1ad2adf4d4db51cbf62f346ee0c534cb",
     "semantic_hash": ""
   },
   "src/repositories/test/dto/create-test.dto.ts": {
@@ -732,8 +732,8 @@
     "semantic_hash": ""
   },
   "src/repositories/treatment-options/treatment-options.controller.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5990057,
+    "mtime": 1795746051.0012686,
+    "seen": 1795746064.556941,
     "ast_hash": "5b4f87bbec85f292f94299566b4628b6",
     "semantic_hash": ""
   },
@@ -750,8 +750,8 @@
     "semantic_hash": ""
   },
   "src/repositories/treatment-options/treatment-options.service.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5990105,
+    "mtime": 1795746051.0017638,
+    "seen": 1795746064.556951,
     "ast_hash": "e85fb81bf3ad33ba12d56614dbf7ddcc",
     "semantic_hash": ""
   },
@@ -840,8 +840,8 @@
     "semantic_hash": ""
   },
   "src/repositories/treatments/treatments.controller.ts": {
-    "mtime": 1795580994.0875142,
-    "seen": 1795583450.6278224,
+    "mtime": 1795746051.002263,
+    "seen": 1795746064.5569937,
     "ast_hash": "14ae2a10c0636811d0e626582e8d48eb",
     "semantic_hash": ""
   },
@@ -858,20 +858,20 @@
     "semantic_hash": ""
   },
   "src/repositories/treatments/treatments.service.ts": {
-    "mtime": 1795583829.8941088,
-    "seen": 1795583918.2401383,
+    "mtime": 1795746051.0026739,
+    "seen": 1795746064.5570002,
     "ast_hash": "bae6b4bd5b8f6228603f126944958585",
     "semantic_hash": ""
   },
   "src/repositories/users/dto/create-user.dto.ts": {
-    "mtime": 1795582631.1582708,
-    "seen": 1795583450.6278374,
+    "mtime": 1795746051.0055287,
+    "seen": 1795746064.5570285,
     "ast_hash": "09e900f78bb3c266a490490b3459ecc2",
     "semantic_hash": ""
   },
   "src/repositories/users/dto/index.ts": {
-    "mtime": 1794193694.079685,
-    "seen": 1795049598.5990512,
+    "mtime": 1795746051.0060697,
+    "seen": 1795746064.557034,
     "ast_hash": "a86e85faebfa1f77ce3fc4d6d893c16e",
     "semantic_hash": ""
   },
@@ -882,8 +882,8 @@
     "semantic_hash": ""
   },
   "src/repositories/users/dto/user-response.dto.ts": {
-    "mtime": 1795582349.242233,
-    "seen": 1795583450.6278431,
+    "mtime": 1795746051.0075178,
+    "seen": 1795746064.557044,
     "ast_hash": "d7fe5ae190cd98874d4cf4a744222ac7",
     "semantic_hash": ""
   },
@@ -894,8 +894,8 @@
     "semantic_hash": ""
   },
   "src/repositories/users/entities/user.entity.ts": {
-    "mtime": 1795582349.241838,
-    "seen": 1795583450.6278455,
+    "mtime": 1795746051.0079322,
+    "seen": 1795746064.5570488,
     "ast_hash": "911c6bbc7601706bef043534e0c2e5ce",
     "semantic_hash": ""
   },
@@ -912,14 +912,14 @@
     "semantic_hash": ""
   },
   "src/repositories/users/users.controller.ts": {
-    "mtime": 1795582085.7934144,
-    "seen": 1795583450.627852,
+    "mtime": 1795746051.0094728,
+    "seen": 1795746064.5570676,
     "ast_hash": "f236c1979b5b6cf41627b4936c6a58e0",
     "semantic_hash": ""
   },
   "src/repositories/users/users.module.ts": {
-    "mtime": 1795582069.071708,
-    "seen": 1795583450.6278534,
+    "mtime": 1795746051.0099022,
+    "seen": 1795746064.5570714,
     "ast_hash": "96b0ca515e0d00de5843811ddc1e56a9",
     "semantic_hash": ""
   },
@@ -930,8 +930,8 @@
     "semantic_hash": ""
   },
   "src/repositories/users/users.service.ts": {
-    "mtime": 1795582349.2424092,
-    "seen": 1795583450.6278558,
+    "mtime": 1795746051.0103273,
+    "seen": 1795746064.5570788,
     "ast_hash": "384e3118c5f24ece6a765f1ca3870d8a",
     "semantic_hash": ""
   },
@@ -948,9 +948,9 @@
     "semantic_hash": ""
   },
   "swagger.json": {
-    "mtime": 1795583902.8809538,
-    "seen": 1795583918.2401836,
-    "ast_hash": "3e45c82371e161ee51526030f9f61795",
+    "mtime": 1795746751.8326735,
+    "seen": 1795746785.597639,
+    "ast_hash": "c56b83e4e0807791ab210ff5099edd54",
     "semantic_hash": ""
   },
   "test/app.e2e-spec.ts": {
@@ -966,9 +966,9 @@
     "semantic_hash": ""
   },
   "tsconfig.build.json": {
-    "mtime": 1763071999.0477648,
-    "seen": 1794006431.9503589,
-    "ast_hash": "f73d0f011ee462dcdf7f02bbdcde284b",
+    "mtime": 1795746051.013336,
+    "seen": 1795746064.5570934,
+    "ast_hash": "2b8fc44914a0e376fb3f1d683715c5e1",
     "semantic_hash": ""
   },
   "tsconfig.json": {
@@ -990,9 +990,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794014395.2613323,
-    "seen": 1794015495.2510233,
-    "ast_hash": "9904136c1c3ee456fdfd6c0a926079b2",
+    "mtime": 1795746050.86726,
+    "seen": 1795746064.5571012,
+    "ast_hash": "23b4e3a058c38517a0a843e7c7643f89",
     "semantic_hash": ""
   },
   "diferencias_tratadores.txt": {
@@ -1092,8 +1092,8 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-calculator.service.spec.ts": {
-    "mtime": 1795575641.9815195,
-    "seen": 1795583450.6277092,
+    "mtime": 1795746050.9894361,
+    "seen": 1795746064.5567784,
     "ast_hash": "33e005e62c8d9421c3de87744f28e093",
     "semantic_hash": ""
   },
@@ -1104,410 +1104,482 @@
     "semantic_hash": ""
   },
   "docs/README.md": {
-    "mtime": 1795742906.488269,
-    "seen": 1795744702.529861,
-    "ast_hash": "05a0cd2fe6b98883c4bf6e63e706c4ec",
+    "mtime": 1795746050.8678987,
+    "seen": 1795746064.5571096,
+    "ast_hash": "704377571c289d449f0fb05a852525d1",
     "semantic_hash": ""
   },
   "src/migrations/1794021872972-AddTrials.ts": {
-    "mtime": 1795581743.5115721,
-    "seen": 1795583450.6276188,
+    "mtime": 1795746050.9808998,
+    "seen": 1795746064.5566194,
     "ast_hash": "46ed07db7af05f10a4b82d5ca3d1605f",
     "semantic_hash": ""
   },
   "src/migrations/1794021872973-SeedTrialAndDeviceData.ts": {
-    "mtime": 1795581743.5135303,
-    "seen": 1795583450.6276205,
+    "mtime": 1795746050.9812446,
+    "seen": 1795746064.5566218,
     "ast_hash": "e26af0709ce4773f98a25ee10b921cc9",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-analysis.service.spec.ts": {
-    "mtime": 1795575641.9810672,
-    "seen": 1795583450.627704,
+    "mtime": 1795746050.9882178,
+    "seen": 1795746064.5567746,
     "ast_hash": "82f84412cf7b73b92b75349ae3d8b334",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-analysis.service.ts": {
-    "mtime": 1795575641.9813912,
-    "seen": 1795583450.6277063,
+    "mtime": 1795746050.9888566,
+    "seen": 1795746064.5567765,
     "ast_hash": "0daf347a253eb2aad206843cec0a5b07",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-twin.service.spec.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5989375,
+    "mtime": 1795746050.9903886,
+    "seen": 1795746064.5567822,
     "ast_hash": "3b021891996c0334f1e400ea1781938b",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-twin.service.ts": {
-    "mtime": 1795575641.9824216,
-    "seen": 1795583450.6277177,
+    "mtime": 1795746050.9907007,
+    "seen": 1795746064.556785,
     "ast_hash": "40da2b78472a7ddc664de5e439d563e4",
     "semantic_hash": ""
   },
   "src/repositories/trials/entities/index.ts": {
-    "mtime": 1794021685.432018,
-    "seen": 1794022586.6574411,
+    "mtime": 1795746051.0033472,
+    "seen": 1795746064.5570045,
     "ast_hash": "8220fa4ce79155d38e0d230018291100",
     "semantic_hash": ""
   },
   "src/repositories/trials/entities/trial.entity.ts": {
-    "mtime": 1795582631.0972707,
-    "seen": 1795583450.6278296,
+    "mtime": 1795746051.003647,
+    "seen": 1795746064.5570076,
     "ast_hash": "df3562b328100ca0637de43f515da301",
     "semantic_hash": ""
   },
   "src/repositories/trials/trials.controller.ts": {
-    "mtime": 1795583475.403123,
-    "seen": 1795583918.240144,
+    "mtime": 1795746051.004446,
+    "seen": 1795746064.557016,
     "ast_hash": "7d96098274bf4b6c7f1e4d0d2aedfd80",
     "semantic_hash": ""
   },
   "src/repositories/trials/trials.module.ts": {
-    "mtime": 1795582533.4900765,
-    "seen": 1795583450.6278348,
+    "mtime": 1795746051.0047932,
+    "seen": 1795746064.5570211,
     "ast_hash": "23ab1ab7823ecee904dbabe63183eeee",
     "semantic_hash": ""
   },
   "src/repositories/trials/trials.service.ts": {
-    "mtime": 1795583257.3200023,
-    "seen": 1795583450.6278362,
+    "mtime": 1795746051.0055287,
+    "seen": 1795746064.5570242,
     "ast_hash": "f2f968d46b51ca49721ebf7b8a3b8201",
     "semantic_hash": ""
   },
   "src/migrations/1794108000000-SeedAllModules.ts": {
-    "mtime": 1795581743.51538,
-    "seen": 1795583450.6276221,
+    "mtime": 1795746050.9816015,
+    "seen": 1795746064.556624,
     "ast_hash": "9ada5c7e0d7b0d0f33b4be9d5f1863b2",
     "semantic_hash": ""
   },
   "src/auth/dto/face-login.dto.ts": {
-    "mtime": 1795581298.5222561,
-    "seen": 1795583450.6275375,
+    "mtime": 1795746050.972655,
+    "seen": 1795746064.5564895,
     "ast_hash": "fbc48e7e1f3b37b47bc73bb035ddb702",
     "semantic_hash": ""
   },
   "src/repositories/simulation/dto/equipment.dto.ts": {
-    "mtime": 1795582672.5158622,
-    "seen": 1795583450.627734,
+    "mtime": 1795746050.992972,
+    "seen": 1795746064.5568123,
     "ast_hash": "368ba71437d1e8eaa85ca5b166cd5268",
     "semantic_hash": ""
   },
   "src/repositories/simulation/dto/runner.dto.ts": {
-    "mtime": 1795581012.9424024,
-    "seen": 1795583450.6277356,
+    "mtime": 1795746050.9934268,
+    "seen": 1795746064.5568147,
     "ast_hash": "823bd3dea5d427ef26ec6942b64202eb",
     "semantic_hash": ""
   },
   "src/repositories/simulation/dto/simulation.dto.ts": {
-    "mtime": 1795582673.5335608,
-    "seen": 1795583450.6277368,
+    "mtime": 1795746050.9934268,
+    "seen": 1795746064.5568163,
     "ast_hash": "8c6ed3156939b3dc8d4dd16a3006498e",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment.controller.ts": {
-    "mtime": 1795582085.8434143,
-    "seen": 1795583450.6277385,
+    "mtime": 1795746050.9934268,
+    "seen": 1795746064.5568187,
     "ast_hash": "a700cea4bb257123984de858789f5fe9",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/heat-exchanger.ts": {
-    "mtime": 1795582674.643474,
-    "seen": 1795583450.6277397,
+    "mtime": 1795746050.9934268,
+    "seen": 1795746064.5568216,
     "ast_hash": "06874d3aee3c018e6f8231ecdd12b3fd",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/index.ts": {
-    "mtime": 1795048866.063365,
-    "seen": 1795049598.5989513,
+    "mtime": 1795746050.9939668,
+    "seen": 1795746064.5568252,
     "ast_hash": "e4535251c4ad5960c252661cd46b57ab",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/separator.ts": {
-    "mtime": 1795582675.278774,
-    "seen": 1795583450.6277423,
+    "mtime": 1795746050.9939668,
+    "seen": 1795746064.556829,
     "ast_hash": "e96b0a081855c8beaec0e0f0e77dfd57",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/storage-tank.ts": {
-    "mtime": 1795582675.8478115,
-    "seen": 1795583450.6277435,
+    "mtime": 1795746050.9939668,
+    "seen": 1795746064.556833,
     "ast_hash": "f09e349f3d040fd5a72147cad1063af8",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/thermal-treater.ts": {
-    "mtime": 1795744684.2878172,
-    "seen": 1795744702.529734,
+    "mtime": 1795746050.9949667,
+    "seen": 1795746064.5568414,
     "ast_hash": "3896da5f383dd3f58cab4d83ee82a5e6",
     "semantic_hash": ""
   },
   "src/repositories/simulation/runner/simulation-runner.ts": {
-    "mtime": 1795744577.8517725,
-    "seen": 1795744702.529737,
+    "mtime": 1795746050.9967875,
+    "seen": 1795746064.5568492,
     "ast_hash": "d14283e6264d6bb6d44a75cd362766be",
     "semantic_hash": ""
   },
   "src/repositories/simulation/runner/stream.ts": {
-    "mtime": 1795571535.5196316,
-    "seen": 1795571641.6269197,
+    "mtime": 1795746050.9972706,
+    "seen": 1795746064.556853,
     "ast_hash": "9a6887136d2a47e6fda3e71a7f721d9b",
     "semantic_hash": ""
   },
   "src/repositories/simulation/simulation.controller.ts": {
-    "mtime": 1795582085.8554144,
-    "seen": 1795583450.627753,
+    "mtime": 1795746050.997609,
+    "seen": 1795746064.5568576,
     "ast_hash": "3a501dfca2e45b2050b262e1134e3fe3",
     "semantic_hash": ""
   },
   "src/repositories/simulation/simulation.module.ts": {
-    "mtime": 1795049836.90614,
-    "seen": 1795049914.9069655,
+    "mtime": 1795746050.99789,
+    "seen": 1795746064.5568619,
     "ast_hash": "f60f1be051766e257501302302fff530",
     "semantic_hash": ""
   },
   "src/repositories/simulation/simulation.service.ts": {
-    "mtime": 1795582678.5275717,
-    "seen": 1795583450.627756,
+    "mtime": 1795746050.9982631,
+    "seen": 1795746064.5568657,
     "ast_hash": "aed9c5aeff1bdf65778ed4fb39c87848",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/chromatography.ts": {
-    "mtime": 1795582679.0594943,
-    "seen": 1795583450.6277575,
+    "mtime": 1795746050.9982631,
+    "seen": 1795746064.5568702,
     "ast_hash": "4593f42b38271c24d30c62a87dcd78d8",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/components.ts": {
-    "mtime": 1795582679.5974078,
-    "seen": 1795583450.6277587,
+    "mtime": 1795746050.998805,
+    "seen": 1795746064.5568745,
     "ast_hash": "e92f68abf15b2a482afde53749a4db21",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/eos.ts": {
-    "mtime": 1795582680.1369464,
-    "seen": 1795583450.6277606,
+    "mtime": 1795746050.9991856,
+    "seen": 1795746064.556879,
     "ast_hash": "29659a5f6477cea2fb2195bfb71679f7",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/flash.ts": {
-    "mtime": 1795582680.678038,
-    "seen": 1795583450.627762,
+    "mtime": 1795746050.9998217,
+    "seen": 1795746064.5568814,
     "ast_hash": "552e3c80322513a49d991d0aa508d9d5",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/index.ts": {
-    "mtime": 1795571572.1266227,
-    "seen": 1795571641.6269352,
+    "mtime": 1795746051.0007665,
+    "seen": 1795746064.5568879,
     "ast_hash": "0192e175f0adade74f82da3269e37ba3",
     "semantic_hash": ""
   },
   "src/repositories/users/dto/update-profile.dto.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5990524,
+    "mtime": 1795746051.0063672,
+    "seen": 1795746064.557038,
     "ast_hash": "a249a8375154c0de99197bf8ee3e1448",
     "semantic_hash": ""
   },
   "src/repositories/users/profile.controller.ts": {
-    "mtime": 1794195516.9356658,
-    "seen": 1795049598.5990622,
+    "mtime": 1795746051.0079322,
+    "seen": 1795746064.5570557,
     "ast_hash": "6b1d30974c76cef854896a2423e4d6fc",
     "semantic_hash": ""
   },
   "src/repositories/simulation/runner/runner.service.ts": {
-    "mtime": 1795582676.9094844,
-    "seen": 1795583450.627749,
+    "mtime": 1795746050.9949667,
+    "seen": 1795746064.5568457,
     "ast_hash": "84ae829f79a5c4e35094d95a0b62b436",
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/thermal-treater.spec.ts": {
-    "mtime": 1795744631.1748052,
-    "seen": 1795744702.5297325,
+    "mtime": 1795746050.9949667,
+    "seen": 1795746064.5568373,
     "ast_hash": "36dd7ea9752260ef916f0836e923f5ec",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/gas-props.ts": {
-    "mtime": 1795582681.1823735,
-    "seen": 1795583450.6277633,
+    "mtime": 1795746051.0001922,
+    "seen": 1795746064.5568838,
     "ast_hash": "36be5d6bd68d6691361d1fcde7f1be27",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/settling.ts": {
-    "mtime": 1795575641.9829192,
-    "seen": 1795583450.6277683,
+    "mtime": 1795746051.0010285,
+    "seen": 1795746064.55689,
     "ast_hash": "c50a5217693a2c71ea88225191259838",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/gas-rates.ts": {
-    "mtime": 1795582681.6785061,
-    "seen": 1795583450.6277647,
+    "mtime": 1795746051.0005212,
+    "seen": 1795746064.5568857,
     "ast_hash": "d8399f2fba33d6de834117cce35e4e20",
     "semantic_hash": ""
   },
   "src/auth/dto/set-password.dto.ts": {
-    "mtime": 1795582085.0394142,
-    "seen": 1795583450.6275482,
+    "mtime": 1795746050.9742544,
+    "seen": 1795746064.5565045,
     "ast_hash": "17676dfb74e54d57728b41ca07dc76ad",
     "semantic_hash": ""
   },
   "src/auth/guards/permission.guard.spec.ts": {
-    "mtime": 1795582734.4697373,
-    "seen": 1795583450.627557,
+    "mtime": 1795746050.9748828,
+    "seen": 1795746064.5565152,
     "ast_hash": "e9e3b0b7b50ebacc31107501d9ef6f01",
     "semantic_hash": ""
   },
   "src/auth/guards/permission.guard.ts": {
-    "mtime": 1795582629.713264,
-    "seen": 1795583450.6275587,
+    "mtime": 1795746050.9752026,
+    "seen": 1795746064.5565178,
     "ast_hash": "1f378f2abfb91564606320791972d0c6",
     "semantic_hash": ""
   },
   "src/auth/security.spec.ts": {
-    "mtime": 1795582141.3099506,
-    "seen": 1795583450.6275644,
+    "mtime": 1795746050.9757204,
+    "seen": 1795746064.556527,
     "ast_hash": "dac20c5ed5b11f406a5973e52a53bdb4",
     "semantic_hash": ""
   },
   "src/common/mail/index.ts": {
-    "mtime": 1795582069.0134122,
-    "seen": 1795583450.6275764,
+    "mtime": 1795746050.9766932,
+    "seen": 1795746064.556558,
     "ast_hash": "f281d2c20f42c19da8050395b42d8fd8",
     "semantic_hash": ""
   },
   "src/common/mail/mail.service.ts": {
-    "mtime": 1795582085.4834142,
-    "seen": 1795583450.6275778,
-    "ast_hash": "404e8eda9731fa8d5846ff5d14e6b2e5",
+    "mtime": 1795746050.9773583,
+    "seen": 1795746064.5565608,
+    "ast_hash": "3b233bc072c849dde3fb6dd51262d8cb",
     "semantic_hash": ""
   },
   "src/common/pdf/index.ts": {
-    "mtime": 1795582464.5813801,
-    "seen": 1795583450.6275878,
+    "mtime": 1795746050.978101,
+    "seen": 1795746064.5565753,
     "ast_hash": "c18d04fa03669069842c86aec6365542",
     "semantic_hash": ""
   },
   "src/common/pdf/pdf.service.ts": {
-    "mtime": 1795583226.3858626,
-    "seen": 1795583450.6275892,
+    "mtime": 1795746050.9784307,
+    "seen": 1795746064.5565777,
     "ast_hash": "117f89e10ad2123c1edcddd8b9909716",
     "semantic_hash": ""
   },
   "src/common/utlis/seed-password.ts": {
-    "mtime": 1795581701.5693767,
-    "seen": 1795583450.627597,
+    "mtime": 1795746050.9788063,
+    "seen": 1795746064.556589,
     "ast_hash": "fa36e2ed48068dd28df7ad67ed288142",
     "semantic_hash": ""
   },
   "src/migrations/1794200000000-SecurityHardening.ts": {
-    "mtime": 1795581743.5179431,
-    "seen": 1795583450.627623,
+    "mtime": 1795746050.982145,
+    "seen": 1795746064.5566258,
     "ast_hash": "703393b0c83692da115d2c80e71b0d44",
     "semantic_hash": ""
   },
   "src/migrations/1794200000001-RotateDefaultPasswords.ts": {
-    "mtime": 1795581743.5195887,
-    "seen": 1795583450.6276245,
+    "mtime": 1795746050.982432,
+    "seen": 1795746064.5566282,
     "ast_hash": "7c79f22013cb1b6406eca7ef542a380b",
     "semantic_hash": ""
   },
   "src/migrations/1794200000002-PasswordSetupToken.ts": {
-    "mtime": 1795582085.8664143,
-    "seen": 1795583450.627626,
+    "mtime": 1795746050.9827135,
+    "seen": 1795746064.5566316,
     "ast_hash": "338df233630c840b9976dc3ebb522ece",
     "semantic_hash": ""
   },
   "src/migrations/1794200000003-UserPermissionsAndSettings.ts": {
-    "mtime": 1795582697.6735775,
-    "seen": 1795583450.6276276,
+    "mtime": 1795746050.9830089,
+    "seen": 1795746064.5566342,
     "ast_hash": "49aa70f61d7cd71b44e3144d77925923",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/dto/thermal-input.dto.ts": {
-    "mtime": 1795583714.668738,
-    "seen": 1795583918.239997,
+    "mtime": 1795746050.98646,
+    "seen": 1795746064.5567336,
     "ast_hash": "fbb7334189b0eef0bb4968cd0731a384",
     "semantic_hash": ""
   },
   "src/repositories/settings/settings.controller.ts": {
-    "mtime": 1795582389.8089104,
-    "seen": 1795583450.627726,
+    "mtime": 1795746050.9915397,
+    "seen": 1795746064.5567987,
     "ast_hash": "ab83b98d525f1b7ff691abd720876eaf",
     "semantic_hash": ""
   },
   "src/repositories/settings/settings.dto.ts": {
-    "mtime": 1795582630.584268,
-    "seen": 1795583450.6277282,
+    "mtime": 1795746050.9918535,
+    "seen": 1795746064.5568025,
     "ast_hash": "2a3a435a8e5cdabdc39a1b00261a2c2c",
     "semantic_hash": ""
   },
   "src/repositories/settings/settings.entity.ts": {
-    "mtime": 1795582389.7929103,
-    "seen": 1795583450.62773,
+    "mtime": 1795746050.9918535,
+    "seen": 1795746064.5568054,
     "ast_hash": "81461192a5679b71cdb18e1e3475938e",
     "semantic_hash": ""
   },
   "src/repositories/settings/settings.module.ts": {
-    "mtime": 1795582389.8159106,
-    "seen": 1795583450.627731,
+    "mtime": 1795746050.9924927,
+    "seen": 1795746064.5568078,
     "ast_hash": "5b56c917a216bb12b6425168f9335919",
     "semantic_hash": ""
   },
   "src/repositories/settings/settings.service.ts": {
-    "mtime": 1795583226.3860888,
-    "seen": 1795583450.6277325,
+    "mtime": 1795746050.9927492,
+    "seen": 1795746064.55681,
     "ast_hash": "284efba4c9aec95f37d44427d3f31c9f",
     "semantic_hash": ""
   },
   "src/repositories/trials/trial-report.spec.ts": {
-    "mtime": 1795582734.4907374,
-    "seen": 1795583450.6278307,
+    "mtime": 1795746051.0041215,
+    "seen": 1795746064.5570123,
     "ast_hash": "b11edbd10c197e491ce63254e927dee0",
     "semantic_hash": ""
   },
   "src/repositories/trials/trials.dto.ts": {
-    "mtime": 1795583475.4380236,
-    "seen": 1795583918.2401452,
+    "mtime": 1795746051.0047932,
+    "seen": 1795746064.5570183,
     "ast_hash": "336d3e2c2049389168c0e8d8ce810eac",
     "semantic_hash": ""
   },
   "src/repositories/users/roles.spec.ts": {
-    "mtime": 1795582141.3097367,
-    "seen": 1795583450.6278496,
+    "mtime": 1795746051.0089424,
+    "seen": 1795746064.5570607,
     "ast_hash": "58b4ae33884c997ecadd7399f263a4a1",
     "semantic_hash": ""
   },
   "src/migrations/1794200000004-CompleteApi12lTreatmentOptions.ts": {
-    "mtime": 1795583870.8746576,
-    "seen": 1795583918.2399511,
+    "mtime": 1795746050.9832985,
+    "seen": 1795746064.5566409,
     "ast_hash": "25fe1b20330577145de325d2c89ca3fc",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/api12l.tables.spec.ts": {
-    "mtime": 1795742785.9876907,
-    "seen": 1795742815.309381,
+    "mtime": 1795746050.986647,
+    "seen": 1795746064.5567558,
     "ast_hash": "c3d6d89faebcbfe405e4f4b65a479737",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/api12l.tables.ts": {
-    "mtime": 1795742906.446572,
-    "seen": 1795744702.5296896,
+    "mtime": 1795746050.9871624,
+    "seen": 1795746064.5567598,
     "ast_hash": "88f65e9d9fdd26ffb73bddec45942f8d",
     "semantic_hash": ""
   },
   "docs/normas/README.md": {
-    "mtime": 1795742906.4741666,
-    "seen": 1795744702.5298626,
+    "mtime": 1795746050.871943,
+    "seen": 1795746064.5571115,
     "ast_hash": "41cac710ed7d01386f073558f987dc09",
     "semantic_hash": ""
   },
   "docs/normas/API-Spec-12L-1994.pdf": {
-    "mtime": 1794014303.7012212,
-    "seen": 1795744702.5298758,
+    "mtime": 1795746050.8699658,
+    "seen": 1795746064.5571308,
     "ast_hash": "0a39a9e98919f8b63bedb9dca5611a9d",
     "semantic_hash": ""
   },
+  "railway.json": {
+    "mtime": 1795746610.0938644,
+    "seen": 1795746785.5973682,
+    "ast_hash": "b252166469d69a77a05303fb06fd4caa",
+    "semantic_hash": ""
+  },
+  "src/common/config/apply-database-url.spec.ts": {
+    "mtime": 1795746479.3160474,
+    "seen": 1795746785.5974097,
+    "ast_hash": "d2527dda14f4dac747dc0c1cf7e319fb",
+    "semantic_hash": ""
+  },
+  "src/common/config/apply-database-url.ts": {
+    "mtime": 1795746479.315652,
+    "seen": 1795746785.5974114,
+    "ast_hash": "a1a092b603fd2e43fa9e9efabc95f467",
+    "semantic_hash": ""
+  },
+  "docs/RAILWAY.md": {
+    "mtime": 1795746718.3736267,
+    "seen": 1795746785.5976503,
+    "ast_hash": "43217577f250e005ad88e42c35f489fc",
+    "semantic_hash": ""
+  },
+  "src/migrations/1794200000005-AuditLogs.ts": {
+    "mtime": 1795746286.9763353,
+    "seen": 1795746785.597463,
+    "ast_hash": "43df5cc1b9e7e45077d9971c493e0377",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit-log.entity.ts": {
+    "mtime": 1795746287.826339,
+    "seen": 1795746785.597464,
+    "ast_hash": "65d1ddca8763c1fbb2fdd95cf67141c3",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit.controller.ts": {
+    "mtime": 1795746287.855339,
+    "seen": 1795746785.5974653,
+    "ast_hash": "b281de754b3abb39a13c3e723459eaed",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit.dto.ts": {
+    "mtime": 1795746287.8863392,
+    "seen": 1795746785.5974665,
+    "ast_hash": "0443b61d3299995c203dad5a6586a402",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit.interceptor.ts": {
+    "mtime": 1795746287.9273396,
+    "seen": 1795746785.5974677,
+    "ast_hash": "a814ecf255d5c79f9db3117442e8869a",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit.module.ts": {
+    "mtime": 1795746226.735046,
+    "seen": 1795746785.5974686,
+    "ast_hash": "fa63a726785843927f1634afb07fac7f",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit.service.spec.ts": {
+    "mtime": 1795746574.0223095,
+    "seen": 1795746785.5974693,
+    "ast_hash": "8a79e34e2998088ad00bead20a8aaf87",
+    "semantic_hash": ""
+  },
+  "src/repositories/audit/audit.service.ts": {
+    "mtime": 1795746287.9786336,
+    "seen": 1795746785.5974708,
+    "ast_hash": "2a98217bcb61bb55bcf76e1af8011894",
+    "semantic_hash": ""
+  },
   "package-lock.json": {
-    "mtime": 1795582428.093157,
-    "seen": 1795583450.6278896,
+    "mtime": 1795746050.9696546,
+    "seen": 1795746064.5571353,
     "ast_hash": "18de4c6e4276570205aa35c4006a746a",
     "semantic_hash": ""
   }

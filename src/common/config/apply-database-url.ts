@@ -27,11 +27,17 @@ export function applyDatabaseEnv(
     }
   }
 
-  env.DB_HOST ||= env.PGHOST;
-  env.DB_PORT ||= env.PGPORT;
-  env.DB_USER ||= env.PGUSER;
-  env.DB_PASSWORD ||= env.PGPASSWORD;
-  env.DB_NAME ||= env.PGDATABASE;
+  // Solo si PG* existe: asignar undefined a process.env escribe el texto "undefined"
+  const fallback: [string, string][] = [
+    ['DB_HOST', 'PGHOST'],
+    ['DB_PORT', 'PGPORT'],
+    ['DB_USER', 'PGUSER'],
+    ['DB_PASSWORD', 'PGPASSWORD'],
+    ['DB_NAME', 'PGDATABASE'],
+  ];
+  for (const [db, pg] of fallback) {
+    if (!env[db] && env[pg]) env[db] = env[pg];
+  }
 
   // Certificados gestionados de Railway: no exigir CA local.
   if (env.DB_SSL === 'true' && env.DB_SSL_REJECT_UNAUTHORIZED == null) {

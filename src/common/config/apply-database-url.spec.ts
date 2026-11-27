@@ -28,4 +28,11 @@ describe('applyDatabaseEnv', () => {
     expect(env.DB_HOST).toBe('pghost');
     expect(env.DB_NAME).toBe('pgdb');
   });
+
+  it('no escribe "undefined" cuando no hay DATABASE_URL ni PG*', () => {
+    const env: NodeJS.ProcessEnv = {};
+    applyDatabaseEnv(env);
+    expect(env.DB_HOST).toBeUndefined();
+    expect('DB_HOST' in env).toBe(false);
+  });
 });

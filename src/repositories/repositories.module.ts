@@ -8,6 +8,8 @@ import { DevicesModule } from './devices/devices.module';
 import { TrialsModule } from './trials/trials.module';
 import { SimulationModule } from './simulation/simulation.module';
 import { SettingsModule } from './settings/settings.module';
+import { AuditModule } from './audit/audit.module';
+import { BackupsModule } from './backups/backups.module';
 
 @Module({
   imports: [
@@ -19,6 +21,8 @@ import { SettingsModule } from './settings/settings.module';
     TrialsModule,
     SimulationModule,
     SettingsModule,
+    AuditModule,
+    BackupsModule,
   ],
 })
 export class RepositoriesModule {}

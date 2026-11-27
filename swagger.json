@@ -1,6 +1,20 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/health": {
+      "get": {
+        "operationId": "AppController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
     "/": {
       "get": {
         "operationId": "AppController_getHello",
@@ -4338,6 +4352,393 @@
         "summary": "Calcular tratador térmico",
         "tags": [
           "Simulation - Equipment"
+        ]
+      }
+    },
+    "/audit-logs": {
+      "get": {
+        "operationId": "AuditController_find",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "maximum": 200,
+              "default": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "LOGIN_FAILED",
+              "type": "string"
+            }
+          },
+          {
+            "name": "resource",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "trials",
+              "type": "string"
+            }
+          },
+          {
+            "name": "method",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ]
+            }
+          },
+          {
+            "name": "success",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "ISO 8601",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "ISO 8601",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Busca en ruta o email",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPageDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar registros de auditoría (filtros y paginación)",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/audit-logs/{id}": {
+      "get": {
+        "operationId": "AuditController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditLog"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Detalle de un registro de auditoría",
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/backups": {
+      "get": {
+        "operationId": "BackupsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BackupDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Listar respaldos (más reciente primero)",
+        "tags": [
+          "Backups"
+        ]
+      },
+      "post": {
+        "description": "pg_dump formato custom; excluye la auditoría. Guarda SHA-256 para verificar integridad.",
+        "operationId": "BackupsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBackupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Otra operación en curso"
+          },
+          "503": {
+            "description": "pg_dump no disponible o falló"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear respaldo de la base de datos",
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/backups/{id}": {
+      "get": {
+        "operationId": "BackupsController_get",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BackupDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Metadatos de un respaldo",
+        "tags": [
+          "Backups"
+        ]
+      },
+      "delete": {
+        "operationId": "BackupsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Eliminado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un respaldo",
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/backups/{id}/download": {
+      "get": {
+        "operationId": "BackupsController_download",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Descargar el archivo del respaldo",
+        "tags": [
+          "Backups"
+        ]
+      }
+    },
+    "/backups/{id}/restore": {
+      "post": {
+        "description": "Requiere contraseña del admin y repetir el id. Verifica SHA-256, toma un respaldo de seguridad, restaura en una transacción, aplica migraciones y cierra todas las sesiones. La auditoría no se modifica.",
+        "operationId": "BackupsController_restore",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreBackupDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Confirmación no coincide"
+          },
+          "401": {
+            "description": "Contraseña incorrecta"
+          },
+          "409": {
+            "description": "Integridad fallida u operación en curso"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Restaurar la base de datos desde un respaldo",
+        "tags": [
+          "Backups"
         ]
       }
     }
@@ -9335,6 +9736,197 @@
           "treatmentTemperature",
           "ambientTemperature",
           "operatingPressure"
+        ]
+      },
+      "AuditLog": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "userEmail": {
+            "type": "string"
+          },
+          "userRole": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string",
+            "example": "UPDATE",
+            "description": "CREATE | UPDATE | DELETE | READ | LOGIN | LOGIN_FAILED | LOGOUT | …"
+          },
+          "resource": {
+            "type": "string",
+            "example": "trials"
+          },
+          "resourceId": {
+            "type": "string",
+            "example": "7"
+          },
+          "method": {
+            "type": "string",
+            "example": "PATCH"
+          },
+          "path": {
+            "type": "string",
+            "example": "/api/trials/7"
+          },
+          "statusCode": {
+            "type": "number"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "durationMs": {
+            "type": "number"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "description": "Cuerpo de la petición saneado (secretos enmascarados, truncado)"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "action",
+          "resource",
+          "method",
+          "path",
+          "statusCode",
+          "success",
+          "durationMs"
+        ]
+      },
+      "AuditPageDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLog"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit"
+        ]
+      },
+      "BackupDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "termolab-20261126T221500Z-a1b2c3.dump"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "manual",
+              "pre-restore"
+            ]
+          },
+          "size": {
+            "type": "number",
+            "description": "Bytes"
+          },
+          "sha256": {
+            "type": "string",
+            "description": "SHA-256 del archivo (se verifica antes de restaurar)"
+          },
+          "createdById": {
+            "type": "number"
+          },
+          "createdByEmail": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "kind",
+          "size",
+          "sha256"
+        ]
+      },
+      "CreateBackupDto": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "example": "Antes de cargar datos de campo"
+          }
+        }
+      },
+      "RestoreBackupDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "description": "Contraseña del administrador (re-autenticación)"
+          },
+          "confirm": {
+            "type": "string",
+            "description": "Repetir el id del respaldo para confirmar"
+          }
+        },
+        "required": [
+          "password",
+          "confirm"
+        ]
+      },
+      "RestoreResultDto": {
+        "type": "object",
+        "properties": {
+          "restored": {
+            "type": "string"
+          },
+          "safetyBackup": {
+            "type": "string",
+            "description": "Respaldo automático tomado justo antes de restaurar"
+          },
+          "migrationsApplied": {
+            "description": "Migraciones aplicadas tras restaurar",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "restored",
+          "safetyBackup",
+          "migrationsApplied"
         ]
       }
     }

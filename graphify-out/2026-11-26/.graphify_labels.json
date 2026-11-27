@@ -6,14 +6,11 @@
   "6": "package.json",
   "8": "dependencies",
   "10": "DevicesService",
-  "11": "QueryBaseDto",
   "12": "scripts",
-  "14": "treatments.service.ts",
   "15": "additionalProperties",
   "18": "app.module.ts",
   "21": "CurrentUser",
   "23": "compilerOptions",
-  "24": "README.md",
   "25": "BaseResponseDto",
   "27": "thermal-analysis.service.ts",
   "29": "Evaluation",
@@ -52,7 +49,5 @@
   "78": ".eslintrc.js",
   "83": "simulation-runner.ts",
   "84": "AddDevices1794006813002",
-  "85": "UsersService",
-  "87": ".changePassword",
-  "99": "SimulationService"
+  "87": ".changePassword"
 }
