@@ -8,9 +8,24 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { applyDatabaseEnv } from './common/config/apply-database-url';
 import { RepositoriesModule } from './repositories/repositories.module';
 
 function validateEnv(config: Record<string, unknown>) {
+  // ConfigModule pasa un snapshot; sincronizar también process.env.
+  applyDatabaseEnv(process.env);
+  for (const key of [
+    'DB_HOST',
+    'DB_PORT',
+    'DB_USER',
+    'DB_PASSWORD',
+    'DB_NAME',
+    'DB_SSL',
+    'DB_SSL_REJECT_UNAUTHORIZED',
+  ] as const) {
+    if (process.env[key] != null) config[key] = process.env[key];
+  }
+
   const required = [
     'JWT_SECRET',
     'COOKIE_SECRET',

@@ -1,7 +1,10 @@
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 
+import { applyDatabaseEnv } from './src/common/config/apply-database-url';
+
 config();
+applyDatabaseEnv();
 
 export default new DataSource({
   type: 'postgres',

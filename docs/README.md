@@ -29,3 +29,5 @@ Origen del plan (borrador interactivo): [artefacto Claude](https://claude.ai/art
 ## Grafo del código
 
 Tras cambios relevantes en el código, actualizar el knowledge graph con `graphify update .` (salida en `graphify-out/`). Ver también `graphify-out/GRAPH_REPORT.md`.
+
+- **[Despliegue Railway](./RAILWAY.md)** — Postgres + API + Web (nginx).

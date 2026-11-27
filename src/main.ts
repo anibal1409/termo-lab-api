@@ -10,6 +10,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { applyDatabaseEnv } from './common/config/apply-database-url';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 /** Comparación en tiempo constante (evita ataques de temporización). */
@@ -29,7 +30,9 @@ function assertProductionConfig(): void {
     }
   }
   if (!process.env.CORS_ORIGIN) errors.push('CORS_ORIGIN es obligatorio');
-  if (!process.env.SMTP_HOST) errors.push('SMTP_HOST es obligatorio');
+  if (!process.env.SMTP_HOST && process.env.SMTP_OPTIONAL !== 'true') {
+    errors.push('SMTP_HOST es obligatorio (o SMTP_OPTIONAL=true)');
+  }
   if (!process.env.FRONTEND_URL?.startsWith('https://')) {
     errors.push('FRONTEND_URL debe ser https://');
   }
@@ -73,6 +76,7 @@ function authRateLimit(maxAttempts = 10, windowMs = 15 * 60_000) {
 }
 
 async function bootstrap() {
+  applyDatabaseEnv();
   assertProductionConfig();
 
   const app = await NestFactory.create(AppModule, {

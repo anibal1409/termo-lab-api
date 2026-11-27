@@ -3,8 +3,8 @@ import { createTransport, Transporter } from 'nodemailer';
 import { Injectable, Logger } from '@nestjs/common';
 
 /**
- * Envío SMTP. Sin SMTP_HOST (local) el correo se escribe en el log en vez de enviarse.
- * En producción SMTP_HOST es obligatorio (lo valida main.ts al arrancar).
+ * Envío SMTP. Sin SMTP_HOST el correo se escribe en el log.
+ * En producción hace falta SMTP_HOST, salvo SMTP_OPTIONAL=true (primer deploy).
  */
 @Injectable()
 export class MailService {
