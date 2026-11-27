@@ -588,9 +588,9 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/thermal-calculator.service.ts": {
-    "mtime": 1795583691.01951,
-    "seen": 1795583918.2400274,
-    "ast_hash": "d3ffd67e0c06ed838c68f8527e7e0196",
+    "mtime": 1795742785.9808502,
+    "seen": 1795742815.3094106,
+    "ast_hash": "cbfc76b04026da50c2d053acb5155a35",
     "semantic_hash": ""
   },
   "src/repositories/index.ts": {
@@ -1037,12 +1037,6 @@
     "ast_hash": "a85c7dc2ae0bd7ec2e7548e16ea98b8d",
     "semantic_hash": ""
   },
-  "api-12l-standard.pdf": {
-    "mtime": 1794014303.7012212,
-    "seen": 1794015495.2510383,
-    "ast_hash": "0a39a9e98919f8b63bedb9dca5611a9d",
-    "semantic_hash": ""
-  },
   "document.pdf": {
     "mtime": 1794014303.7137537,
     "seen": 1794015495.2510393,
@@ -1110,9 +1104,9 @@
     "semantic_hash": ""
   },
   "docs/README.md": {
-    "mtime": 1794014395.261666,
-    "seen": 1794015495.251027,
-    "ast_hash": "69df886a3aebb263ef303853a31f84da",
+    "mtime": 1795742906.488269,
+    "seen": 1795744702.529861,
+    "ast_hash": "05a0cd2fe6b98883c4bf6e63e706c4ec",
     "semantic_hash": ""
   },
   "src/migrations/1794021872972-AddTrials.ts": {
@@ -1242,15 +1236,15 @@
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/thermal-treater.ts": {
-    "mtime": 1795583708.8770242,
-    "seen": 1795583918.2400584,
-    "ast_hash": "483b6622374a04ff6a644539ffee7ebd",
+    "mtime": 1795744684.2878172,
+    "seen": 1795744702.529734,
+    "ast_hash": "3896da5f383dd3f58cab4d83ee82a5e6",
     "semantic_hash": ""
   },
   "src/repositories/simulation/runner/simulation-runner.ts": {
-    "mtime": 1795582677.4995406,
-    "seen": 1795583450.6277502,
-    "ast_hash": "0b0e6b86b99af47e4d5aabbe582df052",
+    "mtime": 1795744577.8517725,
+    "seen": 1795744702.529737,
+    "ast_hash": "d14283e6264d6bb6d44a75cd362766be",
     "semantic_hash": ""
   },
   "src/repositories/simulation/runner/stream.ts": {
@@ -1326,9 +1320,9 @@
     "semantic_hash": ""
   },
   "src/repositories/simulation/equipment/thermal-treater.spec.ts": {
-    "mtime": 1795582676.3719027,
-    "seen": 1795583450.6277459,
-    "ast_hash": "4dfcfd00f41cd78c01df6a8c41c4dc4d",
+    "mtime": 1795744631.1748052,
+    "seen": 1795744702.5297325,
+    "ast_hash": "36dd7ea9752260ef916f0836e923f5ec",
     "semantic_hash": ""
   },
   "src/repositories/simulation/thermo/gas-props.ts": {
@@ -1488,15 +1482,27 @@
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/api12l.tables.spec.ts": {
-    "mtime": 1795583775.853375,
-    "seen": 1795583918.240011,
-    "ast_hash": "56a7a64b8b67e883f1cad1a2f5411cf5",
+    "mtime": 1795742785.9876907,
+    "seen": 1795742815.309381,
+    "ast_hash": "c3d6d89faebcbfe405e4f4b65a479737",
     "semantic_hash": ""
   },
   "src/repositories/evaluations/services/api12l.tables.ts": {
-    "mtime": 1795583668.8354619,
-    "seen": 1795583918.240013,
-    "ast_hash": "3369d9514a8d393fb7af29d61949ca62",
+    "mtime": 1795742906.446572,
+    "seen": 1795744702.5296896,
+    "ast_hash": "88f65e9d9fdd26ffb73bddec45942f8d",
+    "semantic_hash": ""
+  },
+  "docs/normas/README.md": {
+    "mtime": 1795742906.4741666,
+    "seen": 1795744702.5298626,
+    "ast_hash": "41cac710ed7d01386f073558f987dc09",
+    "semantic_hash": ""
+  },
+  "docs/normas/API-Spec-12L-1994.pdf": {
+    "mtime": 1794014303.7012212,
+    "seen": 1795744702.5298758,
+    "ast_hash": "0a39a9e98919f8b63bedb9dca5611a9d",
     "semantic_hash": ""
   },
   "package-lock.json": {
