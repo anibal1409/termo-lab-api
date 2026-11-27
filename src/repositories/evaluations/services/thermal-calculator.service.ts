@@ -820,10 +820,19 @@ export class ThermalCalculatorService {
 
     // 36. Seleccionar dimensiones recomendadas según API-12L
     const vesselOrientation = input.vesselOrientation || 'horizontal';
+    // Apéndice D: el dimensionamiento se basa en el caudal instantáneo máximo
+    // (maxTotalFlow/maxWaterFraction; si no vienen, coinciden con los de operación)
     const dimensionalRecommendation = this.selectOptimalDimensions(
-      results.processHeatDuty,
-      results.dryOilFlowRate,
-      results.waterFlowRate,
+      this.calculateProcessHeatDuty(
+        maxOilMassFlow,
+        maxWaterMassFlow,
+        input.inletTemperature,
+        treatmentTemperature,
+        oilSpecificHeat,
+        waterSpecificHeat,
+      ),
+      maxOilFlowRate,
+      maxWaterFlowRate,
       input.oilRetentionTime ?? 60,
       input.waterRetentionTime ?? 30,
       (d, l) =>
@@ -1523,6 +1532,26 @@ export class ThermalCalculatorService {
         `Presión de operación ${input.operatingPressure.toFixed(1)} psig > presión de diseño API-12L ${results.recommendedDesignPressure} psig: requiere recipiente de mayor clase`,
       );
       pressureCompliant = false;
+    }
+
+    // Rangos típicos de la norma: solo advierten, no hacen fallar el cumplimiento
+    const t2 = input.treatmentTemperature ?? input.inletTemperature + 65;
+    if (t2 < 100 || t2 > 250) {
+      warnings.push(
+        `Temperatura de tratamiento ${t2} °F fuera del rango típico API-12L (100–250 °F, A.2)`,
+      );
+    }
+    const ro = input.oilRetentionTime;
+    if (ro != null && (ro < 30 || ro > 100)) {
+      warnings.push(
+        `Retención de crudo ${ro} min fuera del rango típico API-12L (30–100 min, A.3)`,
+      );
+    }
+    const rw = input.waterRetentionTime;
+    if (rw != null && (rw < 15 || rw > 30)) {
+      warnings.push(
+        `Retención de agua ${rw} min fuera del rango típico API-12L (15–30 min, A.3)`,
+      );
     }
 
     // Apéndice D: viscosidad máx. ≈ 150 SSU (25–30 cP) a T de tratamiento. Solo advierte.

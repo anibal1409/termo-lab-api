@@ -82,3 +82,40 @@ describe('API-12L (valores de la norma)', () => {
     });
   });
 });
+
+describe('API-12L: dimensionamiento a caudal máximo (Apéndice D)', () => {
+  const calc = new ThermalCalculatorService();
+  const base = {
+    diameter: 4,
+    length: 15,
+    totalFlow: 400,
+    waterFraction: 10,
+    apiGravity: 35,
+    inletTemperature: 70,
+    treatmentTemperature: 120,
+    ambientTemperature: 30,
+    operatingPressure: 50,
+    oilRetentionTime: 60,
+    waterRetentionTime: 30,
+    windSpeed: 10,
+  };
+
+  it('un pico de caudal exige un tratador mayor', () => {
+    const normal = calc.calculateThermalResults(base);
+    const peak = calc.calculateThermalResults({ ...base, maxTotalFlow: 1200 });
+    expect(peak.recommendedDiameter * peak.recommendedLength).toBeGreaterThan(
+      normal.recommendedDiameter * normal.recommendedLength,
+    );
+  });
+
+  it('advierte fuera de rangos típicos sin hacer fallar', () => {
+    const r = calc.calculateThermalResults({
+      ...base,
+      treatmentTemperature: 90,
+      oilRetentionTime: 20,
+    });
+    const w = r.complianceWarnings.join(' | ');
+    expect(w).toContain('100–250 °F');
+    expect(w).toContain('30–100 min');
+  });
+});

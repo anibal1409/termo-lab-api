@@ -16,6 +16,7 @@ Origen del plan (borrador interactivo): [artefacto Claude](https://claude.ai/art
 |-----------|-----------|
 | [Fórmulas implementadas](../FORMULAS_IMPLEMENTADAS.md) | Ecuaciones API 12L implementadas en el motor térmico, por módulo |
 | [Scripts del cliente API](../API_CLIENT_SCRIPTS.md) | Generación de Swagger y cliente TypeScript/Angular |
+| [Normas de referencia — API Spec 12L](./normas/README.md) | PDF de la norma (1994) y mapa de cada sección al código que la aplica |
 
 ## Código relacionado con el plan
 

@@ -1,5 +1,5 @@
 /**
- * Tablas de API Spec 12L (1994), transcritas de api-12l-standard.pdf.
+ * Tablas de API Spec 12L (1994), transcritas de docs/normas/API-Spec-12L-1994.pdf.
  * Única fuente de verdad para calculador, simulador y tratamientos.
  */
 
